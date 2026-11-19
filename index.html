@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flâmula — protótipo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE everyday/occasion: acervo vexilológico com vitrine de comunidade, estilo CardArt
+   IDEA um museu de bandeiras em vitrines de vidro: cada bandeira em seu pedestal translúcido
+   PICTURE hero com a bandeira do dia tremulando sobre céu de crepúsculo; na galeria, as próprias bandeiras
+   COLOUR céu crepuscular no hero; base neutra quente/grafite na galeria para não competir com as cores das bandeiras; acento laranja
+   TYPE Unbounded (display) + Manrope (texto)
+   LAYOUT nav em pílula flutuante; hero com título à esquerda e vitrine à direita; mobile empilha e usa dock inferior com FAB Criar */
+:root{color-scheme:light dark;--bg:light-dark(#eceae6,#0d0e11);--ink:light-dark(#141518,#f1f0ec);--mut:light-dark(#5d5f66,#a3a5ad);--glass:light-dark(rgba(255,255,255,.62),rgba(30,32,39,.62));--line:light-dark(rgba(0,0,0,.09),rgba(255,255,255,.1));--stage:light-dark(#f8f7f4,#181a20);--chip:light-dark(rgba(0,0,0,.05),rgba(255,255,255,.07));--acc:#ff5a1f;--acc-ink:#fff}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html{scroll-padding-top:90px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Manrope,system-ui,sans-serif;overflow-x:clip}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;cursor:pointer}
+h1,h2,h3{font-family:Unbounded,Manrope,sans-serif;font-weight:600;letter-spacing:-.02em;line-height:1.08;margin:0;text-wrap:balance}
+h2{font-size:clamp(22px,2.6vw,30px)}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:max(4vw,16px)}
+.ico{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+/* nav */
+.nav{position:sticky;top:12px;z-index:20;padding-inline:max(4vw,16px);margin-top:12px}
+.pill{max-width:1240px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:8px 8px 8px 18px;border-radius:999px;background:var(--glass);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);border:1px solid var(--line);box-shadow:0 8px 30px rgba(0,0,0,.12)}
+.logo{display:flex;align-items:center;gap:8px;font:600 17px Unbounded,sans-serif;letter-spacing:-.02em}
+.links{display:flex;gap:2px;margin-inline:auto}
+.links a,.links button{padding:10px 16px;border-radius:999px;border:0;background:none;font-weight:600;font-size:15px;color:var(--mut)}
+.links a:hover,.links button:hover{color:var(--ink);background:var(--chip)}
+.links a.on{color:var(--ink);background:var(--chip)}
+.act{display:flex;gap:6px;align-items:center}
+.ic{width:44px;height:44px;border-radius:999px;border:0;background:var(--chip);display:grid;place-items:center}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 20px;border-radius:999px;border:1px solid transparent;background:var(--ink);color:var(--bg);font-weight:700;font-size:15px;white-space:nowrap}
+.btn.acc{background:var(--acc);color:var(--acc-ink)}
+.btn.gh{background:var(--chip);color:var(--ink);border-color:var(--line)}
+.btn:hover{filter:brightness(1.08)}
+.dock{display:none}
+/* hero */
+.hero{position:relative;margin-top:-80px;padding:130px 0 56px;color:#fff;background:linear-gradient(180deg,#141d36 0%,#2e3263 38%,#8a4f6e 68%,#e07a4f 88%,#f4a960 100%);overflow:hidden}
+.hero>svg.hills{position:absolute;left:0;right:0;bottom:0;width:100%;height:120px}
+.hgrid{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:28px;align-items:center}
+.hero h1{font-size:clamp(34px,4.6vw,56px)}
+.hero p{font-size:17px;max-width:46ch;color:rgba(255,255,255,.86);margin:18px 0 26px}
+.hero .btn.gh{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.28);color:#fff}
+.stats{display:flex;flex-wrap:wrap;gap:28px;margin-top:34px}
+.stats b{display:block;font:600 26px Unbounded,sans-serif}
+.stats span{font-size:14px;color:rgba(255,255,255,.75)}
+.vit{border-radius:32px;padding:22px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.26);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 30px 60px rgba(10,10,30,.35)}
+.vit .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.vit .top small{display:block;color:rgba(255,255,255,.75);font-size:14px}
+.vit .top b{font:600 22px Unbounded,sans-serif}
+.wave{display:block;width:100%;height:auto;margin:14px 0 6px}
+.wv{animation:wv 2.6s ease-in-out infinite alternate}
+@keyframes wv{from{transform:translateY(-7px)}to{transform:translateY(7px)}}
+@media(prefers-reduced-motion:reduce){.wv{animation:none}}
+.round{width:52px;height:52px;border-radius:999px;display:grid;place-items:center;background:#fff;color:#141518;flex:none}
+/* sections */
+.sec{padding-top:52px;padding-bottom:8px}
+.shead{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.shead p{margin:6px 0 0;color:var(--mut)}
+.more{font-weight:700;color:var(--acc);white-space:nowrap}
+.bento{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.cat{position:relative;border-radius:26px;padding:20px;background:var(--stage);border:1px solid var(--line);display:flex;flex-direction:column;gap:14px;min-height:190px;text-align:left;transition:transform .2s}
+.cat:hover{transform:translateY(-3px)}
+.cat.big{grid-column:span 2;grid-row:span 2}
+.cat b{font:600 20px Unbounded,sans-serif}
+.cat span{color:var(--mut);font-size:14px}
+.minis{display:flex;flex-wrap:wrap;gap:10px;margin-top:auto}
+.minis svg{height:38px;width:auto}
+.cat.big .minis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:end}.cat.big .minis svg{height:auto;width:100%;max-height:96px}
+.cat.soon{border-style:dashed}
+.fl{filter:drop-shadow(0 0 .6px rgba(0,0,0,.45)) drop-shadow(0 6px 12px rgba(0,0,0,.14))}
+.row{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(220px,1fr);gap:14px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x mandatory}
+.row>*{scroll-snap-align:start}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.card{display:flex;flex-direction:column;border-radius:24px;background:var(--stage);border:1px solid var(--line);overflow:hidden;transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-3px);box-shadow:0 16px 34px rgba(0,0,0,.12)}
+.stg{aspect-ratio:4/3;display:grid;place-items:center;padding:22px;background:radial-gradient(120% 90% at 50% 0%,color-mix(in srgb,var(--ink) 4%,transparent),transparent)}
+.stg svg{max-width:100%;max-height:100%;width:auto;height:auto}
+.stg svg.fl{width:100%;height:100%}
+.stg img{display:block;max-width:100%;max-height:100%;width:auto;height:auto}
+.stg{overflow:hidden}
+.minis img{height:38px;width:auto}
+.cat.big .minis img{height:auto;width:100%;max-height:96px;object-fit:contain}
+.dstage img{width:100%;height:100%;object-fit:contain}
+.meta{padding:2px 16px 0}
+.meta b{display:block;font-size:16px;line-height:1.3}
+.meta span{font-size:13px;color:var(--mut)}
+.cnt{display:flex;align-items:center;gap:12px;padding:10px 16px 14px;font-size:13px;color:var(--mut)}
+.cnt span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.cnt .ico{width:15px;height:15px}
+.tag{margin-left:auto;padding:3px 9px;border-radius:999px;background:var(--chip);font-weight:700;color:var(--ink)}
+.by{margin-left:auto;font-weight:700;color:var(--acc)}
+.creators{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.cr{display:flex;align-items:center;gap:12px;padding:14px;border-radius:22px;background:var(--stage);border:1px solid var(--line)}
+.av{width:48px;height:48px;border-radius:999px;display:grid;place-items:center;font:600 17px Unbounded,sans-serif;color:#fff;flex:none}
+.cr b{display:block;font-size:15px}
+.cr span{font-size:13px;color:var(--mut)}
+.cr button{margin-left:auto;min-height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--chip);font-weight:700;font-size:13px}
+.note{font-size:13px;color:var(--mut);margin-top:12px}
+/* explorar */
+.phead{padding:36px 0 18px;display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap}
+.phead h1{font-size:clamp(32px,4vw,48px)}
+.phead p{margin:8px 0 0;color:var(--mut)}
+.bar{position:sticky;top:84px;z-index:10;display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:10px;border-radius:24px;background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line);margin-bottom:18px}
+.srch{flex:1 1 220px;display:flex;align-items:center;gap:8px;padding:0 14px;min-height:44px;border-radius:999px;background:var(--chip);border:1px solid var(--line)}
+.srch input{flex:1;border:0;background:none;font:16px Manrope,sans-serif;color:var(--ink);outline:none;min-height:42px}
+.chips{display:flex;gap:6px;overflow-x:auto;flex:1 1 100%;order:3;padding-bottom:2px}
+.chip{flex:none;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:none;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:6px}
+.chip em{font-style:normal;color:var(--mut);font-weight:500}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip.on em{color:inherit;opacity:.7}
+.seg{display:flex;padding:3px;border-radius:999px;background:var(--chip);border:1px solid var(--line)}
+.seg button{min-height:38px;padding:0 13px;border:0;border-radius:999px;background:none;font-weight:600;font-size:14px;color:var(--mut)}
+.seg button.on{background:var(--stage);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+select{min-height:44px;padding:0 34px 0 14px;border-radius:999px;border:1px solid var(--line);background:var(--chip);color:var(--ink);font:600 14px Manrope,sans-serif;appearance:none;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+select option{background:var(--stage);color:var(--ink)}
+.empty{grid-column:1/-1;padding:48px 24px;border-radius:26px;border:1px dashed var(--line);text-align:center;color:var(--mut)}
+.empty b{display:block;font:600 20px Unbounded,sans-serif;color:var(--ink);margin-bottom:8px}
+.empty p{max-width:52ch;margin:0 auto 16px}
+.res{font-size:14px;color:var(--mut);margin:0 0 12px}
+/* detalhe */
+.back{display:inline-flex;align-items:center;gap:6px;margin:28px 0 16px;font-weight:700;color:var(--mut)}
+.dgrid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px;align-items:start}
+.dstage{border-radius:32px;background:var(--stage);border:1px solid var(--line);aspect-ratio:5/4;display:grid;place-items:center;padding:clamp(24px,6%,56px);position:sticky;top:96px}
+.dstage svg{width:100%;height:100%}
+.dinfo h1{font-size:clamp(30px,3.6vw,46px);margin-bottom:12px}
+.dhead .acts{margin-bottom:0}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+.pills span{padding:5px 12px;border-radius:999px;background:var(--chip);font-size:13px;font-weight:700}
+.pills span.o{background:var(--acc);color:#fff}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.acts .on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.ficha{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.fx{border-radius:20px;padding:14px 16px;background:var(--stage);border:1px solid var(--line)}
+.fx small{display:block;font-size:13px;color:var(--mut);margin-bottom:4px}
+.fx b{font:600 19px Unbounded,sans-serif;white-space:nowrap}
+.fx.w{grid-column:1/-1}
+.fx p{margin:0;font-size:15px}
+.sw{display:flex;flex-wrap:wrap;gap:8px}
+.sw button{display:flex;align-items:center;gap:8px;min-height:40px;padding:4px 12px 4px 4px;border-radius:999px;border:1px solid var(--line);background:var(--chip);font:600 13px Manrope,sans-serif;font-variant-numeric:tabular-nums}
+.sw i{width:30px;height:30px;border-radius:999px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+/* footer, toast */
+footer{margin-top:72px;padding:40px 0 48px;border-top:1px solid var(--line);font-size:14px;color:var(--mut)}
+.fgrid{display:grid;grid-template-columns:1.4fr repeat(3,minmax(0,1fr));gap:24px}
+footer b{display:block;color:var(--ink);margin-bottom:8px}
+footer a,footer button{display:block;padding:3px 0;border:0;background:none;color:var(--mut);font-size:14px;text-align:left}
+footer a:hover,footer button:hover{color:var(--ink)}
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,30px);opacity:0;pointer-events:none;z-index:50;padding:12px 18px;border-radius:999px;background:var(--ink);color:var(--bg);font-weight:600;font-size:14px;transition:.25s;max-width:calc(100vw - 32px)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* página individual: glass sobre a paleta da bandeira */
+#tint{position:fixed;inset:0;z-index:-1;opacity:0;transition:opacity .45s;background:var(--tintbg,transparent)}
+#tint::after{content:"";position:absolute;inset:0;background:light-dark(rgba(255,255,255,.34),rgba(8,9,12,.52))}
+body.tinted #tint{opacity:1}
+body.tinted{--gl:light-dark(rgba(255,255,255,.52),rgba(20,22,28,.5));--gb:light-dark(rgba(255,255,255,.7),rgba(255,255,255,.14))}
+body.tinted .fx,body.tinted .dstage,body.tinted .dhead,body.tinted .card,body.tinted .back,body.tinted footer .fgrid{background:var(--gl);backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5);border:1px solid var(--gb);box-shadow:0 12px 32px rgba(0,0,0,.1),inset 0 1px 0 rgba(255,255,255,.35)}
+body.tinted .dstage{border-radius:36px}
+body.tinted .dstage .fl{filter:drop-shadow(0 0 .6px rgba(0,0,0,.4)) drop-shadow(0 22px 34px rgba(0,0,0,.28))}
+.dhead{border-radius:28px;padding:22px;margin-bottom:10px}
+.dhead .pills span{background:rgba(127,127,127,.16)}
+body.tinted .back{padding:8px 16px 8px 10px;border-radius:999px;color:var(--ink)}
+body.tinted .pills span.o,body.tinted .btn.acc,body.tinted .acts .on{background:var(--fa);color:var(--fa-ink);border-color:transparent}
+body.tinted .btn.gh{background:rgba(127,127,127,.14)}
+body.tinted .sw button{background:rgba(127,127,127,.12)}
+body.tinted footer{border-top-color:transparent}
+body.tinted footer .fgrid{border-radius:28px;padding:24px}
+body.tinted .cnt .tag{background:rgba(127,127,127,.16)}
+[hidden]{display:none!important}
+@media(max-width:980px){.bento{grid-template-columns:repeat(2,minmax(0,1fr))}.creators{grid-template-columns:repeat(2,minmax(0,1fr))}.dgrid{grid-template-columns:minmax(0,1fr)}.dstage{position:relative;top:0}.fgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.hgrid{grid-template-columns:minmax(0,1fr)}.links,.act .sm{display:none}.pill{padding-left:16px}.act{margin-left:auto}
+body{padding-bottom:96px}
+.dock{display:flex;position:fixed;left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));z-index:30;justify-content:space-around;align-items:center;padding:8px;border-radius:30px;background:var(--glass);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);border:1px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.2)}
+.dock a,.dock button{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:52px;min-height:48px;justify-content:center;border:0;background:none;font-size:11px;font-weight:700;color:var(--mut)}
+.dock .on{color:var(--ink)}
+.dock .fab{width:56px;height:56px;min-width:56px;border-radius:999px;background:var(--acc);color:#fff;margin-top:-26px;box-shadow:0 8px 20px rgba(255,90,31,.45)}
+.bar{top:76px}.fx{padding:12px 14px}.fx b{font-size:17px}}
+@media(max-width:520px){.bento{grid-template-columns:minmax(0,1fr)}.cat.big{grid-column:auto;grid-row:auto}.creators{grid-template-columns:minmax(0,1fr)}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.stg{padding:14px}.cnt{flex-wrap:wrap;gap:8px}.tag,.by{margin-left:0}.seg button{padding:0 10px}}
+</style>
+</head>
+<body>
+<div id="tint" aria-hidden="true"></div>
+<header class="nav"><div class="pill">
+  <a class="logo" href="#inicio" aria-label="Flâmula, início"><svg width="26" height="26" viewBox="0 0 26 26"><rect x="3" y="2" width="2.6" height="22" rx="1.3" fill="currentColor"/><path d="M6 3h16l-4.5 6L22 15H6z" fill="#ff5a1f"/></svg>Flâmula</a>
+  <nav class="links" aria-label="Principal"><a href="#inicio" data-r="home">Início</a><a href="#explorar" data-r="explorar">Explorar</a><button data-soon="Coleções">Coleções</button><button data-soon="O editor">Criar</button><button data-soon="Os guias">Guias</button></nav>
+  <div class="act"><button class="ic" id="bsearch" aria-label="Buscar"></button><button class="btn sm" data-soon="O login">Entrar</button></div>
+</div></header>
+
+<main id="v-home">
+  <section class="hero">
+    <div class="wrap hgrid">
+      <div>
+        <h1>Bandeiras oficiais e criações da comunidade</h1>
+        <p>Explore o acervo de países, estados, cidades e sinais náuticos, consulte a ficha técnica de cada bandeira e, em breve, crie e publique a sua.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:10px"><a class="btn acc" href="#explorar">Explorar acervo</a><button class="btn gh" data-soon="O editor">Criar bandeira</button></div>
+        <div class="stats" id="stats"></div>
+      </div>
+      <div class="vit" id="dia"></div>
+    </div>
+    <svg class="hills" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true"><path d="M0 80C220 40 380 60 560 72s420-40 640-24 240 40 240 40v52H0z" fill="#2a1c33" opacity=".45"/><path d="M0 100c200-30 420-10 640 0s520-28 800-6v26H0z" fill="var(--bg)"/></svg>
+  </section>
+  <section class="sec wrap"><div class="shead"><div><h2>Categorias</h2><p>O acervo oficial organizado por tipo.</p></div></div><div class="bento" id="cats"></div></section>
+  <section class="sec wrap"><div class="shead"><div><h2>Em destaque</h2><p>As mais curtidas da semana.</p></div><a class="more" href="#explorar">Ver todas</a></div><div class="row" id="dest"></div></section>
+  <section class="sec wrap"><div class="shead"><div><h2>Criadores em destaque</h2></div></div><div class="creators" id="crs"></div></section>
+  <section class="sec wrap"><div class="shead"><div><h2>Últimas criações</h2><p>Bandeiras originais aprovadas pela moderação.</p></div><a class="more" href="#explorar" id="vercom">Ver todas</a></div><div class="grid" id="ult"></div>
+  <p class="note">Criadores, criações e contagens são exemplos fictícios para o protótipo.</p></section>
+</main>
+
+<main id="v-explorar" hidden class="wrap">
+  <div class="phead"><div><h1>Explorar</h1><p id="ptot"></p></div></div>
+  <div class="bar">
+    <label class="srch" for="q"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" type="search" placeholder="Buscar por nome ou código" autocomplete="off"></label>
+    <div class="seg" id="orig" role="group" aria-label="Origem"></div>
+    <select id="reg" aria-label="Região"></select>
+    <select id="ord" aria-label="Ordenar"><option value="popular">Populares</option><option value="recentes">Recentes</option><option value="downloads">Mais baixadas</option><option value="az">A–Z</option></select>
+    <div class="chips" id="tipos"></div>
+  </div>
+  <p class="res" id="res"></p>
+  <div class="grid" id="gal"></div>
+</main>
+
+<main id="v-detalhe" hidden class="wrap"></main>
+
+<footer><div class="wrap fgrid">
+  <div><b>Flâmula</b>Nome provisório. Acervo oficial previsto a partir do Wikimedia Commons e da Wikidata. Bandeiras oficiais via Flagpedia/flagcdn e Wikimedia Commons.</div>
+  <div><b>Navegar</b><a href="#explorar">Explorar</a><button data-soon="Coleções">Coleções</button><button data-soon="Os guias">Guias</button><button data-soon="O envio">Enviar criação</button></div>
+  <div><b>Comunidade</b><button data-soon="O programa de moderadores">Seja moderador</button><button data-soon="O changelog">Novidades</button><button data-soon="O feedback">Feedback</button></div>
+  <div><b>Legal</b><button data-soon="Os termos">Termos de uso</button><button data-soon="A política de privacidade">Privacidade</button><button data-soon="O formulário de remoção">Direitos autorais e remoção</button></div>
+</div></footer>
+
+<nav class="dock" aria-label="Principal (mobile)">
+  <a href="#inicio" data-r="home"><svg class="ico" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Início</a>
+  <a href="#explorar" data-r="explorar"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>Explorar</a>
+  <button class="fab" data-soon="O editor" aria-label="Criar"><svg class="ico" viewBox="0 0 24 24" style="width:26px;height:26px"><path d="M12 5v14M5 12h14"/></svg></button>
+  <button data-soon="Coleções"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5zM3 13l9 5 9-5"/></svg>Coleções</button>
+  <button data-soon="O perfil"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Perfil</button>
+</nav>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+{
+const P={home:'M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',heart:'M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z',dl:'M12 4v11M7 10l5 5 5-5M5 20h14',copy:'M9 9h11v11H9zM5 15V5a1 1 0 0 1 1-1h10',remix:'M4 7h12l-3-3M20 17H8l3 3',back:'M15 6l-6 6 6 6',arrow:'M7 17L17 7M9 7h8v8',search:'M20 20l-4-4M18 11a7 7 0 1 1-14 0 7 7 0 0 1 14 0z'};
+const I=n=>`<svg class="ico" viewBox="0 0 24 24"><path d="${P[n]}"/></svg>`;
+document.getElementById('bsearch').innerHTML=I('search');
+let uid=0;
+const R=(x,y,w,h,f)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${f}"/>`;
+const C=(x,y,r,f)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${f}"/>`;
+const PG=(pts,f)=>`<polygon points="${pts}" fill="${f}"/>`;
+const ST=(cx,cy,r,f,a0=-Math.PI/2,n=5,ir=.382)=>{const p=[];for(let i=0;i<n*2;i++){const rr=i%2?r*ir:r,a=a0+i*Math.PI/n;p.push((cx+rr*Math.cos(a)).toFixed(1)+','+(cy+rr*Math.sin(a)).toFixed(1))}return PG(p.join(' '),f)};
+const hs=(W,H,cs,wt)=>{wt=wt||cs.map(()=>1);const t=wt.reduce((a,b)=>a+b,0);let y=0;return cs.map((c,i)=>{const h=H*wt[i]/t,s=R(0,y.toFixed(2),W,(h+.6).toFixed(2),c);y+=h;return s}).join('')};
+const vs=(W,H,cs,wt)=>{wt=wt||cs.map(()=>1);const t=wt.reduce((a,b)=>a+b,0);let x=0;return cs.map((c,i)=>{const w=W*wt[i]/t,s=R(x.toFixed(2),0,(w+.6).toFixed(2),H,c);x+=w;return s}).join('')};
+const nord=(W,H,bg,L)=>R(0,0,W,H,bg)+L.map(([c,t,cx])=>R(0,H/2-t*H/2,W,t*H,c)+R(cx*W-t*H/2,0,t*H,H,c)).join('');
+const X=(W,H,c,sw)=>`<path d="M0 0L${W} ${H}M0 ${H}L${W} 0" stroke="${c}" stroke-width="${sw}"/>`;
+const quad=(W,H,a,b,c,d)=>R(0,0,W/2,H/2,a)+R(W/2,0,W/2,H/2,b)+R(0,H/2,W/2,H/2,c)+R(W/2,H/2,W/2,H/2,d);
+const swal=(W,H,inner)=>{const id='k'+(++uid);return `<defs><clipPath id="${id}"><polygon points="0,0 ${W},0 ${W*.74},${H/2} ${W},${H} 0,${H}"/></clipPath></defs><g clip-path="url(#${id})">${inner}</g>`};
+const CM=n=>'https://commons.wikimedia.org/wiki/Special:FilePath/'+encodeURIComponent(n.replace(/ /g,'_'));
+const IR='#e4202e',IB='#1b4fa0',IY='#ffd200',IK='#141414',IW='#ffffff';
+
+const D=[
+ {id:'br',k:'BR',n:'Brasil',t:'pais',r:'América do Sul',ra:[7,10],y:1889,c:['#009C3B','#FFDF00','#002776','#FFFFFF'],s:'O círculo azul representa o céu do Rio de Janeiro na manhã de 15 de novembro de 1889. As 27 estrelas correspondem aos estados e ao Distrito Federal, e a faixa branca traz o lema Ordem e Progresso. O desenho atual das estrelas é de 1992.',d:(W,H)=>{const id='k'+(++uid),m=W*.085,r=W*.175;const st=[[.42,.58,4],[.46,.64,5],[.5,.6,4],[.54,.66,5],[.58,.6,4],[.48,.72,4],[.52,.76,5],[.44,.7,3],[.56,.72,3],[.4,.64,3],[.6,.66,3],[.5,.69,3]].map(([x,y,rr])=>C(x*W,y*H,rr,'#fff')).join('');return R(0,0,W,H,'#009C3B')+PG(`${m},${H/2} ${W/2},${m} ${W-m},${H/2} ${W/2},${H-m}`,'#FFDF00')+C(W/2,H/2,r,'#002776')+`<defs><clipPath id="${id}"><circle cx="${W/2}" cy="${H/2}" r="${r}"/></clipPath></defs><path clip-path="url(#${id})" d="M${W/2-r*1.1} ${H/2+r*.05}Q${W/2} ${H/2-r*.55} ${W/2+r*1.1} ${H/2+r*.2}" stroke="#fff" stroke-width="${r*.17}" fill="none"/>`+st}},
+ {id:'ar',k:'AR',n:'Argentina',t:'pais',r:'América do Sul',ra:[9,14],y:1816,c:['#74ACDF','#FFFFFF','#F6B40E'],d:(W,H)=>hs(W,H,['#74ACDF','#fff','#74ACDF'])+ST(W/2,H/2,H*.15,'#F6B40E',-Math.PI/2,16,.55)+C(W/2,H/2,H*.085,'#F6B40E')},
+ {id:'jp',k:'JP',n:'Japão',t:'pais',r:'Ásia',ra:[2,3],y:1999,c:['#FFFFFF','#BC002D'],s:'Chamada de Hinomaru, o disco solar. Usada desde o século XIX, foi oficializada por lei em 1999.',d:(W,H)=>R(0,0,W,H,'#fff')+C(W/2,H/2,H*.3,'#BC002D')},
+ {id:'fr',k:'FR',n:'França',t:'pais',r:'Europa',ra:[2,3],y:1794,c:['#002395','#FFFFFF','#ED2939'],d:(W,H)=>vs(W,H,['#002395','#fff','#ED2939'])},
+ {id:'it',k:'IT',n:'Itália',t:'pais',r:'Europa',ra:[2,3],y:1946,c:['#009246','#F1F2F1','#CE2B37'],d:(W,H)=>vs(W,H,['#009246','#F1F2F1','#CE2B37'])},
+ {id:'de',k:'DE',n:'Alemanha',t:'pais',r:'Europa',ra:[3,5],y:1949,c:['#000000','#DD0000','#FFCE00'],d:(W,H)=>hs(W,H,['#000','#DD0000','#FFCE00'])},
+ {id:'ie',k:'IE',n:'Irlanda',t:'pais',r:'Europa',ra:[1,2],y:1937,c:['#169B62','#FFFFFF','#FF883E'],d:(W,H)=>vs(W,H,['#169B62','#fff','#FF883E'])},
+ {id:'be',k:'BE',n:'Bélgica',t:'pais',r:'Europa',ra:[13,15],y:1831,c:['#000000','#FDDA24','#EF3340'],d:(W,H)=>vs(W,H,['#000','#FDDA24','#EF3340'])},
+ {id:'nl',k:'NL',n:'Países Baixos',t:'pais',r:'Europa',ra:[2,3],y:1937,c:['#AE1C28','#FFFFFF','#21468B'],d:(W,H)=>hs(W,H,['#AE1C28','#fff','#21468B'])},
+ {id:'ru',k:'RU',n:'Rússia',t:'pais',r:'Europa',ra:[2,3],y:1993,c:['#FFFFFF','#0039A6','#D52B1E'],d:(W,H)=>hs(W,H,['#fff','#0039A6','#D52B1E'])},
+ {id:'ua',k:'UA',n:'Ucrânia',t:'pais',r:'Europa',ra:[2,3],y:1992,c:['#0057B7','#FFD700'],d:(W,H)=>hs(W,H,['#0057B7','#FFD700'])},
+ {id:'pl',k:'PL',n:'Polônia',t:'pais',r:'Europa',ra:[5,8],y:1919,c:['#FFFFFF','#DC143C'],d:(W,H)=>hs(W,H,['#fff','#DC143C'])},
+ {id:'at',k:'AT',n:'Áustria',t:'pais',r:'Europa',ra:[2,3],y:1945,c:['#C8102E','#FFFFFF'],d:(W,H)=>hs(W,H,['#C8102E','#fff','#C8102E'])},
+ {id:'hu',k:'HU',n:'Hungria',t:'pais',r:'Europa',ra:[1,2],y:1957,c:['#CE2939','#FFFFFF','#477050'],d:(W,H)=>hs(W,H,['#CE2939','#fff','#477050'])},
+ {id:'ee',k:'EE',n:'Estônia',t:'pais',r:'Europa',ra:[7,11],y:1990,c:['#0072CE','#000000','#FFFFFF'],d:(W,H)=>hs(W,H,['#0072CE','#000','#fff'])},
+ {id:'lt',k:'LT',n:'Lituânia',t:'pais',r:'Europa',ra:[3,5],y:1988,c:['#FDB913','#006A44','#C1272D'],d:(W,H)=>hs(W,H,['#FDB913','#006A44','#C1272D'])},
+ {id:'bg',k:'BG',n:'Bulgária',t:'pais',r:'Europa',ra:[3,5],y:1990,c:['#FFFFFF','#00966E','#D62612'],d:(W,H)=>hs(W,H,['#fff','#00966E','#D62612'])},
+ {id:'se',k:'SE',n:'Suécia',t:'pais',r:'Europa',ra:[5,8],y:1906,c:['#006AA7','#FECC00'],d:(W,H)=>nord(W,H,'#006AA7',[['#FECC00',.2,.375]])},
+ {id:'dk',k:'DK',n:'Dinamarca',t:'pais',r:'Europa',ra:[28,37],y:null,c:['#C8102E','#FFFFFF'],d:(W,H)=>nord(W,H,'#C8102E',[['#fff',4/28,14/37]])},
+ {id:'no',k:'NO',n:'Noruega',t:'pais',r:'Europa',ra:[8,11],y:1821,c:['#BA0C2F','#FFFFFF','#00205B'],d:(W,H)=>nord(W,H,'#BA0C2F',[['#fff',.25,8/22],['#00205B',.125,8/22]])},
+ {id:'fi',k:'FI',n:'Finlândia',t:'pais',r:'Europa',ra:[11,18],y:1918,c:['#FFFFFF','#002F6C'],d:(W,H)=>nord(W,H,'#fff',[['#002F6C',3/11,6.5/18]])},
+ {id:'is',k:'IS',n:'Islândia',t:'pais',r:'Europa',ra:[18,25],y:1944,c:['#02529C','#FFFFFF','#DC1E35'],d:(W,H)=>nord(W,H,'#02529C',[['#fff',4/18,9/25],['#DC1E35',2/18,9/25]])},
+ {id:'ch',k:'CH',n:'Suíça',t:'pais',r:'Europa',ra:[1,1],y:1889,c:['#DA291C','#FFFFFF'],d:(W,H)=>{const a=W*6/32,l=W*20/32;return R(0,0,W,H,'#DA291C')+R(W/2-a/2,H/2-l/2,a,l,'#fff')+R(W/2-l/2,H/2-a/2,l,a,'#fff')}},
+ {id:'gb',k:'GB',n:'Reino Unido',t:'pais',r:'Europa',ra:[1,2],y:1801,c:['#012169','#FFFFFF','#C8102E'],d:(W,H)=>R(0,0,W,H,'#012169')+X(W,H,'#fff',H*.2)+X(W,H,'#C8102E',H*.067)+R(W/2-H/6,0,H/3,H,'#fff')+R(0,H/3,W,H/3,'#fff')+R(W/2-H/10,0,H/5,H,'#C8102E')+R(0,H*.4,W,H*.2,'#C8102E')},
+ {id:'gr',k:'GR',n:'Grécia',t:'pais',r:'Europa',ra:[2,3],y:1978,c:['#0D5EAF','#FFFFFF'],d:(W,H)=>{const u=H/9,cs=[];for(let i=0;i<9;i++)cs.push(i%2?'#fff':'#0D5EAF');const s=5*u;return hs(W,H,cs)+R(0,0,s,s,'#0D5EAF')+R(2*u,0,u,s,'#fff')+R(0,2*u,s,u,'#fff')}},
+ {id:'us',k:'US',n:'Estados Unidos',t:'pais',r:'América do Norte',ra:[10,19],y:1960,c:['#B22234','#FFFFFF','#3C3B6E'],d:(W,H)=>{const cs=[];for(let i=0;i<13;i++)cs.push(i%2?'#fff':'#B22234');const cw=W*.4,ch=H*7/13;let s=hs(W,H,cs)+R(0,0,cw,ch,'#3C3B6E');for(let i=0;i<9;i++){const n=i%2?5:6;for(let k=0;k<n;k++){const x=(i%2?2+2*k:1+2*k)*cw/12;s+=ST(x,(i+1)*ch/10,H*.031,'#fff')}}return s}},
+ {id:'ca-tx',k:'TX',n:'Texas',t:'estado',r:'América do Norte',ra:[2,3],y:1839,c:['#002868','#FFFFFF','#BF0A30'],d:(W,H)=>R(0,0,W,H/2,'#fff')+R(0,H/2,W,H/2,'#BF0A30')+R(0,0,W/3,H,'#002868')+ST(W/6,H/2,H*.19,'#fff')},
+ {id:'co-us',k:'CO',n:'Colorado',t:'estado',r:'América do Norte',ra:[2,3],y:1911,c:['#002868','#FFFFFF','#BF0A30','#FFD700'],d:(W,H)=>{const cx=W*.4,cy=H/2,rm=H*.3,a=40*Math.PI/180;return hs(W,H,['#002868','#fff','#002868'])+C(cx,cy,H*.2,'#FFD700')+`<path d="M${cx+rm*Math.cos(a)} ${cy-rm*Math.sin(a)}A${rm} ${rm} 0 1 0 ${cx+rm*Math.cos(a)} ${cy+rm*Math.sin(a)}" stroke="#BF0A30" stroke-width="${H*.16}" fill="none"/>`}},
+ {id:'ak',k:'AK',n:'Alasca',t:'estado',r:'América do Norte',ra:[2,3],y:1927,c:['#0F204B','#FFB612'],d:(W,H)=>R(0,0,W,H,'#0F204B')+[[.14,.66],[.24,.7],[.33,.68],[.42,.6],[.47,.75],[.6,.76],[.62,.6]].map(([x,y])=>ST(x*W,y*H,H*.045,'#FFB612')).join('')+ST(W*.82,H*.26,H*.07,'#FFB612')},
+ {id:'ams',k:'—',n:'Amsterdã',t:'cidade',r:'Europa',ra:[2,3],y:null,c:['#EC0000','#000000','#FFFFFF'],d:(W,H)=>{const s=H*.11;return hs(W,H,['#EC0000','#000','#EC0000'])+[.32,.5,.68].map(x=>`<path d="M${x*W-s} ${H/2-s}L${x*W+s} ${H/2+s}M${x*W-s} ${H/2+s}L${x*W+s} ${H/2-s}" stroke="#fff" stroke-width="${H*.055}"/>`).join('')}},
+ {id:'dc',k:'DC',n:'Washington, D.C.',t:'cidade',r:'América do Norte',ra:[1,2],y:1938,c:['#FFFFFF','#E91436'],d:(W,H)=>R(0,0,W,H,'#fff')+[.28,.5,.72].map(x=>ST(x*W,H*.24,H*.11,'#E91436')).join('')+R(W*.1,H*.42,W*.8,H*.17,'#E91436')+R(W*.1,H*.68,W*.8,H*.17,'#E91436')},
+ {id:'chi',k:'—',n:'Chicago',t:'cidade',r:'América do Norte',ra:[2,3],y:1917,c:['#FFFFFF','#B3DDF2','#FF0000'],d:(W,H)=>R(0,0,W,H,'#fff')+R(0,H/6,W,H/6,'#B3DDF2')+R(0,H*4/6,W,H/6,'#B3DDF2')+[.2,.4,.6,.8].map(x=>ST(x*W,H/2,H*.12,'#FF0000',-Math.PI/2,6,.58)).join('')},
+ {id:'id',k:'ID',n:'Indonésia',t:'pais',r:'Ásia',ra:[2,3],y:1945,c:['#FF0000','#FFFFFF'],d:(W,H)=>hs(W,H,['#FF0000','#fff'])},
+ {id:'bd',k:'BD',n:'Bangladesh',t:'pais',r:'Ásia',ra:[3,5],y:1972,c:['#006A4E','#F42A41'],d:(W,H)=>R(0,0,W,H,'#006A4E')+C(W*.45,H/2,W*.2,'#F42A41')},
+ {id:'la',k:'LA',n:'Laos',t:'pais',r:'Ásia',ra:[2,3],y:1975,c:['#CE1126','#002868','#FFFFFF'],d:(W,H)=>hs(W,H,['#CE1126','#002868','#CE1126'],[1,2,1])+C(W/2,H/2,H*.2,'#fff')},
+ {id:'th',k:'TH',n:'Tailândia',t:'pais',r:'Ásia',ra:[2,3],y:1917,c:['#A51931','#F4F5F8','#2D2A4A'],d:(W,H)=>hs(W,H,['#A51931','#F4F5F8','#2D2A4A','#F4F5F8','#A51931'],[1,1,2,1,1])},
+ {id:'vn',k:'VN',n:'Vietnã',t:'pais',r:'Ásia',ra:[2,3],y:1955,c:['#DA251D','#FFFF00'],d:(W,H)=>R(0,0,W,H,'#DA251D')+ST(W/2,H/2,H*.3,'#FFFF00')},
+ {id:'cn',k:'CN',n:'China',t:'pais',r:'Ásia',ra:[2,3],y:1949,c:['#EE1C25','#FFFF00'],d:(W,H)=>{const u=H/20,b=[5*u,5*u];return R(0,0,W,H,'#EE1C25')+ST(b[0],b[1],3*u,'#FFFF00')+[[10,2],[12,4],[12,7],[10,9]].map(([x,y])=>ST(x*u,y*u,u,'#FFFF00',Math.atan2(b[1]-y*u,b[0]-x*u))).join('')}},
+ {id:'tr',k:'TR',n:'Turquia',t:'pais',r:'Ásia',ra:[2,3],y:1936,c:['#E30A17','#FFFFFF'],d:(W,H)=>R(0,0,W,H,'#E30A17')+C(H*.5,H/2,H*.25,'#fff')+C(H*.5625,H/2,H*.2,'#E30A17')+ST(H*.86,H/2,H*.125,'#fff',Math.PI)},
+ {id:'in',k:'IN',n:'Índia',t:'pais',r:'Ásia',ra:[2,3],y:1947,c:['#FF9933','#FFFFFF','#138808','#000080'],d:(W,H)=>{const r=H*.13;let s=hs(W,H,['#FF9933','#fff','#138808'])+`<circle cx="${W/2}" cy="${H/2}" r="${r}" fill="none" stroke="#000080" stroke-width="${H*.012}"/>`+C(W/2,H/2,H*.022,'#000080');for(let i=0;i<24;i++){const a=i*Math.PI/12;s+=`<line x1="${W/2}" y1="${H/2}" x2="${(W/2+r*Math.cos(a)).toFixed(1)}" y2="${(H/2+r*Math.sin(a)).toFixed(1)}" stroke="#000080" stroke-width="${H*.006}"/>`}return s}},
+ {id:'ye',k:'YE',n:'Iêmen',t:'pais',r:'Ásia',ra:[2,3],y:1990,c:['#CE1126','#FFFFFF','#000000'],d:(W,H)=>hs(W,H,['#CE1126','#fff','#000'])},
+ {id:'pw',k:'PW',n:'Palau',t:'pais',r:'Oceania',ra:[5,8],y:1981,c:['#4AADD6','#FFDE00'],d:(W,H)=>R(0,0,W,H,'#4AADD6')+C(W*.44,H/2,H*.3,'#FFDE00')},
+ {id:'co',k:'CO',n:'Colômbia',t:'pais',r:'América do Sul',ra:[2,3],y:1861,c:['#FCD116','#003893','#CE1126'],d:(W,H)=>hs(W,H,['#FCD116','#003893','#CE1126'],[2,1,1])},
+ {id:'pe',k:'PE',n:'Peru',t:'pais',r:'América do Sul',ra:[2,3],y:1825,c:['#D91023','#FFFFFF'],d:(W,H)=>vs(W,H,['#D91023','#fff','#D91023'])},
+ {id:'cl',k:'CL',n:'Chile',t:'pais',r:'América do Sul',ra:[2,3],y:1817,c:['#FFFFFF','#D52B1E','#0039A6'],d:(W,H)=>R(0,0,W,H/2,'#fff')+R(0,H/2,W,H/2,'#D52B1E')+R(0,0,H/2,H/2,'#0039A6')+ST(H/4,H/4,H*.09,'#fff')},
+ {id:'pa',k:'PA',n:'Panamá',t:'pais',r:'América Central',ra:[2,3],y:1903,c:['#FFFFFF','#D21034','#005293'],d:(W,H)=>quad(W,H,'#fff','#D21034','#005293','#fff')+ST(W/4,H/4,H*.1,'#005293')+ST(W*.75,H*.75,H*.1,'#D21034')},
+ {id:'ng',k:'NG',n:'Nigéria',t:'pais',r:'África',ra:[1,2],y:1960,c:['#008751','#FFFFFF'],d:(W,H)=>vs(W,H,['#008751','#fff','#008751'])},
+ {id:'ml',k:'ML',n:'Mali',t:'pais',r:'África',ra:[2,3],y:1961,c:['#14B53A','#FCD116','#CE1126'],d:(W,H)=>vs(W,H,['#14B53A','#FCD116','#CE1126'])},
+ {id:'td',k:'TD',n:'Chade',t:'pais',r:'África',ra:[2,3],y:1959,c:['#002664','#FECB00','#C60C30'],d:(W,H)=>vs(W,H,['#002664','#FECB00','#C60C30'])},
+ {id:'gn',k:'GN',n:'Guiné',t:'pais',r:'África',ra:[2,3],y:1958,c:['#CE1126','#FCD116','#009460'],d:(W,H)=>vs(W,H,['#CE1126','#FCD116','#009460'])},
+ {id:'ci',k:'CI',n:'Costa do Marfim',t:'pais',r:'África',ra:[2,3],y:1959,c:['#F77F00','#FFFFFF','#009E60'],d:(W,H)=>vs(W,H,['#F77F00','#fff','#009E60'])},
+ {id:'so',k:'SO',n:'Somália',t:'pais',r:'África',ra:[2,3],y:1954,c:['#4189DD','#FFFFFF'],d:(W,H)=>R(0,0,W,H,'#4189DD')+ST(W/2,H/2,H*.2,'#fff')}
+];
+const NAU=[
+ ['A','Alfa','Tenho mergulhador embaixo; mantenha distância e passe em baixa velocidade.',[IW,IB],(W,H)=>swal(W,H,R(0,0,W/2,H,IW)+R(W/2,0,W/2,H,IB))],
+ ['B','Bravo','Estou carregando, descarregando ou transportando carga perigosa.',[IR],(W,H)=>swal(W,H,R(0,0,W,H,IR))],
+ ['C','Charlie','Sim (afirmativo).',[IB,IW,IR],(W,H)=>hs(W,H,[IB,IW,IR,IW,IB])],
+ ['D','Delta','Mantenha distância; estou manobrando com dificuldade.',[IY,IB],(W,H)=>hs(W,H,[IY,IB,IY],[1,2,1])],
+ ['E','Echo','Estou alterando meu rumo para boreste.',[IB,IR],(W,H)=>hs(W,H,[IB,IR])],
+ ['F','Foxtrot','Estou avariado; comunique-se comigo.',[IW,IR],(W,H)=>R(0,0,W,H,IW)+PG(`${W/2},0 ${W},${H/2} ${W/2},${H} 0,${H/2}`,IR)],
+ ['G','Golf','Preciso de prático.',[IY,IB],(W,H)=>vs(W,H,[IY,IB,IY,IB,IY,IB])],
+ ['H','Hotel','Tenho prático a bordo.',[IW,IR],(W,H)=>vs(W,H,[IW,IR])],
+ ['I','India','Estou alterando meu rumo para bombordo.',[IY,IK],(W,H)=>R(0,0,W,H,IY)+C(W/2,H/2,H*.25,IK)],
+ ['J','Juliett','Estou com incêndio e carga perigosa a bordo; mantenha distância.',[IB,IW],(W,H)=>hs(W,H,[IB,IW,IB])],
+ ['K','Kilo','Desejo comunicar-me com você.',[IY,IB],(W,H)=>vs(W,H,[IY,IB])],
+ ['L','Lima','Pare seu navio imediatamente.',[IY,IK],(W,H)=>quad(W,H,IY,IK,IK,IY)],
+ ['M','Mike','Meu navio está parado e sem seguimento.',[IB,IW],(W,H)=>R(0,0,W,H,IB)+X(W,H,IW,H*.2)],
+ ['N','November','Não (negativo).',[IB,IW],(W,H)=>{let s='';for(let i=0;i<4;i++)for(let j=0;j<4;j++)s+=R(j*W/4,i*H/4,W/4+.5,H/4+.5,(i+j)%2?IW:IB);return s}],
+ ['P','Papa','No porto: todos a bordo, o navio vai partir.',[IB,IW],(W,H)=>R(0,0,W,H,IB)+R(W/3,H/3,W/3,H/3,IW)],
+ ['Q','Quebec','Meu navio está livre de doenças; solicito livre prática.',[IY],(W,H)=>R(0,0,W,H,IY)],
+ ['R','Romeo','Usado em combinação com outros sinais.',[IR,IY],(W,H)=>R(0,0,W,H,IR)+R(W*.4,0,W*.2,H,IY)+R(0,H*.4,W,H*.2,IY)],
+ ['S','Sierra','Minhas máquinas estão dando atrás.',[IW,IB],(W,H)=>R(0,0,W,H,IW)+R(W/3,H/3,W/3,H/3,IB)],
+ ['T','Tango','Mantenha distância; estou pescando em parelha.',[IR,IW,IB],(W,H)=>vs(W,H,[IR,IW,IB])],
+ ['U','Uniform','Você está se dirigindo para um perigo.',[IR,IW],(W,H)=>quad(W,H,IR,IW,IW,IR)],
+ ['V','Victor','Solicito assistência.',[IW,IR],(W,H)=>R(0,0,W,H,IW)+X(W,H,IR,H*.2)],
+ ['W','Whiskey','Solicito assistência médica.',[IB,IW,IR],(W,H)=>R(0,0,W,H,IB)+R(W/6,H/6,W*2/3,H*2/3,IW)+R(W/3,H/3,W/3,H/3,IR)],
+ ['X','X-ray','Suspenda suas intenções e observe meus sinais.',[IW,IB],(W,H)=>R(0,0,W,H,IW)+R(W*.4,0,W*.2,H,IB)+R(0,H*.4,W,H*.2,IB)]
+];
+NAU.forEach(([k,n,s,c,d])=>D.push({id:'ics-'+k.toLowerCase(),k,n:k+' · '+n,t:'nautica',r:'Internacional',ra:[1,1],y:null,c,s:'Código Internacional de Sinais. Significado isolado: '+s,d,src:CM('ICS_'+n+'.svg'),fonte:'commons'}));
+const CITY={ams:'Flag_of_Amsterdam.svg',dc:'Flag_of_the_District_of_Columbia.svg',chi:'Flag_of_Chicago,_Illinois.svg'},ST2={'ca-tx':'tx','co-us':'co',ak:'ak'};
+D.forEach(f=>{f.o='oficial';if(f.src)return;if(f.t==='pais'){f.src=`https://flagcdn.com/${f.id}.svg`;f.fonte='flagcdn'}else if(f.t==='estado'){f.src=`https://flagcdn.com/us-${ST2[f.id]}.svg`;f.fonte='flagcdn'}else if(CITY[f.id]){f.src=CM(CITY[f.id]);f.fonte='commons'}});
+const COM=[
+ {id:'u-mare',n:'Arquipélago de Maré',a:'lia.vex',ra:[2,3],c:['#0A3D62','#1E6F9F','#4FB3D9','#FFB627'],d:(W,H)=>hs(W,H,['#0A3D62','#1E6F9F','#4FB3D9'],[2,1,1])+C(W*.72,H*.34,H*.16,'#FFB627')+`<path d="M0 ${H*.62}q${W/8} -${H*.08} ${W/4} 0t${W/4} 0t${W/4} 0t${W/4} 0" stroke="#fff" stroke-width="${H*.035}" fill="none"/>`},
+ {id:'u-ferro',n:'Cidade de Ferro',a:'otto_flags',ra:[2,3],c:['#17171A','#FF6B1A'],d:(W,H)=>R(0,0,W,H,'#17171A')+PG(`0,${H*.78} ${W*.78},0 ${W},0 ${W},${H*.22} ${W*.22},${H} 0,${H}`,'#FF6B1A')},
+ {id:'u-norte',n:'Liga do Norte',a:'nordica',ra:[5,8],c:['#3B1F6E','#F2C14E'],d:(W,H)=>nord(W,H,'#3B1F6E',[['#F2C14E',.18,.36]])},
+ {id:'u-araras',n:'Vale das Araras',a:'arara.studio',ra:[2,3],c:['#1F8A4C','#D7263D','#FFD23F'],d:(W,H)=>R(0,0,W,H,'#1F8A4C')+PG(`0,0 ${W*.42},${H/2} 0,${H}`,'#D7263D')+ST(W*.13,H/2,H*.12,'#FFD23F')},
+ {id:'u-farol',n:'Ordem do Farol',a:'farol',ra:[1,2],c:['#13294B','#FFFFFF','#FF8A3D'],d:(W,H)=>R(0,0,W,H,'#13294B')+PG(`0,0 ${W*.18},0 ${W*.48},${H/2} ${W*.18},${H} 0,${H} ${W*.3},${H/2}`,'#fff')+C(W*.74,H/2,H*.22,'#FF8A3D')},
+ {id:'u-solar',n:'Província Solar',a:'sunhoist',ra:[2,3],c:['#F26419','#FFC93C'],d:(W,H)=>{let s=R(0,0,W,H,'#F26419');for(let i=0;i<12;i+=2){const a1=Math.PI+i*Math.PI/12,a2=a1+Math.PI/12,L=W;s+=PG(`${W/2},${H} ${W/2+L*Math.cos(a1)},${H+L*Math.sin(a1)} ${W/2+L*Math.cos(a2)},${H+L*Math.sin(a2)}`,'#FFC93C')}return s+C(W/2,H,H*.24,'#FFC93C')}},
+ {id:'u-kalmar',n:'Ilhas Kalmar',a:'kv',ra:[2,3],c:['#7CC6E8','#FFFFFF','#E8C27C','#13294B'],d:(W,H)=>vs(W,H,['#7CC6E8','#fff','#E8C27C'])+ST(W/2,H/2,H*.18,'#13294B')},
+ {id:'u-cobalto',n:'Federação Cobalto',a:'lia.vex',ra:[2,3],c:['#1446A0','#FFFFFF','#FF5A1F'],d:(W,H)=>quad(W,H,'#1446A0','#fff','#fff','#1446A0')+C(W/2,H/2,H*.16,'#FF5A1F')}
+];
+COM.forEach((f,i)=>{f.o='original';f.t='criacao';f.r='Comunidade';f.k='—';f.y=2026;D.push(f)});
+const hash=s=>{let h=2166136261;for(const ch of s){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}h^=h>>>13;h=Math.imul(h,1274126177);return (h^h>>>16)>>>0};
+D.forEach((f,i)=>{const h=hash(f.id);f.likes=f.o==='original'?120+h%900:400+h%4800;f.dl=Math.round(f.likes*(1.4+(h%9)/6));f.added=f.o==='original'?1000+i:i});
+const TIPOS=[['todos','Todos'],['pais','Países'],['estado','Estados'],['cidade','Cidades'],['nautica','Náuticas'],['insignia','Insígnias'],['criacao','Criações']];
+const TN={pais:'País',estado:'Estado',cidade:'Cidade',nautica:'Sinal náutico',insignia:'Insígnia',criacao:'Criação da comunidade'};
+/*info*/
+const INFO={
+br:['República Federativa do Brasil','Brasília','Retângulo verde com losango amarelo; ao centro, círculo azul com 27 estrelas brancas e faixa branca com o lema Ordem e Progresso.'],
+ar:['República Argentina','Buenos Aires','Três faixas horizontais, azul-celeste, branca e azul-celeste, com o Sol de Maio ao centro.','O Sol de Maio remete à Revolução de Maio de 1810.'],
+jp:['Japão','Tóquio','Fundo branco com um disco vermelho ao centro.'],
+fr:['República Francesa','Paris','Três faixas verticais: azul, branca e vermelha.','Conhecida como Tricolor, é associada à Revolução Francesa.'],
+it:['República Italiana','Roma','Três faixas verticais: verde, branca e vermelha.','Conhecida como Il Tricolore.'],
+de:['República Federal da Alemanha','Berlim','Três faixas horizontais: preta, vermelha e dourada.'],
+ie:['Irlanda','Dublin','Três faixas verticais: verde, branca e laranja.','O verde representa a tradição gaélica, o laranja os seguidores de Guilherme de Orange e o branco a paz entre os dois grupos.'],
+be:['Reino da Bélgica','Bruxelas','Três faixas verticais: preta, amarela e vermelha.'],
+nl:['Reino dos Países Baixos','Amsterdã','Três faixas horizontais: vermelha, branca e azul.'],
+ru:['Federação da Rússia','Moscou','Três faixas horizontais: branca, azul e vermelha.'],
+ua:['Ucrânia','Kiev','Duas faixas horizontais: azul e amarela.','Na interpretação popular, céu azul sobre campos de trigo.'],
+pl:['República da Polônia','Varsóvia','Duas faixas horizontais: branca e vermelha.'],
+at:['República da Áustria','Viena','Três faixas horizontais: vermelha, branca e vermelha.'],
+hu:['Hungria','Budapeste','Três faixas horizontais: vermelha, branca e verde.'],
+ee:['República da Estônia','Tallinn','Três faixas horizontais: azul, preta e branca.'],
+lt:['República da Lituânia','Vilnius','Três faixas horizontais: amarela, verde e vermelha.'],
+bg:['República da Bulgária','Sófia','Três faixas horizontais: branca, verde e vermelha.'],
+se:['Reino da Suécia','Estocolmo','Fundo azul com cruz nórdica amarela.'],
+dk:['Reino da Dinamarca','Copenhague','Fundo vermelho com cruz nórdica branca.','Chamada Dannebrog, é considerada uma das bandeiras nacionais mais antigas em uso contínuo.'],
+no:['Reino da Noruega','Oslo','Fundo vermelho com cruz nórdica azul contornada de branco.'],
+fi:['República da Finlândia','Helsinque','Fundo branco com cruz nórdica azul.'],
+is:['Islândia','Reykjavík','Fundo azul com cruz nórdica vermelha contornada de branco.'],
+ch:['Confederação Suíça','Berna (sede federal)','Bandeira quadrada vermelha com cruz branca ao centro.'],
+gb:['Reino Unido da Grã-Bretanha e Irlanda do Norte','Londres','Fundo azul com cruzes vermelhas e brancas sobrepostas.','Chamada Union Jack, combina as cruzes de São Jorge (Inglaterra), Santo André (Escócia) e São Patrício (Irlanda).'],
+gr:['República Helênica','Atenas','Nove faixas horizontais azuis e brancas, com cruz branca sobre cantão azul.','Pela tradição, as nove faixas correspondem às sílabas do lema Liberdade ou Morte, em grego.'],
+us:['Estados Unidos da América','Washington, D.C.','Treze listras horizontais vermelhas e brancas, com cantão azul de 50 estrelas brancas.','As 13 listras representam as colônias originais e as 50 estrelas, os estados.'],
+id:['República da Indonésia','Jacarta','Duas faixas horizontais: vermelha e branca.'],
+bd:['República Popular do Bangladesh','Daca','Fundo verde com disco vermelho deslocado em direção à tralha.'],
+la:['República Democrática Popular do Laos','Vientiane','Faixas horizontais vermelha, azul (dupla) e vermelha, com disco branco ao centro.'],
+th:['Reino da Tailândia','Bangkok','Cinco faixas horizontais: vermelha, branca, azul (dupla), branca e vermelha.'],
+vn:['República Socialista do Vietnã','Hanói','Fundo vermelho com estrela amarela de cinco pontas ao centro.'],
+cn:['República Popular da China','Pequim','Fundo vermelho com uma estrela amarela grande e quatro menores no cantão.'],
+tr:['República da Turquia','Ancara','Fundo vermelho com crescente e estrela brancos.'],
+in:['República da Índia','Nova Délhi','Três faixas horizontais, açafrão, branca e verde, com a roda azul-marinho de 24 raios ao centro.','A roda é o Ashoka Chakra.'],
+ye:['República do Iêmen','Sanaã','Três faixas horizontais: vermelha, branca e preta.'],
+pw:['República de Palau','Ngerulmud','Fundo azul-claro com disco amarelo deslocado em direção à tralha.'],
+co:['República da Colômbia','Bogotá','Três faixas horizontais: amarela (metade da altura), azul e vermelha.'],
+pe:['República do Peru','Lima','Três faixas verticais: vermelha, branca e vermelha (versão civil, sem brasão).'],
+cl:['República do Chile','Santiago','Faixa branca sobre faixa vermelha, com cantão azul e estrela branca.'],
+pa:['República do Panamá','Cidade do Panamá','Quatro quartos: branco com estrela azul, vermelho, azul e branco com estrela vermelha.'],
+ng:['República Federal da Nigéria','Abuja','Três faixas verticais: verde, branca e verde.'],
+ml:['República do Mali','Bamako','Três faixas verticais: verde, amarela e vermelha.'],
+td:['República do Chade','N’Djamena','Três faixas verticais: azul, amarela e vermelha.'],
+gn:['República da Guiné','Conacri','Três faixas verticais: vermelha, amarela e verde.'],
+ci:['República da Costa do Marfim','Yamoussoukro','Três faixas verticais: laranja, branca e verde.'],
+so:['República Federal da Somália','Mogadíscio','Fundo azul-claro com estrela branca de cinco pontas.'],
+'ca-tx':['Estado do Texas · Estados Unidos','Austin','Faixa vertical azul com estrela branca; à direita, faixas branca e vermelha.','Conhecida como Lone Star Flag.'],
+'co-us':['Estado do Colorado · Estados Unidos','Denver','Faixas azul, branca e azul, com letra C vermelha envolvendo um disco dourado.'],
+ak:['Estado do Alasca · Estados Unidos','Juneau','Fundo azul-escuro com oito estrelas douradas.','As estrelas formam a Ursa Maior e a Estrela Polar.'],
+ams:['Amsterdã · Países Baixos','—','Faixas vermelha, preta e vermelha, com três cruzes de Santo André brancas na faixa preta.'],
+dc:['Distrito de Colúmbia · Estados Unidos','—','Fundo branco com três estrelas e duas faixas vermelhas.'],
+chi:['Chicago · Estados Unidos','—','Fundo branco com duas faixas azul-claras e quatro estrelas vermelhas de seis pontas.','As estrelas representam o Forte Dearborn, o Grande Incêndio de 1871 e as exposições de 1893 e de 1933–34.']
+};
+const NDESC={A:'Bandeira bifurcada, branca na tralha e azul no batente.',B:'Bandeira bifurcada vermelha.',C:'Cinco faixas horizontais: azul, branca, vermelha, branca e azul.',D:'Faixas horizontais amarela, azul (dupla) e amarela.',E:'Metade superior azul e inferior vermelha.',F:'Fundo branco com losango vermelho.',G:'Seis faixas verticais alternadas, amarelas e azuis.',H:'Metade branca na tralha e vermelha no batente.',I:'Fundo amarelo com disco preto.',J:'Faixas horizontais azul, branca e azul.',K:'Metade amarela na tralha e azul no batente.',L:'Quartos alternados amarelos e pretos.',M:'Fundo azul com aspa branca.',N:'Xadrez azul e branco de 16 casas.',P:'Fundo azul com quadrado branco.',Q:'Inteiramente amarela.',R:'Fundo vermelho com cruz amarela.',S:'Fundo branco com quadrado azul.',T:'Três faixas verticais: vermelha, branca e azul.',U:'Quartos alternados vermelhos e brancos.',V:'Fundo branco com aspa vermelha.',W:'Borda azul, faixa branca e retângulo vermelho ao centro.',X:'Fundo branco com cruz azul.'};
+D.forEach(f=>{const x=INFO[f.id];if(x){f.of=x[0];f.cap=x[1];f.desc=x[2];if(x[3]&&!f.s)f.s=x[3]}if(f.t==='nautica'){f.desc=NDESC[f.k];f.of='Sinal '+f.n.split(' · ')[1]+' · letra '+f.k}if(f.o==='original'){f.of=f.n;f.desc='Bandeira original enviada por @'+f.a+' e aprovada pela moderação.'}});
+const byId=Object.fromEntries(D.map(f=>[f.id,f]));
+const fmt=n=>n>=1000?(n/1000).toFixed(1).replace('.',',').replace(',0','')+' mil':String(n);
+const dims=f=>{const W=600;return [W,Math.round(W*f.ra[0]/f.ra[1])]};
+const draw=(f,cls='fl')=>{const [W,H]=dims(f);return `<svg class="${cls}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Bandeira: ${f.n}">${f.d(W,H)}</svg>`};
+const svg=(f,cls='fl')=>f.src?`<img class="${cls}" src="${f.src}" alt="Bandeira: ${f.n}" loading="lazy" decoding="async" data-fb="${f.id}">`:draw(f,cls);
+document.addEventListener('error',e=>{const t=e.target;if(t.tagName==='IMG'&&t.dataset.fb&&byId[t.dataset.fb]){const w=document.createElement('span');w.innerHTML=draw(byId[t.dataset.fb],t.className);const n=w.firstChild;n.dataset.fallback='1';t.replaceWith(n)}},true);
+const sub=f=>f.o==='original'?'Criação original':`${TN[f.t]} · ${f.r}`;
+let liked=new Set();try{liked=new Set(JSON.parse(localStorage.getItem('flamula-likes')||'[]'))}catch(e){}
+const saveL=()=>{try{localStorage.setItem('flamula-likes',JSON.stringify([...liked]))}catch(e){}};
+const card=f=>`<a class="card" href="#b-${f.id}"><div class="stg">${svg(f)}</div><div class="meta"><b>${f.n}</b><span>${sub(f)}</span></div><div class="cnt"><span>${I('heart')}${fmt(f.likes+(liked.has(f.id)?1:0))}</span><span>${I('dl')}${fmt(f.dl)}</span>${f.o==='original'?`<span class="by">@${f.a}</span>`:'<span class="tag">Oficial</span>'}</div></a>`;
+const $=id=>document.getElementById(id);
+const toast=m=>{const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('show'),2400)};
+
+/* home */
+const off=D.filter(f=>f.o==='oficial'),com=D.filter(f=>f.o==='original');
+$('stats').innerHTML=[[off.length,'bandeiras no acervo'],[com.length,'criações aprovadas'],[new Set(com.map(f=>f.a)).size,'criadores']].map(([n,l])=>`<div><b>${n}</b><span>${l}</span></div>`).join('');
+const now=new Date(),isDay=now.getMonth()===10&&now.getDate()===19;
+const paises=off.filter(f=>f.t==='pais');
+const doy=Math.floor((now-new Date(now.getFullYear(),0,0))/864e5);
+const fd=isDay?byId.br:paises[doy%paises.length];
+const wave=f=>{const [W,H]=dims(f),N=22;let s=`<svg class="wave" viewBox="-24 -26 ${W+40} ${H+60}" role="img" aria-label="Bandeira: ${f.n}"><defs><symbol id="wsym" viewBox="0 0 ${W} ${H}">${f.src?`<image href="${f.src}" width="${W}" height="${H}" preserveAspectRatio="none"/>`:f.d(W,H)}</symbol>`;for(let i=0;i<N;i++)s+=`<clipPath id="wc${i}"><rect x="${(i*W/N).toFixed(1)}" y="-30" width="${(W/N+1).toFixed(1)}" height="${H+60}"/></clipPath>`;s+=`</defs><rect x="-20" y="-24" width="9" height="${H+60}" rx="4.5" fill="rgba(255,255,255,.85)"/>`;for(let i=0;i<N;i++){const sh=(.5+.5*Math.sin(i/N*Math.PI*3)).toFixed(2);s+=`<g clip-path="url(#wc${i})"><g class="wv" style="animation-delay:${(-i*.13).toFixed(2)}s"><use href="#wsym" width="${W}" height="${H}"/><rect x="${(i*W/N).toFixed(1)}" y="0" width="${(W/N+1).toFixed(1)}" height="${H}" fill="#000" opacity="${(sh*.12).toFixed(3)}"/></g></g>`}return s+'</svg>'};
+$('dia').innerHTML=`<div class="top"><div><small>${isDay?'19 de novembro · Dia da Bandeira':'Bandeira do dia'}</small><b>${fd.n}</b></div><a class="round" href="#b-${fd.id}" aria-label="Ver ficha de ${fd.n}">${I('arrow')}</a></div>${wave(fd)}<div style="display:flex;gap:18px;flex-wrap:wrap;font-size:14px;color:rgba(255,255,255,.8)"><span>Proporção ${fd.ra[0]}:${fd.ra[1]}</span>${fd.y?`<span>Adotada em ${fd.y}</span>`:''}<span>${fd.c.length} cores</span></div>`;
+const cnt=t=>D.filter(f=>f.t===t).length;
+const catDef=[['pais','Países','big'],['nautica','Sinais náuticos',''],['estado','Estados e províncias',''],['cidade','Cidades',''],['insignia','Insígnias','soon']];
+$('cats').innerHTML=catDef.map(([t,l,c])=>{const fs=c==='big'?['br','jp','gb','us','in','ch'].map(i=>byId[i]):D.filter(f=>f.t===t).sort((a,b)=>b.likes-a.likes).slice(0,4);return `<button class="cat ${c}" data-cat="${t}"><div><b>${l}</b><br><span>${c==='soon'?'Em curadoria · revisão de licença':cnt(t)+' bandeiras'}</span></div><div class="minis">${fs.map(f=>svg(f)).join('')}</div></button>`}).join('');
+$('dest').innerHTML=off.slice().sort((a,b)=>b.likes-a.likes).slice(0,8).map(card).join('');
+const authors={};com.forEach(f=>{authors[f.a]=authors[f.a]||{n:0,l:0};authors[f.a].n++;authors[f.a].l+=f.likes});
+const avc=['#ff5a1f','#1446a0','#1f8a4c','#3b1f6e','#d7263d','#13294b'];
+$('crs').innerHTML=Object.entries(authors).sort((a,b)=>b[1].l-a[1].l).slice(0,4).map(([a,v],i)=>`<div class="cr"><div class="av" style="background:${avc[i%6]}">${a[0].toUpperCase()}</div><div><b>@${a}</b><span>${v.n} ${v.n>1?'criações':'criação'} · ${fmt(v.l)} curtidas</span></div><button data-soon="Seguir criadores">Seguir</button></div>`).join('');
+$('ult').innerHTML=com.slice().reverse().slice(0,8).map(card).join('');
+
+/* explorar */
+const st={q:'',t:'todos',o:'todas',r:'todas',s:'popular'};
+const regs=['todas',...new Set(D.map(f=>f.r))];
+$('reg').innerHTML=regs.map(r=>`<option value="${r}">${r==='todas'?'Todas as regiões':r}</option>`).join('');
+const norm=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+const drawOrig=()=>{$('orig').innerHTML=[['todas','Todas'],['oficial','Oficiais'],['original','Originais']].map(([v,l])=>`<button data-o="${v}" class="${st.o===v?'on':''}" aria-pressed="${st.o===v}">${l}</button>`).join('')};
+const drawTipos=()=>{$('tipos').innerHTML=TIPOS.map(([v,l])=>`<button class="chip ${st.t===v?'on':''}" data-t="${v}" aria-pressed="${st.t===v}">${l}<em>${v==='todos'?D.length:cnt(v)}</em></button>`).join('')};
+const gal=()=>{drawOrig();drawTipos();$('reg').value=st.r;$('ord').value=st.s;
+ let L=D.filter(f=>(st.t==='todos'||f.t===st.t)&&(st.o==='todas'||f.o===st.o)&&(st.r==='todas'||f.r===st.r)&&(!st.q||norm(f.n+' '+f.k+' '+(f.a||'')+' '+(f.cap||'')+' '+(f.of||'')).includes(norm(st.q))));
+ const so={popular:(a,b)=>b.likes-a.likes,recentes:(a,b)=>b.added-a.added,downloads:(a,b)=>b.dl-a.dl,az:(a,b)=>a.n.localeCompare(b.n,'pt')}[st.s];L.sort(so);
+ $('ptot').textContent=`${off.length} bandeiras oficiais e ${com.length} criações da comunidade.`;
+ $('res').textContent=L.length?`${L.length} ${L.length>1?'resultados':'resultado'}`:'';
+ if(!L.length){$('gal').innerHTML=st.t==='insignia'?`<div class="empty"><b>Insígnias em curadoria</b><p>Insígnias militares, policiais e institucionais muitas vezes têm uso restrito. Elas entram no acervo depois da revisão de licença de cada arquivo.</p><button class="btn gh" data-clear>Ver todas as bandeiras</button></div>`:`<div class="empty"><b>Nenhuma bandeira encontrada</b><p>Tente outro termo ou remova algum filtro.</p><button class="btn gh" data-clear>Limpar filtros</button></div>`;return}
+ $('gal').innerHTML=L.map(card).join('')};
+$('q').addEventListener('input',e=>{st.q=e.target.value;gal()});
+$('reg').addEventListener('change',e=>{st.r=e.target.value;gal()});
+$('ord').addEventListener('change',e=>{st.s=e.target.value;gal()});
+
+/* detalhe */
+const det=id=>{const f=byId[id];if(!f){location.hash='explorar';return}
+ const [h,w]=f.ra,isO=f.o==='original';
+ const rel=D.filter(x=>x.id!==f.id&&x.t===f.t&&x.r===f.r);const rel2=(rel.length>=4?rel:rel.concat(D.filter(x=>x.id!==f.id&&x.t===f.t&&x.r!==f.r))).slice(0,6);
+ const fx=[['Proporção',`${h}:${w}`],['Adoção',isO?'2026':(f.y||'—')],[f.t==='nautica'?'Letra':'Código',f.k]];
+ const loc=f.t==='nautica'?[['Uso','Comunicação marítima'],['Sistema','Código Internacional de Sinais']]:isO?[['Autor','@'+f.a],['Status','Aprovada']]:f.t==='pais'?[['Capital',f.cap],['Continente',f.r]]:f.t==='estado'?[['Capital',f.cap],['País',(f.of||'').split(' · ')[1]]]:[['País',(f.of||'').split(' · ')[1]],['Região',f.r]];
+ document.title=f.n+' · Flâmula';tint(f);
+ $('v-detalhe').innerHTML=`<a class="back" href="#explorar">${I('back')}Explorar</a><div class="dgrid"><div class="dstage">${svg(f)}</div><div class="dinfo"><div class="dhead"><h1>${f.n}</h1>${f.of&&f.of!==f.n?`<p style="margin:-4px 0 14px;color:var(--mut);font-size:17px">${f.of}</p>`:''}<div class="pills"><span class="${isO?'o':''}">${isO?'Original':'Oficial'}</span><span>${TN[f.t]}</span><span>${f.r}</span>${isO?`<span>@${f.a}</span>`:''}</div>
+ <div class="acts"><button class="btn gh ${liked.has(f.id)?'on':''}" id="blike" aria-pressed="${liked.has(f.id)}">${I('heart')}<span>${fmt(f.likes+(liked.has(f.id)?1:0))}</span></button>${f.src?`<a class="btn" href="${f.src}" target="_blank" rel="noopener">${I('dl')}Abrir SVG oficial</a>`:`<button class="btn" id="bcopy">${I('copy')}Copiar SVG</button>`}<button class="btn gh" id="bshare">${I('copy')}Copiar link</button><button class="btn acc" data-soon="O editor (remix)">${I('remix')}Remixar</button></div></div>
+ <div class="ficha">${fx.map(([l,v])=>`<div class="fx"><small>${l}</small><b>${v}</b></div>`).join('')}${loc.map(([l,v])=>`<div class="fx" style="grid-column:span ${loc.indexOf(loc.find(z=>z[0]===l))?1:2}"><small>${l}</small><p style="font-weight:700">${v}</p></div>`).join('')}
+ <div class="fx w"><small>Desenho</small><p>${f.desc||'—'}</p></div>
+ <div class="fx w"><small>Cores · toque para copiar o hex</small><div class="sw">${f.c.map(c=>`<button data-hex="${c}"><i style="background:${c}"></i>${c.toUpperCase()}</button>`).join('')}</div></div>
+ ${f.s?`<div class="fx w"><small>${f.t==='nautica'?'Significado':'Simbologia'}</small><p>${f.s}</p></div>`:''}
+ <div class="fx w"><small>Fonte e licença</small><p>${isO?`Criação de @${f.a}. Licença definida pelo autor no envio.`:f.fonte==='flagcdn'?'Arquivo oficial via Flagpedia/flagcdn, gerado a partir dos vetores do Wikimedia Commons. Domínio público.':'Arquivo oficial do Wikimedia Commons. Licença conferida arquivo a arquivo; na maioria dos casos, domínio público.'}</p></div></div></div></div>
+ <section class="sec"><div class="shead"><div><h2>${isO?'Outras criações':'Relacionadas'}</h2></div></div><div class="grid">${rel2.map(card).join('')}</div></section>`;
+ $('bshare').onclick=()=>{navigator.clipboard.writeText(location.href).then(()=>toast('Link da bandeira copiado')).catch(()=>toast('Não foi possível copiar'))};
+ $('blike').onclick=()=>{liked.has(f.id)?liked.delete(f.id):liked.add(f.id);saveL();det(id)};
+ if($('bcopy'))$('bcopy').onclick=()=>{const [W,H]=dims(f);const s=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}">${f.d(W,H)}</svg>`;navigator.clipboard.writeText(s).then(()=>toast('SVG copiado')).catch(()=>toast('Não foi possível copiar neste navegador'))};
+};
+
+/* roteamento e eventos */
+const rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255);
+const lum=h=>{const [r,g,b]=rgb(h).map(c=>c<=.04?c/12.92:((c+.055)/1.055)**2.4);return .2126*r+.7152*g+.0722*b};
+const sat=h=>{const c=rgb(h);return Math.max(...c)-Math.min(...c)};
+const tint=f=>{const c=f.c.slice();while(c.length<4)c.push(c[c.length%f.c.length]);const pos=['12% 8%','92% 18%','22% 96%','88% 88%'];const bg=c.slice(0,4).map((x,i)=>`radial-gradient(62% 58% at ${pos[i]},${x} 0%,transparent 72%)`).join(',')+`,linear-gradient(135deg,${c[0]},${c[1]})`;const t=$('tint');t.style.setProperty('--tintbg',bg);const cand=f.c.filter(x=>lum(x)>.03&&lum(x)<.85).sort((a,b)=>sat(b)-sat(a));const fa=cand[0]||f.c[0];document.body.style.setProperty('--fa',fa);document.body.style.setProperty('--fa-ink',lum(fa)>.45?'#111':'#fff');document.body.classList.add('tinted')};
+const route=()=>{const h=location.hash.slice(1);let v='home';document.body.classList.remove('tinted');document.title='Flâmula — protótipo';
+ if(h==='explorar')v='explorar';else if(h.startsWith('b-'))v='detalhe';
+ $('v-home').hidden=v!=='home';$('v-explorar').hidden=v!=='explorar';$('v-detalhe').hidden=v!=='detalhe';
+ if(v==='explorar')gal();if(v==='detalhe')det(h.slice(2));
+ document.querySelectorAll('[data-r]').forEach(a=>a.classList.toggle('on',a.dataset.r===v||(v==='detalhe'&&a.dataset.r==='explorar')));
+ window.scrollTo(0,0)};
+document.addEventListener('click',e=>{const t=e.target.closest('button,a');if(!t)return;
+ if(t.dataset.soon){toast(`${t.dataset.soon}: em desenvolvimento nas próximas etapas.`);return}
+ if(t.dataset.cat){Object.assign(st,{t:t.dataset.cat,o:'todas',r:'todas',q:''});$('q').value='';location.hash='explorar';if(location.hash==='#explorar')gal();return}
+ if(t.dataset.t){st.t=t.dataset.t;gal();return}
+ if(t.dataset.o){st.o=t.dataset.o;gal();return}
+ if('clear' in t.dataset){Object.assign(st,{q:'',t:'todos',o:'todas',r:'todas'});$('q').value='';gal();return}
+ if(t.dataset.hex){navigator.clipboard.writeText(t.dataset.hex).then(()=>toast(t.dataset.hex+' copiado')).catch(()=>toast('Não foi possível copiar'));return}
+ if(t.id==='bsearch'){location.hash='explorar';setTimeout(()=>$('q').focus(),50);return}
+ if(t.id==='vercom'){Object.assign(st,{t:'todos',o:'original',r:'todas',s:'recentes'})}
+});
+window.addEventListener('hashchange',route);
+route();
+}
+</script>
+</body>
+</html>
