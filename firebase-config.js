@@ -4,10 +4,10 @@
    Esses valores não são secretos: ficam visíveis no site de qualquer forma.
    A proteção vem das regras do Firestore (arquivo firestore.rules). */
 window.FLAMULA_FIREBASE = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyCmALeLoTqllxVg5BzniHisHSpBo7uUjCI",
+  authDomain: "flamula-app.firebaseapp.com",
+  projectId: "flamula-app",
+  storageBucket: "flamula-app.firebasestorage.app",
+  messagingSenderId: "589663780691",
+  appId: "1:589663780691:web:25036714372c6b072e2ba6"
 };
