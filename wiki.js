@@ -2,7 +2,7 @@
    Adoção, designer, contexto e linha do tempo vêm da Wikidata e da Wikipédia (CC BY-SA),
    consultadas no navegador e guardadas em cache por 7 dias. */
 (() => {
-const TTL = 7 * 864e5, VER = 'v3';
+const TTL = 7 * 864e5, VER = 'v4';
 const cacheGet = k => { try { const v = JSON.parse(localStorage.getItem(`fl-w-${VER}-${k}`) || 'null'); if (v && Date.now() - v.t < TTL) return v.d } catch (e) { } return null };
 const cacheSet = (k, d) => { try { localStorage.setItem(`fl-w-${VER}-${k}`, JSON.stringify({ t: Date.now(), d })) } catch (e) { } };
 const tfetch = (u, ms = 10000) => { const c = new AbortController(); const t = setTimeout(() => c.abort(), ms); return fetch(u, { signal: c.signal }).finally(() => clearTimeout(t)) };
@@ -126,7 +126,7 @@ const parsePage = async (lang, title) => {
   return { html: j.parse.text, title: j.parse.title };
 };
 const absu = u => !u ? u : u.startsWith('//') ? 'https:' + u : u.startsWith('/') ? 'https://' + 'upload.wikimedia.org' + u : u;
-const bigger = (u, w = 900) => u ? u.replace(/\/(\d+)px-/, `/${w}px-`) : u;
+const bigger = (u, w = 960) => u ? u.replace(/\/(\d+)px-/, `/${w}px-`) : u;
 const clean = s => String(s || '').replace(/\[[^\]]*\]/g, '').replace(/\s+/g, ' ').trim();
 const YR = /(\d{3,4})(?:\s*(?:–|—|-|a|to|até)\s*(\d{3,4}|present|presente|atual|atualmente|hoje|today|now))?/i;
 const years = t => { const m = YR.exec(t || ''); if (!m) return null; const a = +m[1]; if (a < 700 || a > 2100) return null; let b = null, cur = false; if (m[2]) { if (/^\d/.test(m[2])) { b = +m[2]; if (b < a) b = null } else cur = true } return { from: a, to: b, cur } };
