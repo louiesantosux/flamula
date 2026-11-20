@@ -81,7 +81,7 @@ css.textContent += `
 .pfc::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(10,30,45,.35))}
 .pfcf{position:absolute;right:5%;top:50%;width:min(36%,300px);transform:translateY(-50%) rotate(-6deg);opacity:.92}
 .pfcf .fl{width:100%;height:auto;border-radius:8px;box-shadow:0 20px 40px rgba(10,30,45,.4)}
-.pfb{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:20px;align-items:end;border-radius:30px;padding:20px 22px;margin:-56px 18px 0}
+.pfb{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:20px;align-items:end;border-radius:30px;padding:20px 22px;margin:-56px 0 0}
 .pfav{width:112px;height:112px;font-size:44px;margin-top:-66px;box-shadow:0 0 0 5px var(--bg),0 14px 30px rgba(10,30,45,.3);background:var(--aurora)}
 .pfn h1{font-size:clamp(26px,3.4vw,40px)}.pfn p{margin:6px 0 0;color:var(--mut);max-width:60ch}
 .pfm{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-top:10px;font-size:13.5px;color:var(--mut)}
@@ -97,8 +97,8 @@ css.textContent += `
 .adchips{display:flex;flex-wrap:wrap;gap:8px}.adchip{display:inline-flex;align-items:center;gap:8px;padding:4px 4px 4px 6px;border-radius:999px;background:var(--chip);font-weight:600;font-size:14px}
 .adchip img,.adchip svg{width:28px;height:19px;object-fit:cover;border-radius:4px}.adchip button{width:26px;height:26px;border-radius:999px;border:0;background:rgba(127,127,127,.2);color:inherit;font-size:16px;line-height:1}
 .aduser .th{background:none;padding:0;width:64px;aspect-ratio:auto}.aduser .th .av{width:52px;height:52px;font-size:20px}.li.aduser{grid-template-columns:64px minmax(0,1fr) auto}
-.pfaviso{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:22px;padding:14px 18px;margin:14px 18px 0}
-@media(max-width:760px){.adst{grid-template-columns:repeat(2,minmax(0,1fr))}.adcol{grid-template-columns:minmax(0,1fr)}.li.aduser{grid-template-columns:56px minmax(0,1fr)}.pfaviso{margin:12px 10px 0}}
+.pfaviso{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:22px;padding:14px 18px;margin:14px 0 0}
+@media(max-width:760px){.adst{grid-template-columns:repeat(2,minmax(0,1fr))}.adcol{grid-template-columns:minmax(0,1fr)}.li.aduser{grid-template-columns:56px minmax(0,1fr)}.pfaviso{margin:12px 0 0}}
 .pfadm b{min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:#fff;color:var(--oceano,#1B7FDC);font-size:12px;display:inline-grid;place-items:center;margin-left:2px}
 .avw{position:relative;display:inline-grid;flex:none;vertical-align:middle}
 .selo{position:absolute;right:-2%;bottom:-2%;width:38%;aspect-ratio:1;border-radius:50%;overflow:hidden;box-shadow:0 0 0 2.5px var(--bg),0 2px 6px rgba(0,0,0,.3);background:#fff;display:grid}
@@ -125,7 +125,11 @@ css.textContent += `
 .pebn .pfc.mini{display:block;height:58px;border-radius:14px;position:relative;overflow:hidden;box-shadow:0 0 0 1px var(--line)}
 .pebn .pfc.mini::after{display:none}.pebn .pfc.mini .pfcf{width:46%;right:4%}
 .pebn button.on .pfc.mini{box-shadow:0 0 0 3px var(--oceano,#1B7FDC)}.pebn small{font-size:12px;font-weight:600;color:var(--mut)}.pebn button.on small{color:var(--ink)}
-.pfs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 18px 0}
+/* perfil com tema da bandeira favorita: números, abas e destaques na cor dela */
+body.tinted .pfs b,body.tinted .adst b{background:none;-webkit-text-fill-color:currentColor;color:color-mix(in srgb,var(--fa) 70%,#fff)}
+body.tinted #pft .ind{background:color-mix(in srgb,var(--fa) 35%,transparent)}
+body.tinted .pfchip,body.tinted .pfcbtn{--glass:color-mix(in srgb,var(--fa) 22%,rgba(10,20,30,.35))}
+.pfs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0 0}
 .pfs button{border:0;border-radius:22px;padding:14px 16px;text-align:left;display:grid;gap:2px;color:inherit}
 .pfs b{font:700 clamp(22px,2.6vw,30px)/1.1 var(--font-d);background:var(--aurora);-webkit-background-clip:text;background-clip:text;color:transparent}
 .pfs span{font-size:13px;color:var(--mut);font-weight:600}
@@ -133,7 +137,7 @@ css.textContent += `
 .pfj{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .pfjc{border-radius:24px;padding:18px;display:grid;gap:4px;border-top:3px solid var(--nv)}.pfjc small{color:var(--nv);font-weight:700}.pfjc b{font:700 34px/1 var(--font-d)}.pfjc span{color:var(--mut);font-size:14px}
 .pfnote{color:var(--mut);font-size:13px;margin-top:14px}
-@media(max-width:760px){.pfb{grid-template-columns:minmax(0,1fr);justify-items:start;margin:-46px 10px 0;padding:18px}.pfav{width:88px;height:88px;font-size:34px;margin-top:-62px}.pfa{width:100%}.pfa .btn{flex:1}.pfs{grid-template-columns:repeat(2,minmax(0,1fr));margin:12px 10px 0}.pfj{grid-template-columns:minmax(0,1fr)}.pfcf{width:46%}}
+@media(max-width:760px){.pfb{grid-template-columns:minmax(0,1fr);justify-items:start;margin:-46px 0 0;padding:18px}.pfav{width:88px;height:88px;font-size:34px;margin-top:-62px}.pfa{width:100%}.pfa .btn{flex:1}.pfs{grid-template-columns:repeat(2,minmax(0,1fr));margin:12px 0 0}.pfj{grid-template-columns:minmax(0,1fr)}.pfcf{width:46%}}
 `;
 document.head.appendChild(css);
 
@@ -317,7 +321,10 @@ FL.views.perfil = async () => {
   const u = FB().user, p = FB().profile || {};
   if (!u) { try { sessionStorage.setItem('fl-volta', 'perfil') } catch (e) { } return v.innerHTML = needLogin('ver seu perfil, enviar criações e participar de comunidades') }
   const fav = p.bandeira && byId[p.bandeira];
+  /* o tema da página do perfil segue as cores da bandeira favorita */
+  if (fav && FL.tint) FL.tint(fav); else document.body.classList.remove('tinted');
   const cs = fav && fav.c && fav.c.length ? fav.c.slice(0, 4) : ['#0DB8D3', '#1B7FDC', '#065B98'];
+  if (fav && FL.tint) FL.tint(fav);
   const bnr = BANNERS.some(b => b[0] === p.banner) ? p.banner : (fav ? 'favorita' : 'artico');
   const likes = likesLocal().filter(id => byId[id]);
   const rec = recLocal(); const melhor = ['dificil', 'medio', 'facil'].map(n => [n, (rec[n] || [])[0]]).find(x => x[1]);
