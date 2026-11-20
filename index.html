@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Flâmula</title>
 <meta name="description" content="Bandeiras oficiais do mundo, história de cada uma e um editor para criar a sua.">
-<meta name="theme-color" content="#0B1026">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23FF9A5C'/%3E%3Cstop offset='1' stop-color='%23FF5530'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='%230B1026'/%3E%3Crect x='8' y='5' width='2.6' height='22' rx='1.3' fill='%23fff'/%3E%3Cpath d='M10.6 6.2C15.5 5.6 19.8 8.3 26.5 10.4C19.8 12.6 15.5 15.4 10.6 15Z' fill='url(%23g)'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#0C0A1D">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23FF7A93'/%3E%3Cstop offset='1' stop-color='%237B6BFF'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='%230C0A1D'/%3E%3Crect x='8' y='5' width='2.6' height='22' rx='1.3' fill='%23fff'/%3E%3Cpath d='M10.6 6.2C15.5 5.6 19.8 8.3 26.5 10.4C19.8 12.6 15.5 15.4 10.6 15Z' fill='url(%23g)'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -14,17 +14,21 @@
 /* VOICE acervo de bandeiras com comunidade, tom de produto Apple (iOS 26)
    IDEA uma flâmula ao vento: vidro líquido, molas e a cor de cada bandeira tingindo a página
    PICTURE hero com a bandeira do dia tremulando; páginas de bandeira tingidas pela própria paleta
-   COLOUR Brasa, Azul Sistema, Céu Noturno, Névoa, Ônix e Grafite
+   COLOUR Aurora: Anil, Lavanda, Coral, Ciano, Noite, Névoa, Breu e Grafite
    TYPE SF Pro (sistema Apple), com Inter como reserva
    LAYOUT nav em pílula que minimiza ao rolar; mobile com dock e botão Criar no centro */
 :root{
- --brasa:#FF6B3D;--brasa-2:#FF9A5C;--azul:#0A84FF;--ceu:#0B1026;--nevoa:#F5F5F7;--onix:#0A0A0C;--grafite:#1D1D1F;
+ /* paleta Aurora */
+ --anil:#5B4BFF;--lavanda:#9B8CFF;--coral:#FF5C7A;--ciano:#2ED3E6;--noite:#0C0A1D;--nevoa:#F5F4FA;--breu:#0B0A14;--grafite:#1A1830;
+ --aurora:linear-gradient(135deg,#7B6BFF 0%,#5B4BFF 40%,#B45CF0 72%,#FF5C7A 100%);
+ /* nomes antigos, mantidos para o código existente */
+ --brasa:var(--anil);--brasa-2:var(--lavanda);--azul:light-dark(#4B3BF0,#9B8CFF);--ceu:var(--noite);--onix:var(--breu);
  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Inter","Segoe UI",Roboto,system-ui,sans-serif;
  --font-d:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter","Segoe UI",Roboto,system-ui,sans-serif;
  color-scheme:light dark;
- --bg:light-dark(var(--nevoa),var(--onix));--ink:light-dark(var(--grafite),#F5F5F7);--mut:light-dark(#6E6E73,#98989D);
- --stage:light-dark(#FFFFFF,#1C1C1E);--line:light-dark(rgba(0,0,0,.08),rgba(255,255,255,.1));--chip:light-dark(rgba(118,118,128,.12),rgba(118,118,128,.24));
- --glass:light-dark(rgba(255,255,255,.62),rgba(30,30,34,.58));
+ --bg:light-dark(var(--nevoa),var(--breu));--ink:light-dark(var(--grafite),#F4F3FA);--mut:light-dark(#6B6880,#9C99B3);
+ --stage:light-dark(#FFFFFF,#18162A);--line:light-dark(rgba(26,24,48,.08),rgba(255,255,255,.1));--chip:light-dark(rgba(91,75,255,.08),rgba(155,140,255,.14));
+ --glass:light-dark(rgba(255,255,255,.62),rgba(26,24,44,.58));
  --glass-sh:inset 0 1px 0 light-dark(rgba(255,255,255,.9),rgba(255,255,255,.16)),inset 0 0 0 .5px light-dark(rgba(0,0,0,.06),rgba(255,255,255,.1)),0 8px 28px rgba(0,0,0,.1);
  --acc:var(--brasa);--acc-ink:#fff;
  --r-s:14px;--r-m:22px;--r-l:30px;
@@ -78,7 +82,7 @@ body.compact .links{max-width:0;opacity:0;pointer-events:none}
 .btn.sm{min-height:38px;padding:0 14px;font-size:14px}
 .dock{display:none}
 /* hero */
-.hero{position:relative;margin-top:-80px;padding:130px 0 64px;color:#fff;background:linear-gradient(180deg,var(--ceu) 0%,#262B6B 36%,#9C4F86 66%,#FF7A55 88%,#FFB070 100%);overflow:hidden}
+.hero{position:relative;margin-top:-80px;padding:130px 0 64px;color:#fff;background:linear-gradient(180deg,var(--noite) 0%,#1E1752 34%,#4A3BD6 60%,#9A4FE0 80%,#FF5C7A 100%);overflow:hidden}
 .hero>svg.hills{position:absolute;left:0;right:0;bottom:0;width:100%;height:120px}
 .hgrid{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:28px;align-items:center}
 .hero h1{font-size:clamp(34px,5vw,60px)}
@@ -127,7 +131,7 @@ body.compact .links{max-width:0;opacity:0;pointer-events:none}
 .cnt .ico{width:15px;height:15px}
 .cnt i{font-style:normal}
 .tag{margin-left:auto;padding:3px 9px;border-radius:999px;background:var(--chip);font-weight:600;color:var(--ink)}
-.tag.mil{background:rgba(10,132,255,.14);color:var(--azul)}
+.tag.mil{background:color-mix(in srgb,var(--azul) 14%,transparent);color:var(--azul)}
 .by{margin-left:auto;font-weight:600;color:var(--acc)}
 body:not(.stats) .n{display:none}
 .note{font-size:13px;color:var(--mut);margin-top:12px}
@@ -289,7 +293,7 @@ body.tinted .btn.acc,.acts .on{background:var(--fa,var(--acc));color:var(--fa-in
 .ghd{display:flex;align-items:center;gap:10px;margin:28px 0 12px;font:700 20px var(--font-d)}
 .ghd img,.ghd svg{height:22px;width:auto;border-radius:3px;box-shadow:0 0 0 1px var(--line)}
 /* marca */
-.bhero{margin-top:-80px;padding:150px 0 70px;color:#fff;background:linear-gradient(180deg,var(--ceu),#262B6B 55%,#9C4F86)}
+.bhero{margin-top:-80px;padding:150px 0 70px;color:#fff;background:linear-gradient(180deg,var(--noite),#2A1F78 50%,#7A45D8 80%,#FF5C7A)}
 .bhero .logo .mk{width:clamp(64px,9vw,104px);height:auto}
 .bhero .wm{font-size:clamp(48px,9vw,104px)}
 .bhero p{max-width:56ch;color:rgba(255,255,255,.82);font-size:17px;margin:22px 0 0}
@@ -346,7 +350,7 @@ footer a:hover,footer button:hover{color:var(--ink)}
  .dock a{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:54px;min-height:50px;justify-content:center;font-size:11px;font-weight:600;color:var(--mut);border-radius:22px;transition:min-height var(--dur) var(--spring),background-color .3s}
  .dock .on{color:var(--ink);background:var(--chip)}
  .dock .lb{transition:opacity .2s,max-height var(--dur) var(--spring);max-height:16px;overflow:hidden}
- .dock .fab{width:56px;height:56px;min-width:56px;border-radius:999px;background:var(--acc);color:#fff;margin-top:-26px;box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 8px 20px rgba(255,107,61,.45);transition:margin var(--dur) var(--spring),width var(--dur) var(--spring),height var(--dur) var(--spring)}
+ .dock .fab{width:56px;height:56px;min-width:56px;border-radius:999px;background:var(--acc);color:#fff;margin-top:-26px;box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 8px 20px rgba(91,75,255,.45);transition:margin var(--dur) var(--spring),width var(--dur) var(--spring),height var(--dur) var(--spring)}
  .dock .fab.on{background:var(--acc);color:#fff}
  body.compact .dock{width:290px;padding:4px}
  body.compact .dock .lb{opacity:0;max-height:0}
@@ -371,7 +375,7 @@ footer a:hover,footer button:hover{color:var(--ink)}
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
- <linearGradient id="mkg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF9A5C"/><stop offset="1" stop-color="#FF5530"/></linearGradient>
+ <linearGradient id="mkg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF7A93"/><stop offset="1" stop-color="#7B6BFF"/></linearGradient>
  <symbol id="mk" viewBox="0 0 32 32"><rect x="6" y="3" width="2.8" height="26" rx="1.4" fill="currentColor"/><path d="M8.8 4.6C14.3 3.9 19.2 7 27.6 9.7C19.2 12.3 14.3 15.5 8.8 15Z" fill="url(#mkg)"/><path d="M10 6.1C14 5.8 18 7.6 23.2 9.4" stroke="#fff" stroke-width=".9" stroke-linecap="round" fill="none" opacity=".55"/></symbol>
 </defs></svg>
 <div id="tint" aria-hidden="true"></div>
@@ -424,6 +428,7 @@ footer a:hover,footer button:hover{color:var(--ink)}
 
 <main id="v-detalhe" hidden class="wrap"></main>
 <main id="v-criar" hidden class="wrap"></main>
+<main id="v-entrar" hidden class="wrap"></main>
 <main id="v-perfil" hidden class="wrap"></main>
 <main id="v-comunidades" hidden class="wrap"></main>
 <main id="v-comunidade" hidden class="wrap"></main>
@@ -433,7 +438,7 @@ footer a:hover,footer button:hover{color:var(--ink)}
 <main id="v-marca" hidden>
   <section class="bhero"><div class="wrap">
     <div class="logo"><svg class="mk" style="color:#fff"><use href="#mk"/></svg><span class="wm">flâmula</span></div>
-    <p>A marca parte da flâmula de sinalização: uma bandeira estreita, presa ao mastro e sempre em movimento. A Brasa vem dos sinais náuticos; o Céu Noturno, do entardecer, quando as bandeiras são arriadas.</p>
+    <p>A marca parte da flâmula de sinalização: uma bandeira estreita, presa ao mastro e sempre em movimento. As cores vêm da aurora: o Anil e a Lavanda do céu que escurece, o Coral da última luz, quando as bandeiras são arriadas.</p>
   </div></section>
   <section class="sec wrap"><div class="shead"><div><h2>Símbolo</h2><p>Mastro e flâmula ondulada. Funciona sozinho a partir de 16 px, como no ícone do navegador.</p></div></div>
     <div class="tiles"><div class="tile" style="background:#fff;color:var(--grafite);box-shadow:0 1px 0 var(--line)"><svg class="mk"><use href="#mk"/></svg></div><div class="tile" style="background:var(--ceu);color:#fff"><svg class="mk"><use href="#mk"/></svg></div><div class="tile" style="background:var(--onix);color:#fff"><div class="logo"><svg class="mk" style="width:44px;height:44px"><use href="#mk"/></svg><span class="wm" style="font-size:32px">flâmula</span></div></div></div></section>
@@ -555,7 +560,7 @@ $('gamepic').innerHTML=['fr','it','ie'].map((i,k)=>`<span style="left:${[4,28,48
 $('ctapic').innerHTML=['br','jp','se'].map((i,k)=>`<span style="left:${[4,28,48][k]}%;top:${[6,36,2][k]}%;transform:rotate(${[-8,4,10][k]}deg)">${svg(byId[i],'fl')}</span>`).join('');
 
 /* marca */
-$('pal').innerHTML=[['Brasa','#FF6B3D','Ações e destaques'],['Azul Sistema','#0A84FF','Links e foco'],['Céu Noturno','#0B1026','Topo e ícone'],['Névoa','#F5F5F7','Fundo claro'],['Ônix','#0A0A0C','Fundo escuro'],['Grafite','#1D1D1F','Texto principal']].map(([n,h,u])=>`<button class="sws pr" data-hex="${h}"><i style="background:${h}"></i><div><b>${n}</b><span>${h}</span><span>${u}</span></div></button>`).join('');
+$('pal').innerHTML=[['Anil','#5B4BFF','Ações, botões e foco'],['Lavanda','#9B8CFF','Links no escuro e gradientes'],['Coral','#FF5C7A','Curtidas e destaques quentes'],['Ciano','#2ED3E6','Recordes e detalhes'],['Noite','#0C0A1D','Topo e ícone'],['Névoa','#F5F4FA','Fundo claro'],['Breu','#0B0A14','Fundo escuro'],['Grafite','#1A1830','Texto principal']].map(([n,h,u])=>`<button class="sws pr" data-hex="${h}"><i style="background:${h}"></i><div><b>${n}</b><span>${h}</span><span>${u}</span></div></button>`).join('');
 $('bdemo').addEventListener('click',e=>{const b=e.currentTarget;b.classList.remove('bump');void b.offsetWidth;b.classList.add('bump')});
 
 /* explorar */
@@ -727,8 +732,8 @@ addEventListener('fb-on',()=>FL_loadOriginals());if(window.FB&&FB.on)FL_loadOrig
 
 /* rotas com transição contínua */
 let view='home',lastDet=null;const scrollMem={};
-const VIEWS=['home','explorar','militares','detalhe','criar','perfil','comunidades','comunidade','admin','marca','jogo'];
-const viewOf=h=>h==='explorar'?'explorar':h==='marca'?'marca':(h==='militares'||h.startsWith('fotw-'))?'militares':h.startsWith('b-')?'detalhe':(h==='criar'||h.startsWith('criar-'))?'criar':h==='perfil'?'perfil':h==='comunidades'?'comunidades':h.startsWith('c-')?'comunidade':h==='admin'?'admin':h==='jogo'?'jogo':'home';
+const VIEWS=['entrar','home','explorar','militares','detalhe','criar','perfil','comunidades','comunidade','admin','marca','jogo'];
+const viewOf=h=>h==='entrar'?'entrar':h==='explorar'?'explorar':h==='marca'?'marca':(h==='militares'||h.startsWith('fotw-'))?'militares':h.startsWith('b-')?'detalhe':(h==='criar'||h.startsWith('criar-'))?'criar':h==='perfil'?'perfil':h==='comunidades'?'comunidades':h.startsWith('c-')?'comunidade':h==='admin'?'admin':h==='jogo'?'jogo':'home';
 const argOf=h=>h.startsWith('b-')?h.slice(2):h.startsWith('criar-')?h.slice(6):h.startsWith('c-')?h.slice(2):null;
 const route=()=>{const h=location.hash.slice(1);const v=viewOf(h);closeDD();closeSheet();closeViewer();if(v!=='jogo'&&FL.stopGame)FL.stopGame();
  scrollMem[view]=scrollY;

@@ -39,7 +39,11 @@ else {
     const me = () => { if (!FB.user) throw new Error('login'); return FB.user };
     Object.assign(FB, {
       on: true,
-      google: () => U.signInWithPopup(auth, new U.GoogleAuthProvider()),
+      google: async () => {
+        const pr = new U.GoogleAuthProvider(); pr.setCustomParameters({ prompt: 'select_account' });
+        try { return await U.signInWithPopup(auth, pr) }
+        catch (e) { if (['auth/popup-blocked', 'auth/operation-not-supported-in-this-environment'].includes(e.code)) return U.signInWithRedirect(auth, pr); throw e }
+      },
       login: (e, p) => U.signInWithEmailAndPassword(auth, e, p),
       signup: async (nome, e, p) => { const c = await U.createUserWithEmailAndPassword(auth, e, p); await U.updateProfile(c.user, { displayName: nome }); await F.setDoc(F.doc(db, 'usuarios', c.user.uid), { nome }, { merge: true }); FB.profile = { ...(FB.profile || {}), nome }; ev('fb-user', { user: c.user, admin: FB.admin, profile: FB.profile }); return c },
       reset: e => U.sendPasswordResetEmail(auth, e),
@@ -65,7 +69,17 @@ else {
 
       /* ranking do jogo (uma coleção por nível) */
       ranking: nivel => list(F.query(col('ranking_' + nivel), F.orderBy('pontos', 'desc'), F.limit(25))),
-      salvarPlacar: (nivel, d) => F.addDoc(col('ranking_' + nivel), { nome: d.nome, uid: FB.user?.uid || '', acertos: d.acertos, td: d.td, pontos: d.acertos * 100000 - d.td, criadoEm: F.serverTimestamp() }),
+      /* um placar por jogador e nível: id = uid (logado) ou "n-" + nome normalizado. Só substitui se a pontuação nova for maior */
+      salvarPlacar: async (nivel, d) => {
+        const uid = FB.user?.uid || '';
+        const chave = uid || ('n-' + (d.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'anonimo'));
+        const ref = F.doc(db, 'ranking_' + nivel, chave);
+        const pontos = d.acertos * 100000 - d.td;
+        const ant = await F.getDoc(ref);
+        if (ant.exists() && (ant.data().pontos ?? -Infinity) >= pontos) return { id: chave, melhorou: false, anterior: ant.data() };
+        await F.setDoc(ref, { nome: d.nome, uid, acertos: d.acertos, td: d.td, pontos, criadoEm: F.serverTimestamp() });
+        return { id: chave, melhorou: true, novo: !ant.exists() };
+      },
 
       /* colaboradores */
       colaborar: d => F.addDoc(col('colaboradores'), { nome: d.nome, email: d.email, area: d.area, mensagem: d.mensagem, uid: FB.user?.uid || '', criadoEm: F.serverTimestamp() }),
