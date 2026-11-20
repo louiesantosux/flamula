@@ -344,7 +344,8 @@ body.tinted .btn.acc,.acts .on{background:var(--fa,var(--acc));color:var(--fa-in
 .bump{animation:bump .7s var(--spring)}
 @keyframes bump{0%{transform:scale(1)}30%{transform:scale(1.14,1.08)}100%{transform:scale(1)}}
 /* rodapé, toast */
-footer{margin-top:clamp(64px,8vw,104px);padding:40px 0 calc(48px + env(safe-area-inset-bottom));border-top:1px solid var(--line);font-size:14px;color:var(--mut)}
+footer{position:relative;margin:clamp(64px,8vw,104px) clamp(8px,2vw,24px) 0;padding:44px 0 calc(48px + env(safe-area-inset-bottom));border-radius:40px 40px 0 0;font-size:14px;color:var(--mut);background:var(--glass);-webkit-backdrop-filter:blur(28px) saturate(1.5);backdrop-filter:blur(28px) saturate(1.5);box-shadow:inset 0 1px 0 light-dark(rgba(255,255,255,.85),rgba(255,255,255,.18)),inset 0 0 0 1px light-dark(rgba(255,255,255,.55),rgba(230,243,248,.1)),0 -10px 40px light-dark(rgba(6,60,100,.08),rgba(0,10,20,.25))}
+@media(prefers-reduced-transparency:reduce){footer{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--stage)}}
 .fgrid{display:grid;grid-template-columns:1.4fr repeat(3,minmax(0,1fr));gap:24px}
 footer b{display:block;color:var(--ink);margin-bottom:8px}
 footer a,footer button{display:block;padding:4px 0;border:0;background:none;color:var(--mut);font-size:14px;text-align:left}
@@ -369,7 +370,8 @@ footer a:hover,footer button:hover{color:var(--ink)}
  .sec{padding-top:44px}
  .cat{min-height:0}.cat.wide{min-height:0}.minis{margin-top:6px}
  .act .sm{display:none}
- body{padding-bottom:calc(104px + env(safe-area-inset-bottom))}
+ body{padding-bottom:0}
+ footer{margin-inline:8px;padding-bottom:calc(132px + env(safe-area-inset-bottom));border-radius:32px 32px 0 0}
  .dock{display:flex;position:fixed;left:50%;translate:-50% 0;width:calc(100% - 24px);max-width:440px;bottom:max(12px,env(safe-area-inset-bottom));z-index:30;justify-content:space-around;align-items:center;padding:6px;border-radius:32px;view-transition-name:dock;transition:width var(--dur) var(--spring),padding var(--dur) var(--spring)}
  .dock a{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:54px;min-height:50px;justify-content:center;font-size:11px;font-weight:600;color:var(--mut);border-radius:22px;transition:min-height var(--dur) var(--spring),background-color .3s}
  .dock .on{color:var(--ink);background:var(--chip)}
