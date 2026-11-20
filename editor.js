@@ -2,7 +2,7 @@
    Tudo roda no navegador: não precisa de conta para criar e baixar. */
 (() => {
 const FL = window.FL; if (!FL) return;
-const { $, toast, D, byId, I, saveBlob } = FL;
+const { $, toast, D, byId, I, saveBlob, esc } = FL;
 
 /* estilos do editor */
 const css = document.createElement('style');
@@ -52,6 +52,15 @@ input[type=range]{width:100%;accent-color:var(--acc);height:28px}
 .chlist button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .chlist i{width:24px;height:24px;border-radius:999px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
 .erow{display:flex;flex-wrap:wrap;gap:8px}
+.lylist{display:grid;gap:6px;max-height:300px;overflow:auto;padding:2px;margin:0 -2px}
+.lyi{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 8px;border-radius:14px;border:1px solid var(--line);background:none;text-align:left;font-size:13.5px;font-weight:600;cursor:pointer}
+.lyi.on{border-color:var(--oceano,#1B7FDC);box-shadow:0 0 0 2px color-mix(in srgb,var(--oceano,#1B7FDC) 35%,transparent);background:var(--chip)}
+.lyi.off{opacity:.45}
+.lyi svg.th{width:34px;height:24px;border-radius:5px;background:repeating-conic-gradient(rgba(127,127,127,.25) 0 25%,transparent 0 50%) 0 0/8px 8px;box-shadow:0 0 0 1px var(--line)}
+.lyi .ly-a{display:flex;gap:2px}.lyi .ly-a span{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:var(--mut)}.lyi .ly-a span:hover{background:var(--chip);color:var(--ink)}
+.lyi .ly-a svg{width:17px;height:17px}
+#esvg{overflow:visible}#esvg [data-l]{cursor:move}#esvg [data-h]{cursor:var(--cur,nwse-resize)}
+
 .pals{display:grid;gap:8px}
 .pals button{display:flex;align-items:center;gap:10px;padding:8px 12px 8px 8px;border-radius:16px;border:1px solid var(--line);background:none;font-weight:600;font-size:14px;text-align:left}
 .pals span.c{display:flex;flex:none}
@@ -124,15 +133,92 @@ const shape = (k, cx, cy, r, f) => {
   return '';
 };
 const dimsOf = s => [900, Math.round(900 * s.ra[0] / s.ra[1])];
+
+/* ---------- camadas: bandeiras importadas de SVG, com cada forma editável ---------- */
+const TAGN = { rect: 'Retângulo', path: 'Forma', circle: 'Círculo', ellipse: 'Elipse', polygon: 'Polígono', polyline: 'Linha', line: 'Linha', g: 'Grupo', use: 'Cópia', image: 'Imagem', text: 'Texto' };
+const NOVIS = /^(defs|style|title|desc|metadata|script|sodipodi:namedview|clipPath|mask|linearGradient|radialGradient|pattern|filter|symbol|marker)$/i;
+const colorCache = {};
+const NOMES = [['branca', '#FFFFFF'], ['preta', '#000000'], ['vermelha', '#D52B1E'], ['azul', '#0033A0'], ['azul-clara', '#75AADB'], ['verde', '#009739'], ['amarela', '#FFD100'], ['laranja', '#FF8200'], ['roxa', '#6A2C91'], ['rosa', '#E8559A'], ['marrom', '#7B3F00'], ['cinza', '#8E8E8E'], ['dourada', '#C9A227'], ['vinho', '#8D1B3D'], ['azul-marinho', '#0A2240'], ['verde-escura', '#0B4F2C']];
+const corNome = h => { if (!h) return ''; const v = x => [1, 3, 5].map(i => parseInt(x.slice(i, i + 2), 16)); const a = v(h); let best = '', bd = 1e9; NOMES.forEach(([n, c]) => { const b = v(c), d = (a[0] - b[0]) ** 2 * 2 + (a[1] - b[1]) ** 2 * 4 + (a[2] - b[2]) ** 2 * 3; if (d < bd) { bd = d; best = n } }); return best };
+const toHex = v => {
+  v = String(v).trim(); if (!v || /^(none|transparent|inherit|currentcolor)$/i.test(v) || /^url\(/i.test(v)) return null;
+  if (colorCache[v] !== undefined) return colorCache[v];
+  let h = null;
+  if (/^#[0-9a-f]{6}$/i.test(v)) h = v.toUpperCase();
+  else if (/^#[0-9a-f]{3}$/i.test(v)) h = ('#' + v.slice(1).split('').map(x => x + x).join('')).toUpperCase();
+  else { const c = document.createElement('canvas').getContext('2d'); c.fillStyle = '#010203'; c.fillStyle = v; const r = c.fillStyle; if (r !== '#010203' || /^#010203$/i.test(v)) { const m = r.match(/^#([0-9a-f]{6})$/i); h = m ? '#' + m[1].toUpperCase() : null; if (!m) { const n = r.match(/\d+(\.\d+)?/g); if (n && n.length >= 3) h = '#' + n.slice(0, 3).map(x => (+x).toString(16).padStart(2, '0')).join('').toUpperCase() } } }
+  return colorCache[v] = h;
+};
+const COLRE = /((?:fill|stroke|stop-color|color)\s*(?:=\s*["']|:\s*))([^"';)}\s]+(?:\([^)]*\))?)/gi;
+const coresDe = m => { const set = []; m.replace(COLRE, (a, p, v) => { const h = toHex(v); if (h && !set.includes(h)) set.push(h); return a }); return set };
+const recolor = (m, cm) => !cm || !Object.keys(cm).length ? m : m.replace(COLRE, (a, p, v) => { const h = toHex(v); return h && cm[h] ? p + cm[h] : a });
+const tfOf = l => { const [x, y] = l.b, [tx, ty, sx, sy] = l.t; return `translate(${(tx + x).toFixed(3)} ${(ty + y).toFixed(3)}) scale(${sx.toFixed(4)} ${sy.toFixed(4)}) translate(${(-x).toFixed(3)} ${(-y).toFixed(3)})` };
+const boxOf = l => { const [x, y, w, h] = l.b, [tx, ty, sx, sy] = l.t; return [x + tx, y + ty, w * sx, h * sy] };
+const layersSVG = (s, ed) => {
+  const L = s.ly; if (!L) return '';
+  return `<g transform="scale(${(dimsOf(s)[0] / L.vb[2]).toFixed(5)} ${(dimsOf(s)[1] / L.vb[3]).toFixed(5)}) translate(${-L.vb[0]} ${-L.vb[1]})">${L.defs}${L.L.map((l, i) => l.h ? '' : `<g ${ed ? `data-l="${i}"` : ''} transform="${tfOf(l)}">${recolor(l.m, l.cm)}</g>`).join('')}</g>`;
+};
+const selSVG = s => {
+  const L = s.ly; if (!L || s.lsel == null || !L.L[s.lsel] || L.L[s.lsel].h) return '';
+  const [W, H] = dimsOf(s), kx = W / L.vb[2], ky = H / L.vb[3];
+  const [bx, by, bw, bh] = boxOf(L.L[s.lsel]); const x = (bx - L.vb[0]) * kx, y = (by - L.vb[1]) * ky, w = bw * kx, h = bh * ky;
+  const r = Math.max(9, W / 80), hs = [['nw', x, y, 'nwse'], ['n', x + w / 2, y, 'ns'], ['ne', x + w, y, 'nesw'], ['e', x + w, y + h / 2, 'ew'], ['se', x + w, y + h, 'nwse'], ['s', x + w / 2, y + h, 'ns'], ['sw', x, y + h, 'nesw'], ['w', x, y + h / 2, 'ew']];
+  return `<g><rect x="${x}" y="${y}" width="${Math.max(w, 1)}" height="${Math.max(h, 1)}" fill="none" stroke="#fff" stroke-width="${W / 300}" stroke-dasharray="${W / 90} ${W / 120}" pointer-events="none" style="filter:drop-shadow(0 0 2px rgba(0,0,0,.7))"/>${hs.map(([k, cx, cy, c]) => `<circle data-h="${k}" style="--cur:${c}-resize" cx="${cx}" cy="${cy}" r="${r}" fill="#fff" stroke="#1B7FDC" stroke-width="${r / 3}"/>`).join('')}</g>`;
+};
+/* lê um SVG e transforma cada forma de nível superior em camada */
+const importSVG = txt => {
+  const doc = new DOMParser().parseFromString(txt, 'image/svg+xml'); const sv = doc.documentElement;
+  if (!sv || sv.nodeName.toLowerCase() !== 'svg' || doc.querySelector('parsererror')) throw new Error('SVG inválido');
+  let vb = (sv.getAttribute('viewBox') || '').trim().split(/[\s,]+/).map(Number);
+  if (vb.length !== 4 || vb.some(isNaN) || !vb[2] || !vb[3]) { const w = parseFloat(sv.getAttribute('width')) || 900, h = parseFloat(sv.getAttribute('height')) || 600; vb = [0, 0, w, h] }
+  const pre = 'L' + Math.random().toString(36).slice(2, 7) + '-';
+  sv.querySelectorAll('script,foreignObject').forEach(n => n.remove());
+  sv.querySelectorAll('*').forEach(n => [...n.attributes].forEach(a => { if (/^on/i.test(a.name)) n.removeAttribute(a.name) }));
+  sv.querySelectorAll('[id]').forEach(n => n.setAttribute('id', pre + n.getAttribute('id')));
+  const ser = n => new XMLSerializer().serializeToString(n).replace(/\sxmlns(:[\w-]+)?="[^"]*"/g, '').replace(/url\(\s*['"]?#/g, 'url(#' + pre).replace(/(xlink:href|href)="#/g, 'href="#' + pre).replace(/<style([^>]*)>([\s\S]*?)<\/style>/g, (a, at, css) => `<style${at}>${css.replace(/#([A-Za-z_][\w-]*)/g, (m, id) => /^[0-9a-f]{3}$|^[0-9a-f]{6}$/i.test(id) ? m : '#' + pre + id)}</style>`);
+  const attrsOf = n => [...n.attributes].filter(a => !/^(id|xmlns.*|version|width|height|viewBox|x|y|preserveAspectRatio|style)$/i.test(a.name) || (a.name === 'style' && n.nodeName.toLowerCase() !== 'svg')).map(a => `${a.name}="${a.value.replace(/"/g, '&quot;')}"`).join(' ');
+  let defs = '', node = sv, wrap = [];
+  const els = n => [...n.children];
+  const kids = n => els(n).filter(c => !NOVIS.test(c.nodeName));
+  els(sv).filter(c => NOVIS.test(c.nodeName)).forEach(c => defs += ser(c));
+  const rootA = attrsOf(sv); if (rootA) wrap.push(rootA);
+  while (kids(node).length === 1 && kids(node)[0].nodeName.toLowerCase() === 'g') { node = kids(node)[0]; els(node).filter(c => NOVIS.test(c.nodeName)).forEach(c => defs += ser(c)); const a = attrsOf(node); if (a) wrap.push(a) }
+  let K = kids(node); if (!K.length) throw new Error('SVG sem formas');
+  if (K.length > 90) { const resto = K.slice(89); const g = doc.createElementNS('http://www.w3.org/2000/svg', 'g'); resto.forEach(c => g.appendChild(c)); node.appendChild(g); K = K.slice(0, 89).concat([g]) }
+  const W0 = s => wrap.reduceRight((acc, a) => `<g ${a}>${acc}</g>`, s);
+  const L = K.map((c, i) => { const m = W0(ser(c)); const cs0 = coresDe(m); const tg = c.nodeName.toLowerCase(); return { n: 'Camada ' + (cs0.length === 1 ? corNome(cs0[0]) : cs0.length > 1 ? 'com ' + cs0.length + ' cores' : (i + 1)) + (tg !== 'path' && TAGN[tg] ? ' · ' + TAGN[tg].toLowerCase() : ''), m, b: [0, 0, 1, 1], t: [0, 0, 1, 1], cm: {}, h: false, cs: coresDe(m) } });
+  /* mede cada camada */
+  const tmp = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); tmp.setAttribute('viewBox', vb.join(' ')); tmp.setAttribute('style', 'position:absolute;left:-9999px;top:0;width:900px;height:600px;visibility:hidden');
+  tmp.innerHTML = defs + L.map((l, i) => `<g data-m="${i}">${l.m}</g>`).join(''); document.body.appendChild(tmp);
+  L.forEach((l, i) => { try { const b = tmp.querySelector(`[data-m="${i}"]`).getBBox(); l.b = [b.x, b.y, b.width || 1, b.height || 1] } catch (e) { l.b = [vb[0], vb[1], vb[2], vb[3]] } });
+  tmp.remove();
+  return { vb, defs, L };
+};
+const fracOf = (w, h) => { let best = [h, w], bd = 9; for (let b = 1; b <= 20; b++) { const a = Math.round(b * h / w); if (!a) continue; const d = Math.abs(a / b - h / w); if (d < bd - 1e-9) { bd = d; best = [a, b] } if (d < .004) break } return best };
+const svgTextOf = async f => {
+  const tryF = async u => { const r = await fetch(u, { mode: 'cors' }); if (!r.ok) throw 0; const t = await r.text(); if (!/<svg[\s>]/i.test(t)) throw 0; return t };
+  const viaApi = async u => { const fn = decodeURIComponent(u.split('Special:FilePath/')[1].split('?')[0]).replace(/_/g, ' '); const j = await (await fetch('https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&prop=imageinfo&iiprop=url&titles=' + encodeURIComponent('File:' + fn))).json(); const p = Object.values(j.query.pages)[0]; return tryF(p.imageinfo[0].url) };
+  for (const u of [f.remixSvg, f.src].filter(Boolean)) {
+    try {
+      if (u.startsWith('data:image/svg+xml')) return decodeURIComponent(u.split(',').slice(1).join(','));
+      if (/Special:FilePath\//.test(u)) { if (!/\.svg($|\?)/i.test(u.split('?')[0])) continue; try { return await tryF(u) } catch (e) { return await viaApi(u) } }
+      if (/\.svg($|\?)/i.test(u.split('?')[0]) || /flagcdn\.com/.test(u)) return await tryF(u);
+    } catch (e) { }
+  }
+  if (typeof f.d === 'function' && !f.src) { const ra = f.ra || [2, 3], W = 900, H = Math.round(900 * ra[0] / ra[1]); return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}">${f.d(W, H)}</svg>` }
+  throw new Error('sem SVG');
+};
+
 const build = (s, ed) => {
   const [W, H] = dimsOf(s);
-  let o = base(W, H, s);
+  let o = base(W, H, s) + layersSVG(s, ed);
   if (s.img) { const z = s.img.z * H, x = s.img.x * W - z / 2, y = s.img.y * H - z / 2; o += `<image href="${s.img.src}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${z.toFixed(1)}" height="${z.toFixed(1)}" preserveAspectRatio="xMidYMid meet" opacity="${s.img.op}"/>` }
   s.ch.forEach((c, i) => {
     const cx = c.x * W, cy = c.y * H, r = c.z * H / 2;
     o += `<g ${ed ? `data-i="${i}"` : ''} transform="rotate(${c.r} ${cx.toFixed(1)} ${cy.toFixed(1)})">${shape(c.s, cx, cy, r, c.c)}${ed ? `<circle cx="${cx}" cy="${cy}" r="${Math.max(r, 22)}" fill="transparent"/>` : ''}</g>`;
   });
   if (ed && ed.guides) o += `<g stroke="rgba(255,255,255,.75)" stroke-width="2" stroke-dasharray="8 8" style="mix-blend-mode:difference" pointer-events="none"><path d="M${W / 2} 0V${H}M0 ${H / 2}H${W}M${W / 3} 0V${H}M${W * 2 / 3} 0V${H}M0 ${H / 3}H${W}M0 ${H * 2 / 3}H${W}"/></g>`;
+  if (ed) o += selSVG(s);
   if (ed && s.sel != null && s.ch[s.sel]) { const c = s.ch[s.sel]; o += `<circle cx="${c.x * W}" cy="${c.y * H}" r="${c.z * H / 2 + 10}" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="10 8" pointer-events="none" style="filter:drop-shadow(0 0 2px rgba(0,0,0,.6))"/>` }
   return o;
 };
@@ -151,11 +237,11 @@ const PALS = [
   ['Monocromática', ['#121317', '#5F5C57', '#EFEBE4', '#FFFFFF']]
 ];
 const fill7 = a => Array.from({ length: 7 }, (_, i) => a[i % a.length].toUpperCase());
-const fresh = () => ({ name: 'Minha bandeira', ra: [2, 3], lay: 'h', k: 3, c: fill7(['#0E1B3D', '#EFEBE4', '#FF5A1F', '#FF8A3D']), ch: [{ s: 'star5', x: .5, y: .5, z: .3, r: 0, c: '#FF5A1F' }], img: null, sel: 0 });
+const fresh = () => ({ name: 'Minha bandeira', ra: [2, 3], lay: 'h', k: 3, c: fill7(['#0E1B3D', '#EFEBE4', '#FF5A1F', '#FF8A3D']), ch: [{ s: 'star5', x: .5, y: .5, z: .3, r: 0, c: '#FF5A1F' }], img: null, sel: 0, ly: null, lsel: null });
 let S = fresh(), hist = [], hi = -1, mode = 'plana', guides = false, tab = 'base', built = false;
 const snap = () => JSON.stringify(S);
 const commit = () => { const j = snap(); if (hist[hi] === j) return; hist = hist.slice(0, hi + 1); hist.push(j); if (hist.length > 80) hist.shift(); hi = hist.length - 1; try { localStorage.setItem(KEY, j) } catch (e) { } tools() };
-const restore = j => { S = JSON.parse(j); renderAll() };
+const restore = j => { S = JSON.parse(j); if (S.ly === undefined) S.ly = null; renderAll() };
 const undo = () => { if (hi > 0) { hi--; restore(hist[hi]); try { localStorage.setItem(KEY, hist[hi]) } catch (e) { } } };
 const redo = () => { if (hi < hist.length - 1) { hi++; restore(hist[hi]); try { localStorage.setItem(KEY, hist[hi]) } catch (e) { } } };
 
@@ -175,11 +261,11 @@ const shell = () => {
    <section class="epv">
     <div class="ecv lg" id="ecv"></div>
     <div class="ebar">${segH('emode', [['plana', 'Plana'], ['mastro', 'No mastro']], mode)}<button class="btn gh pr" id="eguides" aria-pressed="false">${ico('grid')}Guias</button><div class="esmall" id="esmall"></div></div>
-    <p class="ehint">Arraste os símbolos no desenho. Setas movem o símbolo selecionado; Delete remove.</p>
+    <p class="ehint" id="ehint">Arraste os símbolos e as camadas no desenho; puxe as alças brancas para esticar uma camada. Setas movem o item selecionado; Delete remove.</p>
    </section>
    <section class="epanel lg">
     <label class="ename" for="ename">${I('remix').replace('class="ico"', 'class="ico" style="opacity:.6"')}<input id="ename" maxlength="48" placeholder="Nome da bandeira"></label>
-    ${segH('etabs', [['base', 'Base'], ['simb', 'Símbolos'], ['img', 'Imagem'], ['cores', 'Cores'], ['exp', 'Exportar']], tab)}
+    ${segH('etabs', [['camadas', 'Camadas'], ['base', 'Base'], ['simb', 'Símbolos'], ['img', 'Imagem'], ['cores', 'Cores'], ['exp', 'Exportar']], tab)}
     <div class="epane" id="epane"></div>
    </section>
   </div>`;
@@ -193,6 +279,21 @@ const deg = v => Math.round(v) + '°';
 
 const pane = () => {
   const p = $('epane'); const s = S;
+  if (tab === 'camadas') {
+    const L = s.ly;
+    if (!L) { p.innerHTML = `<p class="elabel">Camadas</p><p class="ehint" style="margin-top:0">Ao remixar uma bandeira do acervo, cada forma dela vira uma camada que você pode mover, esticar, recolorir, esconder ou apagar. Exemplo: na França, selecione a faixa azul e puxe a alça da direita até o meio.</p>
+      <div class="erow"><a class="btn acc pr" href="#explorar">Escolher uma bandeira</a><label class="btn gh pr" for="esvgfile">${ico('img')}Importar SVG</label></div><input type="file" id="esvgfile" accept="image/svg+xml,.svg" hidden>`; return }
+    const sel = L.L[s.lsel];
+    const thumb = l => `<svg class="th" viewBox="${L.vb.join(' ')}">${L.defs}<g>${recolor(l.m, l.cm)}</g></svg>`;
+    p.innerHTML = `<p class="elabel">Camadas <span style="font-weight:500;color:var(--mut)">· a de cima fica na frente</span></p>
+    <div class="lylist">${L.L.map((l, i) => i).reverse().map(i => { const l = L.L[i]; return `<div class="lyi ${i === s.lsel ? 'on' : ''} ${l.h ? 'off' : ''}" data-lsel="${i}" role="button" tabindex="0">${thumb(l)}<span>${esc(l.n)}</span><span class="ly-a"><span data-lvis="${i}" title="${l.h ? 'Mostrar' : 'Esconder'}">${l.h ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4M6.6 6.6C3.8 8.5 2 12 2 12s3.6 7 10 7a9.6 9.6 0 0 0 5.4-1.6"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>'}</span><span data-lup="${i}" title="Trazer para frente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></span><span data-ldn="${i}" title="Enviar para trás"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></span></span></div>` }).join('')}</div>
+    ${sel ? `<p class="elabel">${esc(sel.n)}</p>
+     ${sel.cs.length ? `<div class="slots">${sel.cs.map((h, k) => `<label class="slot" title="Cor ${k + 1}"><input type="color" data-lc="${h}" value="${sel.cm[h] || h}" aria-label="Cor ${k + 1}"><input type="text" data-lt="${h}" value="${sel.cm[h] || h}" maxlength="7" aria-label="Cor ${k + 1} em hex"></label>`).join('')}</div>` : '<p class="ehint" style="margin:0">Esta camada não tem cor própria editável.</p>'}
+     ${rng('lw', 'Largura', sel.t[2], .05, 4, .01, pct)}${rng('lh', 'Altura', sel.t[3], .05, 4, .01, pct)}${rng('lx', 'Horizontal', sel.t[0] / L.vb[2], -1, 1, .002, pct)}${rng('lyy', 'Vertical', sel.t[1] / L.vb[3], -1, 1, .002, pct)}
+     <div class="erow"><button class="btn gh pr" id="ldup">${ico('copy2')}Duplicar</button><button class="btn gh pr" id="lreset">${ico('reset')}Restaurar</button><button class="btn gh pr" id="ldel">${ico('trash')}Apagar</button></div>` : '<p class="ehint">Toque numa camada da lista ou no desenho para editá-la.</p>'}
+    <div class="erow" style="margin-top:6px"><button class="btn gh pr sm" id="lflat">Desfazer camadas</button><label class="btn gh pr sm" for="esvgfile">Importar outro SVG</label></div><input type="file" id="esvgfile" accept="image/svg+xml,.svg" hidden>`;
+    return;
+  }
   if (tab === 'base') {
     const labs = slotLabels(s);
     p.innerHTML = `<p class="elabel">Proporção (altura : largura)</p><div class="ratios">${ratios.map(r => `<button class="chip ${r[0] === s.ra[0] && r[1] === s.ra[1] ? 'on' : ''}" data-ra="${r.join(':')}">${r[0]}:${r[1]}</button>`).join('')}</div>
@@ -272,7 +373,19 @@ const dlPNG = () => {
 const bind = () => {
   const root = $('v-criar');
   root.addEventListener('click', e => {
+    const L = S.ly;
+    const lv = e.target.closest('[data-lvis]'), lu = e.target.closest('[data-lup]'), ld = e.target.closest('[data-ldn]'), ls = e.target.closest('[data-lsel]');
+    if (L && lv) { const l = L.L[+lv.dataset.lvis]; l.h = !l.h; renderAll(); commit(); return }
+    if (L && (lu || ld)) { const i = +(lu || ld).dataset[lu ? 'lup' : 'ldn'], j = lu ? i + 1 : i - 1; if (j < 0 || j >= L.L.length) return; [L.L[i], L.L[j]] = [L.L[j], L.L[i]]; S.lsel = j; renderAll(); commit(); return }
+    if (L && ls) { S.lsel = +ls.dataset.lsel; S.sel = null; cv(); pane(); return }
     const t = e.target.closest('button'); if (!t) return;
+    if (L && S.lsel != null && L.L[S.lsel]) {
+      const l = L.L[S.lsel];
+      if (t.id === 'ldel') { L.L.splice(S.lsel, 1); S.lsel = null; renderAll(); commit(); return }
+      if (t.id === 'ldup') { const c = JSON.parse(JSON.stringify(l)); c.n = l.n + ' (cópia)'; c.t[0] += L.vb[2] * .03; c.t[1] += L.vb[3] * .03; L.L.splice(S.lsel + 1, 0, c); S.lsel++; renderAll(); commit(); return }
+      if (t.id === 'lreset') { l.t = [0, 0, 1, 1]; l.cm = {}; l.h = false; renderAll(); commit(); return }
+    }
+    if (t.id === 'lflat') { S.ly = null; S.lsel = null; renderAll(); commit(); return toast('Camadas removidas') }
     const tb = t.closest('#etabs'), md = t.closest('#emode');
     if (tb) { tab = t.dataset.v; segSet(tb, tab); pane(); return }
     if (md) { mode = t.dataset.v; segSet(md, mode); cv(); return }
@@ -308,26 +421,57 @@ const bind = () => {
     if (c && ['ez', 'ex', 'ey', 'er'].includes(t.id)) { c[{ ez: 'z', ex: 'x', ey: 'y', er: 'r' }[t.id]] = +t.value; setO(t.id, t.id === 'er' ? deg : pct); cv(); return }
     if (S.img && ['iz', 'ix', 'iy', 'io'].includes(t.id)) { S.img[{ iz: 'z', ix: 'x', iy: 'y', io: 'op' }[t.id]] = +t.value; setO(t.id, pct); cv(); return }
     if (t.id === 'ek') { S.k = +t.value; setO('ek', v => v); cv(); return }
+    const ll = S.ly && S.ly.L[S.lsel];
+    if (ll && t.dataset.lc) { ll.cm[t.dataset.lc] = t.value.toUpperCase(); const x = root.querySelector(`[data-lt="${t.dataset.lc}"]`); if (x) x.value = t.value.toUpperCase(); cv(); return }
+    if (ll && t.dataset.lt) { if (/^#[0-9a-fA-F]{6}$/.test(t.value)) { ll.cm[t.dataset.lt] = t.value.toUpperCase(); const x = root.querySelector(`[data-lc="${t.dataset.lt}"]`); if (x) x.value = t.value; cv() } return }
+    if (ll && ['lw', 'lh', 'lx', 'lyy'].includes(t.id)) { const v = +t.value; if (t.id === 'lw') ll.t[2] = v; else if (t.id === 'lh') ll.t[3] = v; else if (t.id === 'lx') ll.t[0] = v * S.ly.vb[2]; else ll.t[1] = v * S.ly.vb[3]; setO(t.id, pct); cv(); return }
   });
   root.addEventListener('change', e => {
     const t = e.target;
     if (t.id === 'efile') return loadImg(t.files[0]);
+    if (t.id === 'esvgfile') { const f = t.files[0]; if (!f) return; if (f.size > 3 * 1024 * 1024) return toast('SVG acima de 3 MB'); f.text().then(txt => { usarCamadas(importSVG(txt)); toast('SVG importado em camadas') }).catch(() => toast('Não foi possível ler este SVG')); return }
+    if (t.dataset.lc || t.dataset.lt) { pane(); }
     if (t.id === 'ek' || t.dataset.ci || t.dataset.ct) { pane(); }
     commit();
   });
-  /* arrastar símbolos no desenho */
+  /* arrastar símbolos e camadas no desenho; alças esticam a camada */
   let drag = null;
+  const ptFlag = (svg, e) => { const L = S.ly, [W, H] = dimsOf(S); const m = svg.getScreenCTM(); const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse()); return [p.x * L.vb[2] / W + L.vb[0], p.y * L.vb[3] / H + L.vb[1]] };
+  const snapV = (v, alvos, tol) => { for (const a of alvos) if (Math.abs(v - a) < tol) return a; return v };
   root.addEventListener('pointerdown', e => {
-    const g = e.target.closest('#esvg [data-i]'); if (!g) return;
-    const svg = $('esvg'); S.sel = +g.dataset.i; drag = { svg, id: e.pointerId };
-    svg.setPointerCapture(e.pointerId); svg.classList.add('drag'); cv(); if (tab === 'simb') pane(); e.preventDefault();
+    const svg = $('esvg'); if (!svg || !e.target.closest('#esvg')) return;
+    const h = e.target.closest('[data-h]'), g = e.target.closest('[data-i]'), l = e.target.closest('[data-l]');
+    if (h && S.ly && S.ly.L[S.lsel]) { const ly = S.ly.L[S.lsel]; drag = { svg, id: e.pointerId, k: 'h', h: h.dataset.h, b0: boxOf(ly) } }
+    else if (g) { S.sel = +g.dataset.i; S.lsel = null; drag = { svg, id: e.pointerId, k: 'c' } }
+    else if (l) { S.lsel = +l.dataset.l; S.sel = null; const ly = S.ly.L[S.lsel]; drag = { svg, id: e.pointerId, k: 'm', p0: ptFlag(svg, e), t0: ly.t.slice() } }
+    else { if (S.lsel != null) { S.lsel = null; cv(); if (tab === 'camadas') pane() } return }
+    svg.setPointerCapture(e.pointerId); svg.classList.add('drag'); cv(); if (tab === 'simb' || tab === 'camadas') pane(); e.preventDefault();
   });
   root.addEventListener('pointermove', e => {
     if (!drag || e.pointerId !== drag.id) return; const svg = $('esvg'); if (!svg) return;
-    const r = svg.getBoundingClientRect(), c = S.ch[S.sel]; if (!c) return;
-    c.x = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)); c.y = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height));
-    $('esvg').innerHTML = build(S, { guides });
-    const ex = $('ex'), ey = $('ey'); if (ex) { ex.value = c.x; $('ex-o').textContent = pct(c.x) } if (ey) { ey.value = c.y; $('ey-o').textContent = pct(c.y) }
+    if (drag.k === 'c') {
+      const r = svg.getBoundingClientRect(), c = S.ch[S.sel]; if (!c) return;
+      c.x = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)); c.y = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height));
+      const ex = $('ex'), ey = $('ey'); if (ex) { ex.value = c.x; $('ex-o').textContent = pct(c.x) } if (ey) { ey.value = c.y; $('ey-o').textContent = pct(c.y) }
+    } else {
+      const L = S.ly, ly = L.L[S.lsel]; if (!ly) return; const [px, py] = ptFlag(svg, e);
+      const tol = Math.max(L.vb[2], L.vb[3]) * .015, ax = [L.vb[0], L.vb[0] + L.vb[2] / 3, L.vb[0] + L.vb[2] / 2, L.vb[0] + L.vb[2] * 2 / 3, L.vb[0] + L.vb[2]], ay = [L.vb[1], L.vb[1] + L.vb[3] / 3, L.vb[1] + L.vb[3] / 2, L.vb[1] + L.vb[3] * 2 / 3, L.vb[1] + L.vb[3]];
+      if (drag.k === 'm') {
+        let tx = drag.t0[0] + px - drag.p0[0], ty = drag.t0[1] + py - drag.p0[1];
+        const [bx, by] = ly.b, w = ly.b[2] * ly.t[2], h = ly.b[3] * ly.t[3];
+        const sx = snapV(bx + tx, ax, tol); if (sx !== bx + tx) tx = sx - bx; else { const ex2 = snapV(bx + tx + w, ax, tol); if (ex2 !== bx + tx + w) tx = ex2 - w - bx }
+        const sy = snapV(by + ty, ay, tol); if (sy !== by + ty) ty = sy - by; else { const ey2 = snapV(by + ty + h, ay, tol); if (ey2 !== by + ty + h) ty = ey2 - h - by }
+        ly.t[0] = tx; ly.t[1] = ty;
+      } else {
+        let [x1, y1, w1, h1] = drag.b0; let x2 = x1 + w1, y2 = y1 + h1; const k = drag.h, mn = Math.max(L.vb[2], L.vb[3]) * .01;
+        if (k.includes('e')) x2 = Math.max(x1 + mn, snapV(px, ax, tol)); if (k.includes('w')) x1 = Math.min(x2 - mn, snapV(px, ax, tol));
+        if (k.includes('s')) y2 = Math.max(y1 + mn, snapV(py, ay, tol)); if (k.includes('n')) y1 = Math.min(y2 - mn, snapV(py, ay, tol));
+        ly.t[2] = (x2 - x1) / ly.b[2]; ly.t[3] = (y2 - y1) / ly.b[3]; ly.t[0] = x1 - ly.b[0]; ly.t[1] = y1 - ly.b[1];
+      }
+      const sv = (id, v) => { const el = $(id); if (el) { el.value = v; $(id + '-o').textContent = pct(v) } };
+      sv('lw', ly.t[2]); sv('lh', ly.t[3]); sv('lx', ly.t[0] / L.vb[2]); sv('lyy', ly.t[1] / L.vb[3]);
+    }
+    svg.innerHTML = build(S, { guides });
   });
   const end = () => { if (!drag) return; drag = null; const svg = $('esvg'); if (svg) svg.classList.remove('drag'); cv(); commit() };
   root.addEventListener('pointerup', end); root.addEventListener('pointercancel', end);
@@ -336,6 +480,12 @@ const bind = () => {
     const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '');
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); return e.shiftKey ? redo() : undo() }
     if (typing) return;
+    const ll = S.ly && S.lsel != null && S.ly.L[S.lsel];
+    if (ll) {
+      const st = (e.shiftKey ? .05 : .005), mv = { ArrowLeft: [-st, 0], ArrowRight: [st, 0], ArrowUp: [0, -st], ArrowDown: [0, st] }[e.key];
+      if (mv) { e.preventDefault(); ll.t[0] += mv[0] * S.ly.vb[2]; ll.t[1] += mv[1] * S.ly.vb[3]; cv(); clearTimeout(bind.t); bind.t = setTimeout(() => { commit(); if (tab === 'camadas') pane() }, 300); return }
+      if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); S.ly.L.splice(S.lsel, 1); S.lsel = null; renderAll(); commit(); return }
+    }
     const c = S.ch[S.sel]; if (!c) return;
     const st = e.shiftKey ? .05 : .01;
     const mv = { ArrowLeft: [-st, 0], ArrowRight: [st, 0], ArrowUp: [0, -st], ArrowDown: [0, st] }[e.key];
@@ -345,12 +495,30 @@ const bind = () => {
   addEventListener('resize', () => { if (!$('v-criar').hidden) { segMove($('etabs')); segMove($('emode')) } });
 };
 
+const usarCamadas = ly => {
+  S.ly = ly; S.lsel = null; S.ra = fracOf(ly.vb[2], ly.vb[3]); S.lay = 'lisa'; S.c = fill7(['#FFFFFF']); S.ch = []; S.sel = null; S.img = null;
+  tab = 'camadas'; const tb = $('etabs'); if (tb) segSet(tb, 'camadas'); renderAll(); commit();
+};
 /* abrir o editor (rota #criar ou #criar-<id> para remix) */
 FL.openEditor = id => {
   if (!built) { shell(); bind() }
   document.title = 'Editor · Flâmula';
   const f = id && byId[id];
   if (f) {
+    /* remix: tenta abrir a bandeira em camadas editáveis; se não houver SVG, cai para imagem ou paleta */
+    S = fresh(); S.name = 'Remix de ' + f.n; S.ch = []; S.sel = null; S.lay = 'lisa'; S.c = fill7(['#FFFFFF']); if (f.ra) S.ra = f.ra.slice();
+    hist = []; hi = -1; renderAll(); toast('Abrindo ' + f.n + ' em camadas…');
+    svgTextOf(f).then(txt => { const ly = importSVG(txt); S.name = 'Remix de ' + f.n; hist = []; hi = -1; usarCamadas(ly); toast(`${ly.L.length} camadas prontas: arraste, estique e recolora`) })
+      .catch(() => fallback(f));
+  } else if (hi < 0) {
+    let saved = null; try { saved = localStorage.getItem(KEY) } catch (e) { }
+    if (saved) { try { S = JSON.parse(saved) } catch (e) { S = fresh() } }
+    renderAll(); commit();
+  } else renderAll();
+  requestAnimationFrame(() => { segMove($('etabs')); segMove($('emode')) });
+};
+const fallback = f => {
+  {
     S = fresh(); S.name = 'Remix de ' + f.n; if (f.ra) S.ra = f.ra.slice();
     const cs = f.c.map(x => x.toUpperCase()); S.lay = cs.length >= 3 ? 'h' : 'lisa'; S.k = Math.min(3, cs.length); S.c = fill7(cs);
     const mid = S.lay === 'lisa' ? S.c[0] : S.c[Math.floor(S.k / 2)];
@@ -363,13 +531,8 @@ FL.openEditor = id => {
         .then(b => new Promise((ok, no) => { const rd = new FileReader(); rd.onload = () => ok(rd.result); rd.onerror = no; rd.readAsDataURL(b) }))
         .then(src => { S.img = { src, x: .5, y: .5, z: Math.min(2, S.ra[1] / S.ra[0]), op: 1 }; renderAll(); commit(); toast('Bandeira carregada. Desenhe por cima ou ajuste a imagem em Imagem') })
         .catch(() => toast('Não foi possível carregar a imagem; a paleta dela foi aplicada'));
-    } else { hist = []; hi = -1; renderAll(); commit(); toast('Paleta de ' + f.n + ' carregada no editor') }
-  } else if (hi < 0) {
-    let saved = null; try { saved = localStorage.getItem(KEY) } catch (e) { }
-    if (saved) { try { S = JSON.parse(saved) } catch (e) { S = fresh() } }
-    renderAll(); commit();
-  } else renderAll();
-  requestAnimationFrame(() => { segMove($('etabs')); segMove($('emode')) });
+    } else { hist = []; hi = -1; renderAll(); commit(); toast('Não deu para abrir em camadas; a paleta de ' + f.n + ' foi carregada') }
+  }
 };
 if (/^#criar(-|$)/.test(location.hash) && !$('v-criar').hidden) FL.openEditor(location.hash.length > 7 ? location.hash.slice(7) : null);
 })();

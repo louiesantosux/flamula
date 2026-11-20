@@ -730,7 +730,7 @@ document.addEventListener('click',async e=>{const b=e.target.closest('[data-pk]'
   let c=base.c||['#FFFFFF','#000000'];const src=it.big||it.img;
   const og=origOf(it),svgU=og&&/\.svg$/i.test(it.file)?og:(/\.svg$/i.test(src.split('?')[0])?src:null);if(svgU){try{const ac=new AbortController();setTimeout(()=>ac.abort(),3500);const r=await fetch(svgU,{signal:ac.signal});if(r.ok){const cs=colorsIn(await r.text());if(cs.length)c=cs.slice(0,6)}}catch(er){}}
   const vid='x'+Math.abs([...src].reduce((h,ch)=>(h*31+ch.charCodeAt(0))|0,7)).toString(36);
-  byId[vid]={id:vid,k:'—',n:(it.cap||it.title||'Bandeira').replace(/\s+/g,' ').slice(0,60),t:base.t,o:'oficial',r:base.r,ra,c,remixImg:src,src,d:base.d};
+  byId[vid]={id:vid,k:'—',n:(it.cap||it.title||'Bandeira').replace(/\s+/g,' ').slice(0,60),t:base.t,o:'oficial',r:base.r,ra,c,remixImg:src,remixSvg:(og&&/\.svg$/i.test(String(it.file||'')))?og:(/\.svg($|\?)/i.test(String(it.big||'').split('?')[0])?it.big:null),src,d:base.d};
   b.disabled=false;go('criar-'+vid)}
 });
 const det=id=>{const f=byId[id];if(!f){history.replaceState(null,'','#explorar');return route()}
