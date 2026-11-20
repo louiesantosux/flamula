@@ -71,7 +71,14 @@ input[type=range]{width:100%;accent-color:var(--acc);height:28px}
 .drop b{color:var(--ink)}
 .rules{margin:0;padding-left:18px;color:var(--mut);font-size:14px;display:grid;gap:4px}
 .ehint{font-size:13px;color:var(--mut);margin:0}
-@media(max-width:980px){.egrid{grid-template-columns:minmax(0,1fr)}.epv{position:sticky;top:72px;z-index:5}.ecv{min-height:0;padding:14px}.ecv svg{max-height:34vh}.esmall{display:none}}
+@media(max-width:980px){.egrid{grid-template-columns:minmax(0,1fr);gap:14px}
+ /* celular: só a prévia fica presa no topo, com fundo de vidro para o painel não aparecer por trás */
+ .epv{position:sticky;top:calc(env(safe-area-inset-top) + 74px);z-index:6;display:grid;gap:8px;margin:0 -16px;padding:8px 16px 12px;background:color-mix(in srgb,var(--bg) 72%,transparent);-webkit-backdrop-filter:blur(22px) saturate(1.4);backdrop-filter:blur(22px) saturate(1.4);border-radius:0 0 28px 28px}
+ .epv>.ehint{display:none}
+ .ecv{min-height:0;padding:10px}.ecv svg{max-height:24vh}.esmall{display:none}
+ .ebar{display:flex;gap:8px;align-items:center;flex-wrap:nowrap}.ebar .seg{flex:1}.ebar .seg button{flex:1;min-height:38px}.ebar #eguides{min-height:40px;padding-inline:14px}
+ #etabs{overflow-x:auto;scrollbar-width:none;max-width:100%;justify-content:flex-start}#etabs::-webkit-scrollbar{display:none}#etabs button{flex:none!important;padding-inline:14px}
+ .epanel{padding:14px}}
 @media(max-width:520px){.lays{grid-template-columns:repeat(3,minmax(0,1fr))}.rng{grid-template-columns:76px minmax(0,1fr) 40px}}
 `;
 document.head.appendChild(css);
