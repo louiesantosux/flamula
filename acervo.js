@@ -200,7 +200,8 @@ const FOTW={"mil-ru-mar":["r/ru~.gif","Zoltan Horvath","ru~nav.html"],"mil-us-ar
 /* arquivos do Commons já conferidos; nos demais, o FOTW vem primeiro */
 const WOK=new Set(["mil-ru","mil-us-army","mil-gb-ens","mil-gb-raf","mil-jp-mar","mil-cn-pla"]);
 D.forEach(f=>{const w=FOTW[f.id];if(!w)return;const src='/api/fotw?img='+encodeURIComponent(w[0]);f.fotw={src,autor:w[1],pag:FW+'flags/'+w[2].replace(/\^/g,'%5E')};
- if(f.src&&WOK.has(f.id)){f.alts=[src]}else{f.alts=f.src?[f.src]:[];f.src=src;f.fonte='fotw-img'}});
+ /* o SVG do Commons vem primeiro (alta resolução); o GIF do FOTW fica de reserva */
+ if(f.src){f.alts=[src]}else{f.alts=[];f.src=src;f.fonte='fotw-img'}});
 for(let i=D.length-1;i>=0;i--)if(D[i].t==='cidade'||D[i].o==='original')D.splice(i,1);
 window.ACERVO={D};
 })();

@@ -213,6 +213,8 @@ body.tinted{--glass:light-dark(rgba(255,255,255,.52),rgba(24,24,28,.5))}
 .dstage.pkon{padding-bottom:clamp(120px,24%,150px)}
 .pk{position:absolute;left:12px;right:12px;bottom:12px;border-radius:22px;padding:12px;display:flex;flex-direction:column;gap:10px;z-index:2}
 .pk p{margin:0;font-size:13px;line-height:1.35;color:var(--mut);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.pk p b{color:var(--ink);font-size:14px;margin-right:6px}
+.pk-hd{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--mut)}.pk-hd button{width:58px;height:40px;padding:3px;border-radius:9px;border:1px solid var(--line);background:var(--chip);display:grid;place-items:center;cursor:pointer}.pk-hd button img{max-width:100%;max-height:100%;object-fit:contain}
+.dstage>img.fw-low{width:auto;height:auto;max-width:100%;max-height:100%}
 .pk-a{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.pk-a .btn{min-height:36px}.pk-a .ic{margin-left:auto}
 .dstage .fl{filter:drop-shadow(0 0 .6px rgba(0,0,0,.4)) drop-shadow(0 22px 34px rgba(0,0,0,.28))}
 .dhead{border-radius:28px;padding:22px;margin-bottom:10px}
@@ -487,7 +489,7 @@ const fmt=n=>n>=1000?(n/1000).toFixed(1).replace('.',',').replace(',0','')+' mil
 const dims=f=>{const r=f.ra||[2,3];return [600,Math.round(600*r[0]/r[1])]};
 const draw=(f,cls='fl')=>{const [W,H]=dims(f);return `<svg class="${cls}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Bandeira: ${esc(f.n)}">${f.d(W,H)}</svg>`};
 const svg=(f,cls='fl',lazy=true)=>f.src?`<img class="${cls}" src="${esc(f.src)}" alt="Bandeira: ${esc(f.n)}" ${lazy?'loading="lazy"':''} decoding="async" data-fb="${esc(f.id)}">`:draw(f,cls);
-document.addEventListener('error',e=>{const t=e.target;if(t.tagName==='IMG'&&t.dataset.fb&&byId[t.dataset.fb]&&byId[t.dataset.fb].d){const ff=byId[t.dataset.fb];if(ff.alts&&ff.alts.length){const nx=ff.alts.shift();ff.src=nx;ff.fonte=ff.fotw&&nx===ff.fotw.src?'fotw-img':'commons';t.src=nx;return}if(ff.wt&&!ff.apiTried&&window.FLWIKI){ff.apiTried=1;ff.src=null;FLWIKI.militares([ff]).then(ch=>{if(!ch)return;if(view==='militares')renderMil();else if(view==='explorar')gal();else if(view==='home')renderCats();else if(view==='detalhe'&&location.hash==='#b-'+ff.id)det(ff.id)}).catch(()=>{})}const w=document.createElement('span');w.innerHTML=draw(byId[t.dataset.fb],t.className);const n=w.firstChild;if(t.style.viewTransitionName)n.style.viewTransitionName=t.style.viewTransitionName;t.replaceWith(n)}},true);
+document.addEventListener('error',e=>{const t=e.target;if(t.tagName==='IMG'&&t.dataset.fb&&byId[t.dataset.fb]&&byId[t.dataset.fb].d){const ff=byId[t.dataset.fb];if(ff.alts&&ff.alts.length){const nx=ff.alts.shift();ff.src=nx;ff.fonte=ff.fotw&&nx===ff.fotw.src?'fotw-img':'commons';t.src=nx;if(ff.fonte==='fotw-img'&&t.closest('.dstage')){t.classList.add('fw-low');t.addEventListener('load',()=>{t.style.width=Math.round(t.naturalWidth*1.5)+'px'},{once:true})}return}if(ff.wt&&!ff.apiTried&&window.FLWIKI){ff.apiTried=1;ff.src=null;FLWIKI.militares([ff]).then(ch=>{if(!ch)return;if(view==='militares')renderMil();else if(view==='explorar')gal();else if(view==='home')renderCats();else if(view==='detalhe'&&location.hash==='#b-'+ff.id)det(ff.id)}).catch(()=>{})}const w=document.createElement('span');w.innerHTML=draw(byId[t.dataset.fb],t.className);const n=w.firstChild;if(t.style.viewTransitionName)n.style.viewTransitionName=t.style.viewTransitionName;t.replaceWith(n)}},true);
 const sub=f=>f.o==='original'?'Criação original':f.t==='militar'?`Militar · ${f.pais}`:f.t==='ilha'?`Ilha · ${f.pais}`:`${TN[f.t]} · ${f.r}`;
 let liked=new Set();try{liked=new Set(JSON.parse(localStorage.getItem('flamula-likes')||'[]'))}catch(e){}
 const saveL=()=>{try{localStorage.setItem('flamula-likes',JSON.stringify([...liked]))}catch(e){}};
@@ -646,11 +648,25 @@ const pickFlag=(it,base,o={})=>{const st=document.querySelector(o.stage||'#v-det
  const fw=!!it.fotw;
  st.innerHTML=`<img class="fl" src="${esc(it.big||it.img)}" alt="${esc(it.cap||it.title||'Bandeira')}" style="view-transition-name:flag"><div class="pk lg"><p><b>${esc(it.title||'Bandeira')}</b>${esc(it.cap||'')}${it.credito?' · '+esc(it.credito):''}</p><div class="pk-a"><button class="btn pr sm" data-pk="dl">${I('dl')}Baixar</button>${fw?'':`<button class="btn acc pr sm" data-pk="rx">${I('remix')}Remixar</button>`}<button class="btn gh pr sm" data-pk="zoom">${I('ext')}Ampliar</button><button class="ic pr" data-pk="x" aria-label="Voltar à bandeira principal" title="Voltar à bandeira principal">${I('x')}</button></div></div>`;
  const im=st.querySelector('img');im.onerror=()=>{if(it.img&&im.src!==it.img)im.src=it.img};
+ /* imagens do FOTW são GIFs pequenos: mostra no máximo a 1,5x do tamanho original, para não borrar */
+ if(fw){im.classList.add('fw-low');const fit=()=>{if(im.naturalWidth)im.style.width=Math.round(im.naturalWidth*1.5)+'px'};im.complete?fit():im.addEventListener('load',fit,{once:true});if(it.q)hiRes(st,it,base,o)}
  const top=st.getBoundingClientRect().top;if(top<60||top>innerHeight*.5)st.scrollIntoView({behavior:RM.matches?'auto':'smooth',block:'center'})};
+/* procura no Wikimedia Commons uma versão vetorial (SVG) da bandeira do FOTW */
+const HR={};
+const hiRes=async(st,it,base,o)=>{const box=document.createElement('div');box.className='pk-hd';box.innerHTML='<span>Procurando versão em alta resolução no Commons…</span>';const pk=st.querySelector('.pk');if(!pk)return;pk.insertBefore(box,pk.querySelector('.pk-a'));
+ try{const q=it.q.replace(/[^\p{L}\p{N}' ]+/gu,' ').replace(/\s+/g,' ').trim();
+  if(!HR[q])HR[q]=fetch('https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrnamespace=6&gsrlimit=8&gsrsearch='+encodeURIComponent('filetype:drawing '+q)+'&prop=imageinfo&iiprop=url|mime&iiurlwidth=900').then(r=>r.json());
+  const j=await HR[q];if(!st._pk||st._pk.it!==it)return;
+  const L=Object.values((j.query&&j.query.pages)||{}).sort((a,b)=>a.index-b.index).filter(p=>p.imageinfo&&/svg/.test(p.imageinfo[0].mime)).slice(0,5);
+  if(!L.length){box.innerHTML='<span>Sem versão vetorial encontrada no Commons.</span>';return}
+  box.innerHTML='<span>Alta resolução no Commons:</span>'+L.map((p,k)=>`<button class="pr" data-hr="${k}" title="${esc(p.title.replace(/^File:/,''))}"><img src="${esc(p.imageinfo[0].thumburl)}" alt="" loading="lazy"></button>`).join('');
+  box.onclick=e=>{const b=e.target.closest('[data-hr]');if(!b)return;const p=L[+b.dataset.hr];const file=p.title.replace(/^File:/,'');
+   pickFlag({img:p.imageinfo[0].thumburl,big:p.imageinfo[0].url,file,title:it.title,cap:'Versão vetorial do Wikimedia Commons · '+file,page:p.imageinfo[0].descriptionurl||('https://commons.wikimedia.org/wiki/File:'+encodeURIComponent(file))},base,{...o,list:null})};
+ }catch(e){box.remove()}};
 const unpick=st=>{if(st._home==null)return;st.innerHTML=st._home;st._home=null;st._pk=null;st.classList.remove('pkon')};
 document.addEventListener('click',async e=>{const b=e.target.closest('[data-pk]');if(!b)return;const st=b.closest('.dstage');if(!st||!st._pk)return;const {it,base,o}=st._pk;const a=b.dataset.pk;
  if(a==='x')return unpick(st);
- if(a==='zoom'){const L=o.list||[it];viewer(L,o.idx||0,{url:it.page,urlLabel:it.fotw?'Página no FOTW':'Página na Wikipédia'});return}
+ if(a==='zoom'){const L=o.list||[it];viewer(L,o.list?o.idx||0:0,{url:it.page,urlLabel:it.fotw?'Página no FOTW':'Página na Wikipédia'});return}
  if(a==='dl'){b.disabled=true;try{let r=null;const og=origOf(it);if(og){try{r=await fetch(og,{mode:'cors'});if(!r.ok)r=null}catch(er){r=null}}if(!r)r=await fetch(it.big||it.img,{mode:'cors'});if(!r.ok)throw 0;saveBlob(await r.blob(),og?String(it.file).replace(/^(File|Ficheiro|Arquivo):/i,'').replace(/ /g,'_'):fileOf(it));toast(it.fotw?'Download iniciado. Credite: '+(it.credito||'autor')+' · FOTW Flags Of The World':'Download iniciado')}catch(er){window.open(it.big||it.img,'_blank','noopener');toast('Arquivo aberto em nova aba')}b.disabled=false;return}
  if(a==='rx'){b.disabled=true;const im=st.querySelector('img.fl');const ra=im&&im.naturalWidth?fracOf(im.naturalWidth,im.naturalHeight):(base.ra||[2,3]);
   let c=base.c||['#FFFFFF','#000000'];const src=it.big||it.img;
@@ -677,7 +693,7 @@ const det=id=>{const f=byId[id];if(!f){history.replaceState(null,'','#explorar')
  ${hist?`<section class="sec"><div class="shead"><div><h2>Linha do tempo</h2><p id="tlp">Bandeiras anteriores e a atual, segundo a Wikipédia.</p></div></div><div class="tl lg" id="tl"><p class="tl-msg"><span class="sk" style="width:220px"></span></p></div></section>`:''}
  ${f.t==='pais'?`<section class="sec" id="wlsec"><div class="shead"><div><h2>Bandeiras do país</h2><p id="wlp">Carregando a lista de bandeiras da Wikipédia…</p></div></div><div id="wls"><p class="tl-msg"><span class="sk" style="width:260px"></span></p></div></section>`:''}
  <section class="sec"><div class="shead"><div><h2>${isO?'Outras criações':'Relacionadas'}</h2></div></div><div class="grid">${rel2.map(card).join('')}</div></section>`;
- const fl=$('v-detalhe').querySelector('.dstage>*');fl.style.viewTransitionName='flag';
+ const fl=$('v-detalhe').querySelector('.dstage>*');fl.style.viewTransitionName='flag';const lowFit=im=>{im.classList.add('fw-low');const g=()=>{if(im.naturalWidth)im.style.width=Math.round(im.naturalWidth*1.5)+'px'};im.complete?g():im.addEventListener('load',g,{once:true})};if(fl.tagName==='IMG'&&f.fonte==='fotw-img')lowFit(fl);
  const setR=()=>{const el=$('fra');if(!el||f.ra)return;const w=fl.naturalWidth,h=fl.naturalHeight;el.textContent=(w&&h&&!(w===300&&h===150))?ratTxt(w,h):'—'};
  if(!f.ra){if(fl.tagName==='IMG'){fl.complete?setR():fl.addEventListener('load',setR,{once:true});fl.addEventListener('error',()=>{const el=$('fra');if(el)el.textContent='—'},{once:true})}else{const el=$('fra');if(el)el.textContent='—'}}
  if(isO){const a=$('fado');if(a)a.textContent='—'}

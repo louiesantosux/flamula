@@ -83,7 +83,8 @@ const filtra = q => { const n = FL.norm(q || ''); document.querySelectorAll('#fw
 let PEND = null;
 
 /* página do país */
-let PAG = [], BASE = null, WL = null;
+let PAG = [], BASE = null, WL = null, CUR = '';
+const busca = l => { const n = CUR.split(',')[0].trim(); l = (l || '').replace(/\s*\[.*?\]\s*/g, ' ').trim(); return l.toLowerCase().includes(n.toLowerCase()) ? l : (l + ' ' + n).trim() };
 const MILRE = /milit|guerra|naval|marinha|navy|army|ex[ée]rc|for[çc]as? a[ée]rea|armadas|air force|armed forces|ensign|pavilh|jaque|jack|estandarte|standard|costeira|coast guard|fuzileir|marine|defesa|defen[cs]e|regiment|batalh|insígnia|insignia/i;
 const wiki = async f => {
   const box = $('fwwl'); if (!box) return;
@@ -105,7 +106,7 @@ const pais = async code => {
   try {
     if (!LISTA) LISTA = (await api('lista=1')).paises.map(p => ({ ...p, pt: nomePt(p) }));
     const p = LISTA.find(x => x.code === code); if (!p) throw new Error('País não encontrado na lista do FOTW');
-    const f = paisDe(code); document.title = 'Militares · ' + p.pt + ' · Flâmula';
+    CUR = p.nome; const f = paisDe(code); document.title = 'Militares · ' + p.pt + ' · Flâmula';
     PAG = p.links.map(l => ({ href: l.href, nome: rot(l, p) }));
     BASE = f || { id: 'fw-' + code, c: ['#FFFFFF', '#000000'], t: 'militar', r: '', ra: [2, 3] };
     box.innerHTML = `<a class="back lg pr" href="#militares">${FL.I('back')}Militares</a>
@@ -146,7 +147,7 @@ document.addEventListener('click', e => {
   const c = $('fwcont'); if (!c || !c._d) return; const d = c._d;
   const l = e.target.closest('[data-fwl]'); if (l) { const L = d.links[+l.dataset.fwl]; let k = PAG.findIndex(p => p.href === L.href); if (k < 0) { PAG.push({ href: L.href, nome: L.txt }); k = PAG.length - 1 } tabs(k); $('fwtabs').scrollIntoView({ behavior: 'smooth', block: 'start' }); return }
   const b = e.target.closest('[data-fwi]'); if (b) {
-    const L = d.itens.map(it => ({ img: img(it.img), big: img(it.img), file: '', title: it.label || it.sec || 'Bandeira', cap: [it.sec && it.sec !== it.label ? it.sec : '', it.prop ? 'Proporção ' + it.prop : ''].filter(Boolean).join(' · '), credito: it.credito ? it.credito + ' · FOTW' : 'FOTW Flags Of The World', fotw: true, page: d.url, nome: it.img.split('/').pop() }));
+    const L = d.itens.map(it => ({ img: img(it.img), big: img(it.img), file: '', title: it.label || it.sec || 'Bandeira', cap: [it.sec && it.sec !== it.label ? it.sec : '', it.prop ? 'Proporção ' + it.prop : ''].filter(Boolean).join(' · '), credito: it.credito ? it.credito + ' · FOTW' : 'FOTW Flags Of The World', fotw: true, page: d.url, nome: it.img.split('/').pop(), q: busca(it.label || it.sec) }));
     const k = +b.dataset.fwi; FL.pickFlag(L[k], BASE, { stage: '#fwstage', list: L.map(x => ({ ...x, cap: [x.cap, x.credito].filter(Boolean).join(' · ') })), idx: k });
   }
 });
