@@ -525,10 +525,10 @@ footer a:hover,footer button:hover{color:var(--ink)}
 </nav>
 <div class="toast lg" id="toast" role="status" aria-live="polite"></div>
 
-<script src="acervo.js?v=20261120d"></script>
+<script src="acervo.js?v=20261120e"></script>
 <script src="firebase-config.js"></script>
-<script type="module" src="firebase.js?v=20261120d"></script>
-<script src="wiki.js?v=20261120d"></script>
+<script type="module" src="firebase.js?v=20261120e"></script>
+<script src="wiki.js?v=20261120e"></script>
 <script>
 {
 const D=window.ACERVO.D;
@@ -604,15 +604,19 @@ $('stats').innerHTML=[[off().length,'bandeiras oficiais'],[cnt('pais'),'países 
 const now=new Date(),isDay=now.getMonth()===10&&now.getDate()===19;
 const cur=off().filter(f=>f.t==='pais'&&f.ra);
 const doy=Math.floor((now-new Date(now.getFullYear(),0,0))/864e5);
-const fd=isDay?byId.br:cur[doy%cur.length];
+const hojeISO=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+/* bandeira do dia: a escolhida pelo administrador (só hoje ou até mudar); sem escolha, sorteio diário */
+const diaEscolhida=()=>{const d=(window.FL_GALERIA||{}).dia;if(!d||!d.id||!byId[d.id])return null;if(d.ate&&d.ate!==hojeISO())return null;return byId[d.id]};
+let fd=isDay?byId.br:cur[doy%cur.length];
 const wave=f=>{const [W,H]=dims(f),N=22;let s=`<svg class="wave" viewBox="-24 -26 ${W+40} ${H+60}" role="img" aria-label="Bandeira: ${esc(f.n)}"><defs><symbol id="wsym" viewBox="0 0 ${W} ${H}">${f.d(W,H)}${f.src?`<image href="${f.src}" width="${W}" height="${H}" preserveAspectRatio="none"/>`:''}</symbol>`;for(let i=0;i<N;i++)s+=`<clipPath id="wc${i}"><rect x="${(i*W/N).toFixed(1)}" y="-30" width="${(W/N+1).toFixed(1)}" height="${H+60}"/></clipPath>`;s+=`</defs><rect x="-20" y="-24" width="9" height="${H+60}" rx="4.5" fill="rgba(255,255,255,.85)"/>`;for(let i=0;i<N;i++){const sh=(.5+.5*Math.sin(i/N*Math.PI*3)).toFixed(2);s+=`<g clip-path="url(#wc${i})"><g class="wv" style="animation-delay:${(-i*.13).toFixed(2)}s"><use href="#wsym" width="${W}" height="${H}"/><rect x="${(i*W/N).toFixed(1)}" y="0" width="${(W/N+1).toFixed(1)}" height="${H}" fill="#000" opacity="${(sh*.12).toFixed(3)}"/></g></g>`}return s+'</svg>'};
-$('dia').innerHTML=`<div class="top"><div><small>${isDay?'19 de novembro · Dia da Bandeira':'Bandeira do dia'}</small><b>${esc(fd.n)}</b></div><a class="round pr" href="#b-${fd.id}" aria-label="Ver ficha de ${esc(fd.n)}">${I('arrow')}</a></div>${wave(fd)}<div style="display:flex;gap:18px;flex-wrap:wrap;font-size:14px;color:var(--mut)"><span>Proporção ${fd.ra[0]}:${fd.ra[1]}</span>${fd.y?`<span>Adotada em ${fd.y}</span>`:''}<span>${fd.c.length} cores</span></div>`;
+const renderDia=()=>{const esc2=diaEscolhida();fd=esc2||(isDay?byId.br:cur[doy%cur.length]);
+$('dia').innerHTML=`<div class="top"><div><small>${isDay&&!esc2?'19 de novembro · Dia da Bandeira':'Bandeira do dia'}</small><b>${esc(fd.n)}</b></div><a class="round pr" href="#b-${fd.id}" aria-label="Ver ficha de ${esc(fd.n)}">${I('arrow')}</a></div>${wave(fd)}<div style="display:flex;gap:18px;flex-wrap:wrap;font-size:14px;color:var(--mut)">${fd.ra?`<span>Proporção ${fd.ra[0]}:${fd.ra[1]}</span>`:''}${fd.y?`<span>Adotada em ${fd.y}</span>`:''}<span>${fd.c.length} cores</span></div>`};renderDia();
 const renderCats=()=>{const catDef=[['pais','Países e territórios','big'],['nautica','Sinais náuticos',''],['estado','Estados do Brasil',''],['ilha','Ilhas',''],['militar','Bandeiras militares','']];
  $('cats').innerHTML=catDef.map(([t,l,c])=>{const fs=c==='big'?['br','jp','gb','us','in','ch'].map(i=>byId[i]):D.filter(f=>f.t===t||(t==='ilha'&&f.isl)).slice(0,4);return `<button class="cat pr ${c}" data-cat="${t}"><div><b>${l}</b><br><span>${cnt(t)} bandeiras</span></div><div class="minis">${fs.map(f=>svg(f)).join('')}</div></button>`}).join('')};
 renderCats();
 const CUR=['br','jp','gb','us','fr','de','it','ca','mx','ar','pt','kr','ch','se','br-sp','ics-a'];
 /* configuração da galeria feita pelos administradores: ocultas, nomes e destaques */
-const aplicaGaleria=d=>{window.FL_GALERIA=d||{};const oc=new Set(d.ocultas||[]),nm=d.nomes||{};D.forEach(f=>{if(f.n0==null)f.n0=f.n;f.oculta=oc.has(f.id);f.n=nm[f.id]||f.n0});if(view==='home'){renderDest();renderCats&&renderCats()}if(view==='explorar')gal()};
+const aplicaGaleria=d=>{window.FL_GALERIA=d||{};const oc=new Set(d.ocultas||[]),nm=d.nomes||{};D.forEach(f=>{if(f.n0==null)f.n0=f.n;f.oculta=oc.has(f.id);f.n=nm[f.id]||f.n0});if(view==='home'){renderDia();renderDest();renderCats&&renderCats()}if(view==='explorar')gal()};
 addEventListener('fl-toast',e=>toast(e.detail));
 addEventListener('fl-galeria',e=>aplicaGaleria(e.detail||{}));
 const renderDest=()=>{const G=window.FL_GALERIA||{};const fix=(G.destaques||[]).map(i=>byId[i]).filter(f=>f&&!f.oculta);if(fix.length){$('destp').textContent='Escolhidas pela curadoria do Flâmula.';$('dest').innerHTML=fix.map(card).join('');return}const real=S.on&&off().some(f=>nD(f)>0);$('destp').textContent=real?'As mais baixadas do Flâmula.':'Seleção da curadoria.';$('dest').innerHTML=(real?off().sort((a,b)=>nD(b)-nD(a)||a.n.localeCompare(b.n,'pt')).slice(0,10):CUR.map(i=>byId[i]).filter(Boolean)).map(card).join('')};
@@ -803,7 +807,7 @@ const route=()=>{const h=location.hash.slice(1);const v=viewOf(h);closeDD();clos
  VIEWS.forEach(x=>$('v-'+x).hidden=x!==v);
  if(v==='explorar'){gal();loadMil()}
  if(v==='militares'){if(h.startsWith('fotw-')&&window.FLFOTW)FLFOTW.pais(h.slice(5));else{renderMil();loadMil();if(window.FLFOTW)FLFOTW.lista()}}
- if(v==='home')loadMil();
+ if(v==='home'){loadMil();renderDia();renderDest()}
  if(v==='detalhe')det(argOf(h));
  if(v==='criar'&&FL.openEditor)FL.openEditor(argOf(h));
  if(FL.views[v])FL.views[v](argOf(h));
@@ -836,9 +840,9 @@ window.FL={refreshAcc:()=>accBtn(),$,toast,esc,norm,D,byId,I,fmt,svg,draw,card,v
 document.addEventListener('DOMContentLoaded',()=>{route();requestAnimationFrame(()=>moveInd())});
 }
 </script>
-<script src="editor.js?v=20261120d"></script>
-<script src="contas.js?v=20261120d"></script>
-<script src="jogo.js?v=20261120d"></script>
-<script src="fotw.js?v=20261120d"></script>
+<script src="editor.js?v=20261120e"></script>
+<script src="contas.js?v=20261120e"></script>
+<script src="jogo.js?v=20261120e"></script>
+<script src="fotw.js?v=20261120e"></script>
 </body>
 </html>
