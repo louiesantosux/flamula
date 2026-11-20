@@ -31,7 +31,9 @@ else {
           if (!s.exists()) { const p = { nome: u.displayName || (u.email || '').split('@')[0] || 'Sem nome', foto: u.photoURL || '', bio: '', comunidades: [], criadoEm: F.serverTimestamp() }; await F.setDoc(ref, p); FB.profile = { ...p } }
           else FB.profile = s.data();
         } catch (e) { FB.profile = { nome: u.displayName || 'Sem nome', foto: u.photoURL || '', bio: '', comunidades: [] } }
-        try { FB.admin = (await F.getDoc(F.doc(db, 'admins', u.uid))).exists() } catch (e) { FB.admin = false }
+        /* administrador principal e moderador: a conta do dono do site (e-mail verificado); demais admins ficam em admins/{uid} */
+        FB.dono = (u.email || '').toLowerCase() === 'louieikishima@gmail.com' && u.emailVerified;
+        try { FB.admin = FB.dono || (await F.getDoc(F.doc(db, 'admins', u.uid))).exists() } catch (e) { FB.admin = FB.dono }
       }
       FB.ready = true; ev('fb-user', { user: u, admin: FB.admin, profile: FB.profile });
     });
