@@ -18,6 +18,7 @@ css.textContent = `
 #v-militares.fwp>.phead,#v-militares.fwp>.notice,#v-militares.fwp>#milg,#v-militares.fwp>#mildest,#v-militares.fwp>#fwall{display:none}
 .fw-cs{margin-top:30px}.fw-cs .ghd{margin-top:0}.fw-cs .ghd small{color:var(--mut);font-weight:600;font-size:14px}.fw-cs .ghd a{margin-left:auto;font:600 14px var(--font);color:var(--azul);text-decoration:none}
 .fw-grid.cut>:nth-child(n+13){display:none}.fw-more{margin-top:12px}
+.fw-det>summary{list-style:none;cursor:pointer;padding:16px 20px;border-radius:22px;background:var(--chip);margin-bottom:16px}.fw-det>summary::-webkit-details-marker{display:none}.fw-det>summary h2{margin:0;font:700 20px var(--font-d)}.fw-det>summary p{margin:4px 0 0;color:var(--mut);font-size:14px}.fw-det>summary h2::after{content:' ▾';color:var(--mut)}.fw-det[open]>summary h2::after{content:' ▴'}
 .fw-hero .dstage:empty::after{content:'Toque em uma bandeira abaixo';color:var(--mut)}
 .fw-sec{margin-top:40px}.fw-busca{display:flex;gap:10px;align-items:center;margin:14px 0 16px}
 .fw-busca input{flex:1;min-height:44px;border-radius:999px;border:1px solid var(--line);background:var(--chip);padding:0 18px;font:inherit;color:inherit}
@@ -59,8 +60,17 @@ const lista = async () => {
 /* todas as bandeiras, país por país, carregadas conforme a rolagem */
 let OBS = null; const FILA = []; let ativos = 0;
 const proxima = () => { while (ativos < 3 && FILA.length) { const sec = FILA.shift(); ativos++; carrega(sec).finally(() => { ativos--; proxima() }) } };
+const cm = p => api('commons=' + p.code + '&nome=' + encodeURIComponent((p.nome || '').split(',')[0]));
 const carrega = async sec => {
-  const p = LISTA.find(x => x.code === sec.dataset.code); const g = sec.querySelector('.fw-grid'); const itens = [];
+  const p = LISTA.find(x => x.code === sec.dataset.code); const g = sec.querySelector('.fw-grid');
+  /* 1º: Wikimedia Commons, em alta resolução */
+  try { const c = await cm(p); if (c.itens && c.itens.length) {
+    sec.querySelector('.ghd small').textContent = c.itens.length;
+    g.innerHTML = c.itens.map((it, i) => `<button class="fw-c lg pr" data-cmgo="${p.code}" data-i="${i}"><div class="st"><img src="${esc(it.thumb)}" alt="${esc(it.label)}" loading="lazy" decoding="async"></div><b>${esc(it.label)}</b>${it.sec ? `<small>${esc(it.sec)}</small>` : ''}</button>`).join('');
+    if (c.itens.length > 12) { g.classList.add('cut'); g.insertAdjacentHTML('afterend', `<button class="btn gh pr sm fw-more">Ver todas as ${c.itens.length}</button>`) }
+    return } } catch (e) { }
+  /* sem nada no Commons: usa as imagens do FOTW */
+  const itens = [];
   const SKIP = /^(mailme|keyword|bib-|index)/i; const sub = [];
   for (const l of p.links) { try { const d = await api('p=' + encodeURIComponent(l.href)); d.itens.forEach((it, i) => itens.push({ ...it, href: l.href, i })); if (!d.itens.length) d.links.forEach(x => { if (!SKIP.test(x.href) && x.href.slice(0, 2).toLowerCase() === p.code && !sub.some(y => y.href === x.href)) sub.push(x) }) } catch (e) { } }
   /* páginas-índice (ex.: fr-index.html#mil) não têm imagens: segue os links militares delas */
@@ -73,14 +83,26 @@ const carrega = async sec => {
 const todas = () => {
   const v = $('v-militares'); let box = $('fwall'); if (box) box.remove();
   box = document.createElement('section'); box.id = 'fwall'; box.className = 'fw-sec'; v.appendChild(box);
-  box.innerHTML = `<div class="shead"><div><h2>Todas as bandeiras militares</h2><p>País por país, do Flags of the World. Toque em uma bandeira para vê-la em destaque, ampliar e baixar.</p></div></div>` +
+  box.innerHTML = `<div class="shead"><div><h2>Todas as bandeiras militares</h2><p>País por país, em alta resolução do Wikimedia Commons. Quando o Commons não tem o país, as imagens vêm do Flags of the World. Toque em uma bandeira para vê-la em destaque, baixar ou remixar.</p></div></div>` +
     LISTA.map(p => { const f = paisDe(p.code); return `<div class="fw-cs" data-code="${p.code}" data-n="${esc(FL.norm(p.pt + ' ' + p.nome))}"><div class="ghd">${f ? svg(f, '', true) : ''}${esc(p.pt)} <small></small><a href="#fotw-${p.code}">Página do país →</a></div><div class="fw-grid">${'<div class="fw-c lg"><div class="st"><span class="sk" style="width:60%"></span></div></div>'.repeat(4)}</div></div>` }).join('');
   if (OBS) OBS.disconnect(); FILA.length = 0;
   OBS = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { OBS.unobserve(e.target); FILA.push(e.target); proxima() } }), { rootMargin: '800px 0px' });
   box.querySelectorAll('.fw-cs').forEach(x => OBS.observe(x));
 };
 const filtra = q => { const n = FL.norm(q || ''); document.querySelectorAll('#fwall .fw-cs').forEach(x => x.hidden = !!n && !x.dataset.n.includes(n)) };
-let PEND = null;
+let PEND = null, CM = null;
+const comm = async p => {
+  const box = $('fwcm'); if (!box) return;
+  try {
+    const c = await cm(p); if (!$('fwcm') || location.hash !== '#fotw-' + p.code) return;
+    if (!c.itens || !c.itens.length) { $('fwcmp').textContent = 'O Wikimedia Commons não tem uma categoria de bandeiras militares deste país. Veja as do Flags of the World abaixo.'; box.innerHTML = ''; const d = $('fwdet'); if (d) d.open = true; return }
+    CM = c.itens.map(it => ({ img: it.thumb, big: it.url, file: it.file, title: it.label, cap: 'Wikimedia Commons' + (it.sec ? ' · ' + it.sec : ''), page: it.page }));
+    $('fwcmp').innerHTML = `${c.itens.length} arquivos da categoria <a class="lnk" href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.categoria.replace(/^Category:/, ''))}</a>, no Wikimedia Commons. Podem ser baixados e remixados.`;
+    const grupos = []; c.itens.forEach((it, k) => { const g = grupos[grupos.length - 1]; if (g && g.sec === it.sec) g.L.push([it, k]); else grupos.push({ sec: it.sec, L: [[it, k]] }) });
+    box.innerHTML = grupos.map(g => `${g.sec ? `<div class="ghd">${esc(g.sec)}</div>` : ''}<div class="fw-grid">${g.L.map(([it, k]) => `<button class="fw-c lg pr" data-cmi="${k}"><div class="st"><img src="${esc(it.thumb)}" alt="${esc(it.label)}" loading="lazy" decoding="async"></div><b>${esc(it.label)}</b></button>`).join('')}</div>`).join('');
+    if (PEND && PEND.code === p.code && PEND.c != null) { const k = PEND.c; PEND = null; const b = box.querySelector(`[data-cmi="${k}"]`); if (b) b.click() }
+  } catch (e) { if ($('fwcmp')) { $('fwcmp').textContent = 'O Wikimedia Commons não respondeu agora. Veja as do Flags of the World abaixo.'; $('fwcm').innerHTML = ''; const d = $('fwdet'); if (d) d.open = true } }
+};
 
 /* página do país */
 let PAG = [], BASE = null, WL = null, CUR = '';
@@ -110,14 +132,17 @@ const pais = async code => {
     PAG = p.links.map(l => ({ href: l.href, nome: rot(l, p) }));
     BASE = f || { id: 'fw-' + code, c: ['#FFFFFF', '#000000'], t: 'militar', r: '', ra: [2, 3] };
     box.innerHTML = `<a class="back lg pr" href="#militares">${FL.I('back')}Militares</a>
-    <div class="dgrid fw-hero"><div class="dstage lg" id="fwstage">${f ? svg(f, 'fl', false) : ''}</div><div class="dinfo"><div class="dhead lg"><h1>${esc(p.pt)}</h1><p class="of">Bandeiras militares</p><div class="pills"><span class="o">Militar</span>${f && f.ct ? `<span>${esc(f.ct)}</span>` : ''}</div><p style="margin:12px 0 0;color:var(--mut)">Toque em qualquer bandeira para vê-la aqui em destaque, ampliar e baixar. As da Wikipédia também podem ser remixadas.</p>${f ? `<div class="acts"><a class="btn gh pr" href="#b-${esc(f.id)}">Página da bandeira nacional</a></div>` : ''}</div></div></div>
+    <div class="dgrid fw-hero"><div class="dstage lg" id="fwstage">${f ? svg(f, 'fl', false) : ''}</div><div class="dinfo"><div class="dhead lg"><h1>${esc(p.pt)}</h1><p class="of">Bandeiras militares</p><div class="pills"><span class="o">Militar</span>${f && f.ct ? `<span>${esc(f.ct)}</span>` : ''}</div><p style="margin:12px 0 0;color:var(--mut)">Toque em qualquer bandeira para vê-la aqui em destaque, ampliar e baixar. As do Commons e da Wikipédia também podem ser remixadas.</p>${f ? `<div class="acts"><a class="btn gh pr" href="#b-${esc(f.id)}">Página da bandeira nacional</a></div>` : ''}</div></div></div>
+    <section class="sec" id="fwcms"><div class="shead"><div><h2>Em alta resolução</h2><p id="fwcmp">Buscando as bandeiras militares do país no Wikimedia Commons…</p></div></div><div id="fwcm"><div class="fw-grid">${'<div class="fw-c lg"><div class="st"><span class="sk" style="width:60%"></span></div></div>'.repeat(6)}</div></div></section>
     <section class="sec" id="fwwiki"><div class="shead"><div><h2>Da Wikipédia</h2><p id="fwwp">Procurando as seções militares na lista de bandeiras do país…</p></div></div><div id="fwwl"><p class="tl-msg"><span class="sk" style="width:240px"></span></p></div></section>
-    <section class="sec"><div class="shead"><div><h2>Do Flags of the World</h2><p>Imagens do FOTW com o autor de cada uma. Podem ser baixadas com crédito, mas não alteradas.</p></div></div><div class="fw-tabs" id="fwtabs"></div><div id="fwcont"></div></section>
+    <details class="sec fw-det" id="fwdet"><summary><h2>Também no Flags of the World</h2><p>Mais bandeiras e contexto, em imagens menores. Podem ser baixadas com crédito, mas não alteradas.</p></summary><div class="fw-tabs" id="fwtabs"></div><div id="fwcont"></div></details>
     <p class="fw-cred">Imagens do FOTW reproduzidas sem alterações de <a href="https://www.fotw.info/" target="_blank" rel="noopener">${esc(CREDITO)}</a>, com o autor indicado em cada uma. Uso só para consulta, sem fins comerciais.</p>`;
-    wiki(f);
-    if (PEND && PEND.code === code && !PAG.some(x => x.href === PEND.h)) PAG.push({ href: PEND.h, nome: PEND.n || 'Página' });
+    wiki(f); comm(p);
+    if (PEND && PEND.h && PEND.code === code && !PAG.some(x => x.href === PEND.h)) PAG.push({ href: PEND.h, nome: PEND.n || 'Página' });
     const pk = PEND && PEND.code === code ? Math.max(0, PAG.findIndex(x => x.href === PEND.h)) : 0;
-    tabs(pk);
+    const det = $('fwdet'); let feito = false; const abre = () => { if (feito) return; feito = true; tabs(pk) };
+    det.addEventListener('toggle', () => { if (det.open) abre() });
+    if (PEND && PEND.code === code && PEND.h) { det.open = true; abre() }
   } catch (e) { box.innerHTML = `<a class="btn gh pr sm" href="#militares">← Militares</a><div class="empty" style="margin-top:20px"><b>Não foi possível carregar</b><p>${esc(e.message)}</p><button class="btn gh pr sm" id="fwre">Tentar de novo</button></div>`; $('fwre').onclick = () => pais(code) }
 };
 const tabs = i => {
@@ -140,6 +165,8 @@ const pagina = async i => {
 };
 
 document.addEventListener('click', e => {
+  const cg = e.target.closest('[data-cmgo]'); if (cg) { PEND = { code: cg.dataset.cmgo, c: +cg.dataset.i }; location.hash = '#fotw-' + cg.dataset.cmgo; return }
+  const ci = e.target.closest('[data-cmi]'); if (ci && CM) { const k = +ci.dataset.cmi; FL.pickFlag(CM[k], BASE, { stage: '#fwstage', list: CM, idx: k }); return }
   const go = e.target.closest('[data-fwgo]'); if (go) { PEND = { code: go.dataset.fwgo, h: go.dataset.h, i: +go.dataset.i, n: go.dataset.n }; location.hash = '#fotw-' + go.dataset.fwgo; return }
   const mo = e.target.closest('.fw-more'); if (mo) { mo.previousElementSibling.classList.remove('cut'); mo.remove(); return }
   const mw = e.target.closest('[data-mws]'); if (mw && WL) { const s = WL.S[+mw.dataset.mws]; const k = +mw.dataset.mwi; FL.pickFlag({ ...s.items[k], title: s.name, page: WL.l.url }, BASE, { stage: '#fwstage', list: s.items.map(x => ({ ...x, title: s.name })), idx: k }); return }
