@@ -63,6 +63,10 @@ else {
       sair: async id => { const u = me(), b = F.writeBatch(db); b.delete(F.doc(db, 'comunidades', id, 'membros', u.uid)); b.update(F.doc(db, 'comunidades', id), { membros: F.increment(-1) }); b.set(F.doc(db, 'usuarios', u.uid), { comunidades: F.arrayRemove(id) }, { merge: true }); await b.commit(); FB.profile.comunidades = (FB.profile.comunidades || []).filter(x => x !== id) },
       apagarComunidade: id => F.deleteDoc(F.doc(db, 'comunidades', id)),
 
+      /* ranking do jogo (uma coleção por nível) */
+      ranking: nivel => list(F.query(col('ranking_' + nivel), F.orderBy('pontos', 'desc'), F.limit(25))),
+      salvarPlacar: (nivel, d) => F.addDoc(col('ranking_' + nivel), { nome: d.nome, uid: FB.user?.uid || '', acertos: d.acertos, td: d.td, pontos: d.acertos * 100000 - d.td, criadoEm: F.serverTimestamp() }),
+
       /* colaboradores */
       colaborar: d => F.addDoc(col('colaboradores'), { nome: d.nome, email: d.email, area: d.area, mensagem: d.mensagem, uid: FB.user?.uid || '', criadoEm: F.serverTimestamp() }),
       colaboradores: () => list(F.query(col('colaboradores'), F.orderBy('criadoEm', 'desc'), F.limit(100))),

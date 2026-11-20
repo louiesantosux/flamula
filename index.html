@@ -247,6 +247,35 @@ body.tinted .btn.acc,.acts .on{background:var(--fa,var(--acc));color:var(--fa-in
 .tl-i span{font-size:12px;color:var(--mut);text-align:center;line-height:1.3}
 .tl-i.cur b{color:var(--ink)}
 .tl-msg{padding:18px 22px;color:var(--mut);margin:0}
+/* visualizador */
+.vw{position:fixed;inset:0;z-index:95;display:grid;place-items:center;padding:16px;opacity:0;transition:opacity .25s}
+.vw.open{opacity:1}
+.vw-bd{position:absolute;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.vw-box{position:relative;width:min(920px,100%);max-height:calc(100vh - 32px);display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:10px;border-radius:32px;padding:14px;transform:scale(.92);transition:transform .6s var(--spring);--glass:light-dark(rgba(250,250,252,.82),rgba(34,34,40,.82))}
+.vw.open .vw-box{transform:none}
+.vw-top{display:flex;justify-content:space-between;align-items:center;padding-left:8px;color:var(--mut);font-size:14px;font-weight:600}
+.vw-img{display:grid;place-items:center;min-height:0;padding:10px;border-radius:22px;background:rgba(127,127,127,.12)}
+.vw-img img{max-width:100%;max-height:min(58vh,560px);object-fit:contain;filter:drop-shadow(0 12px 26px rgba(0,0,0,.3))}
+.vw-img img.in{animation:vwin .55s var(--spring)}
+@keyframes vwin{from{opacity:0;transform:scale(.9)}}
+.vw-cap{padding:0 8px 6px;display:grid;gap:6px}
+.vw-cap b{font:700 19px var(--font-d)}
+.vw-cap p{margin:0;color:var(--mut);font-size:15px;max-height:5.6em;overflow:auto}
+.vw-p,.vw-nx{position:absolute;top:50%;translate:0 -50%;background:var(--glass);box-shadow:var(--glass-sh)}
+.vw-p{left:-8px}.vw-nx{right:-8px}
+.tl-card{border:0;cursor:zoom-in}
+/* lista de bandeiras da Wikipédia */
+.wl-s{margin-bottom:22px}
+.wl-s h3{font-size:19px;margin:0 0 10px;display:flex;align-items:baseline;gap:8px}
+.wl-s h3 small{font:600 13px var(--font);color:var(--mut)}
+.wl-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.wl-g.cut>:nth-child(n+9){display:none}
+.wl-i{display:grid;gap:6px;align-content:start;padding:10px;border-radius:20px;border:0;background:var(--glass);box-shadow:var(--glass-sh);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);text-align:left;color:var(--ink);cursor:zoom-in}
+.wl-im{height:84px;display:grid;place-items:center}
+.wl-im img{max-height:84px;max-width:100%;filter:drop-shadow(0 4px 10px rgba(0,0,0,.2))}
+.wl-c{font-size:12px;color:var(--mut);line-height:1.35;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.wl-more{margin-top:10px}
+@media(max-width:520px){.wl-g{grid-template-columns:repeat(2,minmax(0,1fr))}.vw-p{left:4px}.vw-nx{right:4px}.vw-box{padding:10px;border-radius:26px}}
 /* militares */
 .notice{display:flex;gap:12px;align-items:flex-start;border-radius:22px;padding:16px 18px;margin-bottom:22px;font-size:15px}
 .notice .ico{color:var(--azul);margin-top:2px}
@@ -342,7 +371,7 @@ footer a:hover,footer button:hover{color:var(--ink)}
 <div class="edge" aria-hidden="true"></div>
 <header class="nav"><div class="pill lg">
   <a class="logo" href="#inicio" aria-label="Flâmula, início"><svg class="mk"><use href="#mk"/></svg><span class="wm">flâmula</span></a>
-  <nav class="links" aria-label="Principal"><a href="#inicio" data-r="home">Início</a><a href="#explorar" data-r="explorar">Explorar</a><a href="#militares" data-r="militares">Militares</a><a href="#comunidades" data-r="comunidades">Comunidades</a><a href="#criar" data-r="criar">Criar</a><a href="#admin" data-r="admin" id="ladmin" hidden>Admin</a></nav>
+  <nav class="links" aria-label="Principal"><a href="#inicio" data-r="home">Início</a><a href="#explorar" data-r="explorar">Explorar</a><a href="#jogo" data-r="jogo">Jogo</a><a href="#comunidades" data-r="comunidades">Comunidades</a><a href="#criar" data-r="criar">Criar</a><a href="#admin" data-r="admin" id="ladmin" hidden>Admin</a></nav>
   <div class="act"><button class="ic pr" id="bsearch" aria-label="Buscar"></button><span id="acc"></span></div>
 </div></header>
 
@@ -362,6 +391,7 @@ footer a:hover,footer button:hover{color:var(--ink)}
   <section class="sec wrap"><div class="shead"><div><h2>Categorias</h2><p>O acervo oficial organizado por tipo.</p></div></div><div class="bento" id="cats"></div></section>
   <section class="sec wrap"><div class="shead"><div><h2>Em destaque</h2><p id="destp">Seleção da curadoria.</p></div><a class="more" href="#explorar">Ver todas</a></div><div class="row" id="dest"></div></section>
   <section class="sec wrap" id="secom" hidden><div class="shead"><div><h2>Criações da comunidade</h2><p>Bandeiras originais aprovadas pela moderação.</p></div><a class="more" href="#explorar" id="vercom">Ver todas</a></div><div class="row" id="ult"></div></section>
+  <section class="sec wrap"><a class="cta lg pr" href="#jogo" style="color:inherit;background:linear-gradient(135deg,color-mix(in srgb,var(--azul) 16%,var(--stage)),var(--stage))"><div><h2>Qual é o país?</h2><p>Uma bandeira, quatro nomes. Acerte 10 bandeiras no menor tempo, em três níveis, e entre no ranking.</p><span class="btn acc pr">Jogar agora</span></div><div class="ctapic" id="gamepic" aria-hidden="true"></div></a></section>
   <section class="sec wrap"><div class="cta lg"><div><h2>Crie a sua bandeira</h2><p>Escolha a proporção, o layout e as cores, adicione símbolos e arraste no próprio desenho. Baixe em SVG ou PNG sem conta, ou entre para publicar na galeria e nas suas comunidades.</p><a class="btn acc pr" href="#criar">Abrir o editor</a></div><div class="ctapic" id="ctapic" aria-hidden="true"></div></div></section>
 </main>
 
@@ -391,6 +421,7 @@ footer a:hover,footer button:hover{color:var(--ink)}
 <main id="v-comunidades" hidden class="wrap"></main>
 <main id="v-comunidade" hidden class="wrap"></main>
 <main id="v-admin" hidden class="wrap"></main>
+<main id="v-jogo" hidden class="wrap"></main>
 
 <main id="v-marca" hidden>
   <section class="bhero"><div class="wrap">
@@ -410,7 +441,7 @@ footer a:hover,footer button:hover{color:var(--ink)}
 
 <footer><div class="wrap fgrid">
   <div><div class="logo" style="margin-bottom:10px;color:var(--ink)"><svg class="mk"><use href="#mk"/></svg><span class="wm">flâmula</span></div>Bandeiras oficiais via Flagpedia/flagcdn e Wikimedia Commons. Contexto e história via Wikidata e Wikipédia (CC BY-SA).</div>
-  <div><b>Navegar</b><a href="#explorar">Explorar</a><a href="#militares">Bandeiras militares</a><a href="#comunidades">Comunidades</a><a href="#criar">Editor de bandeiras</a><a href="#marca">Identidade visual</a></div>
+  <div><b>Navegar</b><a href="#explorar">Explorar</a><a href="#militares">Bandeiras militares</a><a href="#jogo">Jogo: qual é o país?</a><a href="#comunidades">Comunidades</a><a href="#criar">Editor de bandeiras</a><a href="#marca">Identidade visual</a></div>
   <div><b>Participe</b><button data-act="colaborar">Torne-se um colaborador</button><button data-act="admin-pedido">Seja administrador</button><a href="#perfil">Meu perfil</a></div>
   <div><b>Legal</b><button data-soon="Os termos de uso">Termos de uso</button><button data-soon="A política de privacidade">Privacidade</button><button data-act="colaborar">Direitos autorais e remoção</button></div>
 </div></footer>
@@ -419,7 +450,7 @@ footer a:hover,footer button:hover{color:var(--ink)}
   <a href="#inicio" data-r="home"><svg class="ico" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span class="lb">Início</span></a>
   <a href="#explorar" data-r="explorar"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span class="lb">Explorar</span></a>
   <a class="fab pr" href="#criar" data-r="criar" aria-label="Criar"><svg class="ico" viewBox="0 0 24 24" style="width:26px;height:26px"><path d="M12 5v14M5 12h14"/></svg></a>
-  <a href="#comunidades" data-r="comunidades"><svg class="ico" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.8c1.8.7 3 2.4 3.5 5.2"/></svg><span class="lb">Comunidades</span></a>
+  <a href="#jogo" data-r="jogo"><svg class="ico" viewBox="0 0 24 24"><rect x="2.5" y="7" width="19" height="11" rx="5.5"/><path d="M7 11v3M5.5 12.5h3M15.5 12h.01M18 13.5h.01"/></svg><span class="lb">Jogo</span></a>
   <a href="#perfil" data-r="perfil"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span class="lb">Perfil</span></a>
 </nav>
 <div class="toast lg" id="toast" role="status" aria-live="polite"></div>
@@ -444,15 +475,15 @@ D.forEach((f,i)=>{f.added=i;f.ct=contOf(f.r)});
 const DES={br:['Raimundo Teixeira Mendes','Miguel Lemos','Manuel Pereira Reis','Décio Villares']};
 D.forEach(f=>{if(DES[f.id])f.des=DES[f.id]});
 const S={on:false,dl:{},lk:{}};const nD=f=>S.dl[f.id]||0,nL=f=>S.lk[f.id]||0;
-const TIPOS=[['todos','Todos'],['pais','Países'],['estado','Estados do Brasil'],['nautica','Náuticas'],['militar','Militares'],['criacao','Criações']];
-const TN={pais:'País',estado:'Estado',nautica:'Sinal náutico',militar:'Militar',criacao:'Criação da comunidade'};
+const TIPOS=[['todos','Todos'],['pais','Países'],['estado','Estados do Brasil'],['ilha','Ilhas'],['nautica','Náuticas'],['militar','Militares'],['criacao','Criações']];
+const TN={pais:'País',estado:'Estado',ilha:'Ilha',nautica:'Sinal náutico',militar:'Militar',criacao:'Criação da comunidade'};
 const byId=Object.fromEntries(D.map(f=>[f.id,f]));
 const fmt=n=>n>=1000?(n/1000).toFixed(1).replace('.',',').replace(',0','')+' mil':String(n);
 const dims=f=>{const r=f.ra||[2,3];return [600,Math.round(600*r[0]/r[1])]};
 const draw=(f,cls='fl')=>{const [W,H]=dims(f);return `<svg class="${cls}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Bandeira: ${esc(f.n)}">${f.d(W,H)}</svg>`};
 const svg=(f,cls='fl',lazy=true)=>f.src?`<img class="${cls}" src="${esc(f.src)}" alt="Bandeira: ${esc(f.n)}" ${lazy?'loading="lazy"':''} decoding="async" data-fb="${esc(f.id)}">`:draw(f,cls);
 document.addEventListener('error',e=>{const t=e.target;if(t.tagName==='IMG'&&t.dataset.fb&&byId[t.dataset.fb]&&byId[t.dataset.fb].d){const w=document.createElement('span');w.innerHTML=draw(byId[t.dataset.fb],t.className);const n=w.firstChild;if(t.style.viewTransitionName)n.style.viewTransitionName=t.style.viewTransitionName;t.replaceWith(n)}},true);
-const sub=f=>f.o==='original'?'Criação original':f.t==='militar'?`Militar · ${f.pais}`:`${TN[f.t]} · ${f.r}`;
+const sub=f=>f.o==='original'?'Criação original':f.t==='militar'?`Militar · ${f.pais}`:f.t==='ilha'?`Ilha · ${f.pais}`:`${TN[f.t]} · ${f.r}`;
 let liked=new Set();try{liked=new Set(JSON.parse(localStorage.getItem('flamula-likes')||'[]'))}catch(e){}
 const saveL=()=>{try{localStorage.setItem('flamula-likes',JSON.stringify([...liked]))}catch(e){}};
 const card=f=>`<a class="card pr" href="#b-${esc(f.id)}" data-id="${esc(f.id)}"><div class="stg">${svg(f)}</div><div class="meta"><b>${esc(f.n)}</b><span>${esc(sub(f))}</span></div><div class="cnt"><span class="n" data-cl="${esc(f.id)}">${I('heart')}<i>${fmt(nL(f))}</i></span>${f.t==='militar'?'':`<span class="n" data-cd="${esc(f.id)}">${I('dl')}<i>${fmt(nD(f))}</i></span>`}${f.o==='original'?`<span class="by">@${esc(f.a)}</span>`:f.t==='militar'?'<span class="tag mil">Militar</span>':'<span class="tag">Oficial</span>'}</div></a>`;
@@ -498,7 +529,7 @@ let lastY=scrollY,scF=0;addEventListener('scroll',()=>{if(scF)return;scF=request
 
 /* início */
 const off=()=>D.filter(f=>f.o==='oficial'&&f.t!=='militar');
-const cnt=t=>D.filter(f=>f.t===t).length;
+const cnt=t=>D.filter(f=>f.t===t||(t==='ilha'&&f.isl)).length;
 $('stats').innerHTML=[[off().length,'bandeiras oficiais'],[cnt('pais'),'países e territórios'],[cnt('estado'),'estados do Brasil']].map(([n,l])=>`<div><b>${n}</b><span>${l}</span></div>`).join('');
 const now=new Date(),isDay=now.getMonth()===10&&now.getDate()===19;
 const cur=off().filter(f=>f.t==='pais'&&f.ra);
@@ -506,13 +537,14 @@ const doy=Math.floor((now-new Date(now.getFullYear(),0,0))/864e5);
 const fd=isDay?byId.br:cur[doy%cur.length];
 const wave=f=>{const [W,H]=dims(f),N=22;let s=`<svg class="wave" viewBox="-24 -26 ${W+40} ${H+60}" role="img" aria-label="Bandeira: ${esc(f.n)}"><defs><symbol id="wsym" viewBox="0 0 ${W} ${H}">${f.d(W,H)}${f.src?`<image href="${f.src}" width="${W}" height="${H}" preserveAspectRatio="none"/>`:''}</symbol>`;for(let i=0;i<N;i++)s+=`<clipPath id="wc${i}"><rect x="${(i*W/N).toFixed(1)}" y="-30" width="${(W/N+1).toFixed(1)}" height="${H+60}"/></clipPath>`;s+=`</defs><rect x="-20" y="-24" width="9" height="${H+60}" rx="4.5" fill="rgba(255,255,255,.85)"/>`;for(let i=0;i<N;i++){const sh=(.5+.5*Math.sin(i/N*Math.PI*3)).toFixed(2);s+=`<g clip-path="url(#wc${i})"><g class="wv" style="animation-delay:${(-i*.13).toFixed(2)}s"><use href="#wsym" width="${W}" height="${H}"/><rect x="${(i*W/N).toFixed(1)}" y="0" width="${(W/N+1).toFixed(1)}" height="${H}" fill="#000" opacity="${(sh*.12).toFixed(3)}"/></g></g>`}return s+'</svg>'};
 $('dia').innerHTML=`<div class="top"><div><small>${isDay?'19 de novembro · Dia da Bandeira':'Bandeira do dia'}</small><b>${esc(fd.n)}</b></div><a class="round pr" href="#b-${fd.id}" aria-label="Ver ficha de ${esc(fd.n)}">${I('arrow')}</a></div>${wave(fd)}<div style="display:flex;gap:18px;flex-wrap:wrap;font-size:14px;color:rgba(255,255,255,.8)"><span>Proporção ${fd.ra[0]}:${fd.ra[1]}</span>${fd.y?`<span>Adotada em ${fd.y}</span>`:''}<span>${fd.c.length} cores</span></div>`;
-const renderCats=()=>{const catDef=[['pais','Países e territórios','big'],['nautica','Sinais náuticos',''],['estado','Estados do Brasil',''],['militar','Bandeiras militares','wide']];
- $('cats').innerHTML=catDef.map(([t,l,c])=>{const fs=c==='big'?['br','jp','gb','us','in','ch'].map(i=>byId[i]):D.filter(f=>f.t===t).slice(0,t==='militar'?6:4);return `<button class="cat pr ${c}" data-cat="${t}"><div><b>${l}</b><br><span>${cnt(t)} bandeiras</span></div><div class="minis">${fs.map(f=>svg(f)).join('')}</div></button>`}).join('')};
+const renderCats=()=>{const catDef=[['pais','Países e territórios','big'],['nautica','Sinais náuticos',''],['estado','Estados do Brasil',''],['ilha','Ilhas',''],['militar','Bandeiras militares','']];
+ $('cats').innerHTML=catDef.map(([t,l,c])=>{const fs=c==='big'?['br','jp','gb','us','in','ch'].map(i=>byId[i]):D.filter(f=>f.t===t||(t==='ilha'&&f.isl)).slice(0,4);return `<button class="cat pr ${c}" data-cat="${t}"><div><b>${l}</b><br><span>${cnt(t)} bandeiras</span></div><div class="minis">${fs.map(f=>svg(f)).join('')}</div></button>`}).join('')};
 renderCats();
 const CUR=['br','jp','gb','us','fr','de','it','ca','mx','ar','pt','kr','ch','se','br-sp','ics-a'];
 const renderDest=()=>{const real=S.on&&off().some(f=>nD(f)>0);$('destp').textContent=real?'As mais baixadas do Flâmula.':'Seleção da curadoria.';$('dest').innerHTML=(real?off().sort((a,b)=>nD(b)-nD(a)||a.n.localeCompare(b.n,'pt')).slice(0,10):CUR.map(i=>byId[i]).filter(Boolean)).map(card).join('')};
 renderDest();
 const renderCom=()=>{const c=D.filter(f=>f.o==='original').sort((a,b)=>b.added-a.added).slice(0,10);$('secom').hidden=!c.length;$('ult').innerHTML=c.map(card).join('')};
+$('gamepic').innerHTML=['fr','it','ie'].map((i,k)=>`<span style="left:${[4,28,48][k]}%;top:${[6,36,2][k]}%;transform:rotate(${[-8,4,10][k]}deg)">${svg(byId[i],'fl')}</span>`).join('');
 $('ctapic').innerHTML=['br','jp','se'].map((i,k)=>`<span style="left:${[4,28,48][k]}%;top:${[6,36,2][k]}%;transform:rotate(${[-8,4,10][k]}deg)">${svg(byId[i],'fl')}</span>`).join('');
 
 /* marca */
@@ -533,7 +565,7 @@ const gal=(anim)=>{
  $('orig').querySelectorAll('button').forEach(b=>{b.classList.toggle('on',b.dataset.o===st.o);b.setAttribute('aria-pressed',b.dataset.o===st.o)});moveInd(anim);
  $('tipos').querySelectorAll('.chip').forEach(b=>{b.classList.toggle('on',b.dataset.t===st.t);b.setAttribute('aria-pressed',b.dataset.t===st.t)});
  ddCont.set(st.r);ddOrd.set(st.s);
- const L=D.filter(f=>(st.t==='todos'||f.t===st.t)&&(st.o==='todas'||f.o===st.o)&&inCont(f)&&(!st.q||norm([f.n,f.k,f.a,f.cap,f.of,f.pais].join(' ')).includes(norm(st.q))));
+ const L=D.filter(f=>(st.t==='todos'||f.t===st.t||(st.t==='ilha'&&f.isl))&&(st.o==='todas'||f.o===st.o)&&inCont(f)&&(!st.q||norm([f.n,f.k,f.a,f.cap,f.of,f.pais].join(' ')).includes(norm(st.q))));
  const so={popular:byPop,recentes:(a,b)=>b.added-a.added,downloads:(a,b)=>nD(b)-nD(a)||a.n.localeCompare(b.n,'pt'),az:(a,b)=>a.n.localeCompare(b.n,'pt')}[st.s];L.sort(so);
  $('ptot').textContent=`${off().length} bandeiras oficiais: ${cnt('pais')} países e territórios, ${cnt('estado')} estados do Brasil e ${cnt('nautica')} sinais náuticos, além de ${cnt('militar')} bandeiras militares${cnt('criacao')?` e ${cnt('criacao')} ${cnt('criacao')>1?'criações':'criação'} da comunidade`:''}.`;
  $('res').textContent=L.length?`${L.length} ${L.length>1?'resultados':'resultado'}`:'';
@@ -548,7 +580,7 @@ addEventListener('resize',()=>moveInd());
 /* militares */
 const renderMil=()=>{const L=D.filter(f=>f.t==='militar');const g={};L.forEach(f=>(g[f.pais]=g[f.pais]||[]).push(f));const flagOf=p=>D.find(f=>f.t==='pais'&&f.n===p);
  $('milg').innerHTML=Object.keys(g).sort((a,b)=>a.localeCompare(b,'pt')).map(p=>{const pf=flagOf(p);return `<div class="ghd">${pf?svg(pf,'',true):''}${esc(p)}</div><div class="grid">${g[p].map(card).join('')}</div>`}).join('')};
-let milLoad=null;const loadMil=()=>{if(milLoad)return milLoad;milLoad=window.FLWIKI?FLWIKI.militares(D.filter(f=>f.t==='militar')).then(ch=>{if(ch){if(view==='militares')renderMil();if(view==='explorar')gal();if(view==='home')renderCats()}}).catch(()=>{}):Promise.resolve();return milLoad};
+let milLoad=null;const loadMil=()=>{if(milLoad)return milLoad;milLoad=window.FLWIKI?FLWIKI.militares(D.filter(f=>f.wt)).then(ch=>{if(ch){if(view==='militares')renderMil();if(view==='explorar')gal();if(view==='home')renderCats()}}).catch(()=>{}):Promise.resolve();return milLoad};
 
 /* cores e proporção */
 const rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255);
@@ -563,38 +595,69 @@ const ratTxt=(w,h)=>{const q=h/w;let best=null,bd=1;RAT.forEach(([a,b])=>{const 
 const swH=f=>f.c.map(c=>`<button data-hex="${esc(c.toUpperCase())}"><i style="background:${esc(c)}"></i>${esc(c.toUpperCase())}</button>`).join('');
 const tint=f=>{const c=(f.c&&f.c.length?f.c:['#888888']).slice();while(c.length<4)c.push(c[c.length%f.c.length]);const pos=['12% 8%','92% 18%','22% 96%','88% 88%'];$('tint').style.setProperty('--tintbg',c.slice(0,4).map((x,i)=>`radial-gradient(62% 58% at ${pos[i]},${x} 0%,transparent 72%)`).join(',')+`,linear-gradient(135deg,${c[0]},${c[1]})`);const cand=c.filter(x=>lum(x)>.03&&lum(x)<.85).sort((a,b)=>sat(b)-sat(a));const fa=cand[0]||c[0];document.body.style.setProperty('--fa',fa);document.body.style.setProperty('--fa-ink',lum(fa)>.45?'#111':'#fff');document.body.classList.add('tinted')};
 
+/* visualizador de imagens (bandeiras da Wikipédia) */
+let vwOpen=null;
+const closeViewer=()=>{if(!vwOpen)return;const {el}=vwOpen;vwOpen=null;el.classList.remove('open');setTimeout(()=>el.remove(),260)};
+const viewer=(items,i=0,meta={})=>{closeViewer();const el=document.createElement('div');el.className='vw';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','Visualizador de bandeiras');
+ el.innerHTML=`<div class="vw-bd"></div><div class="vw-box lg"><div class="vw-top"><span class="vw-n"></span><button class="ic pr vw-x" aria-label="Fechar">${I('x')}</button></div><div class="vw-img"><img alt=""></div><div class="vw-cap"><b></b><p></p><div class="acts"><a class="btn gh pr sm vw-file" target="_blank" rel="noopener">${I('ext')}Arquivo no Commons</a>${meta.url?`<a class="btn gh pr sm" href="${esc(meta.url)}" target="_blank" rel="noopener">${I('ext')}Página na Wikipédia</a>`:''}</div></div>${items.length>1?`<button class="ic pr vw-p" aria-label="Anterior">${I('back')}</button><button class="ic pr vw-nx" aria-label="Próxima" style="transform:scaleX(-1)">${I('back')}</button>`:''}</div>`;
+ document.body.appendChild(el);let k=i;
+ const show=()=>{const it=items[k];const im=el.querySelector('.vw-img img');im.classList.remove('in');void im.offsetWidth;im.onerror=()=>{if(it.img&&im.src!==it.img)im.src=it.img};im.src=it.big||it.img;im.alt=it.cap||it.label||'Bandeira';im.classList.add('in');el.querySelector('.vw-cap b').textContent=it.title||it.sec||'';el.querySelector('.vw-cap p').textContent=it.cap||it.label||'';el.querySelector('.vw-n').textContent=items.length>1?`${k+1} de ${items.length}`:'';const fl=el.querySelector('.vw-file');if(it.file){fl.href='https://commons.wikimedia.org/wiki/File:'+encodeURIComponent(it.file.replace(/ /g,'_'));fl.hidden=false}else fl.hidden=true};
+ const mv=d=>{k=(k+d+items.length)%items.length;show()};
+ el.querySelector('.vw-bd').onclick=closeViewer;el.querySelector('.vw-x').onclick=closeViewer;
+ if(items.length>1){el.querySelector('.vw-p').onclick=()=>mv(-1);el.querySelector('.vw-nx').onclick=()=>mv(1)}
+ let sx=null;el.addEventListener('pointerdown',e=>{sx=e.clientX},{passive:true});el.addEventListener('pointerup',e=>{if(sx!=null&&items.length>1&&Math.abs(e.clientX-sx)>50)mv(e.clientX<sx?1:-1);sx=null},{passive:true});
+ vwOpen={el,mv};show();requestAnimationFrame(()=>el.classList.add('open'));el.querySelector('.vw-x').focus()};
+addEventListener('keydown',e=>{if(!vwOpen)return;if(e.key==='Escape')closeViewer();else if(e.key==='ArrowRight')vwOpen.mv(1);else if(e.key==='ArrowLeft')vwOpen.mv(-1)});
+
 /* detalhe */
 const yrs=x=>`${x.from??'?'}–${x.to??(x.cur?'hoje':'?')}`;
+const TLS={},LST={};
 const renderInfo=(f,w)=>{if(location.hash!=='#b-'+f.id)return;
  const ad=$('fado');if(ad&&!f.y&&f.t!=='nautica'&&f.o!=='original')ad.textContent=w&&w.inc?w.inc:'—';
  const de=$('fdes');if(de&&!f.des)de.textContent=w&&w.des&&w.des.length?w.des.join(', '):'Não registrado';
  const cx=$('fctx');if(cx){if(w&&w.ctx){cx.innerHTML=`<p>${esc(w.ctx.text)}</p><a class="lnk" href="${esc(w.ctx.url)}" target="_blank" rel="noopener">Ler na Wikipédia${w.ctx.lang==='en'?' (em inglês)':''}</a>`}else cx.innerHTML=`<p style="color:var(--mut)">${w&&w.ok?'Sem artigo da Wikipédia associado a esta bandeira.':'Não foi possível carregar o contexto agora.'}</p>`}
- const tl=$('tl');if(tl){if(w&&w.tl&&w.tl.length){tl.innerHTML=`<ol class="tl-row">${w.tl.map((x,i)=>`<li class="tl-i ${x.cur?'cur':''}" style="animation-delay:${i*60}ms"><span class="tl-dot"></span><div class="tl-card"><img src="${esc(x.img)}" alt="Versão ${yrs(x)}" loading="lazy"></div><b>${yrs(x)}</b>${x.label?`<span>${esc(x.label)}</span>`:''}</li>`).join('')}</ol>${w.tl.length<2?'<p class="tl-msg">A Wikidata não registra versões anteriores desta bandeira.</p>':''}`;const row=tl.querySelector('.tl-row');if(row)row.scrollLeft=row.scrollWidth}else tl.innerHTML=`<p class="tl-msg">${w&&w.ok?'A Wikidata não registra versões desta bandeira.':'Não foi possível carregar a linha do tempo agora.'}</p>`}
  const wl=$('fwlink');if(wl&&f.t==='militar'&&f.wen)wl.href='https://en.wikipedia.org/wiki/'+encodeURIComponent(f.wen.replace(/ /g,'_'));
- if(f.t==='militar'&&f.src){const st=$('v-detalhe').querySelector('.dstage>svg');if(st){const w2=document.createElement('span');w2.innerHTML=svg(f,'fl',false);const n=w2.firstChild;n.style.viewTransitionName='flag';st.replaceWith(n)}if(f.approx)getColors(f)}};
+ if((f.t==='militar'||f.t==='ilha')&&f.src){const sv=$('v-detalhe').querySelector('.dstage>svg');if(sv){const w2=document.createElement('span');w2.innerHTML=svg(f,'fl',false);const n=w2.firstChild;n.style.viewTransitionName='flag';sv.replaceWith(n)}if(f.approx)getColors(f)}};
+const renderTL=(f,t)=>{if(location.hash!=='#b-'+f.id)return;const tl=$('tl'),tp=$('tlp');if(!tl)return;TLS[f.id]=t;
+ if(t&&t.items&&t.items.length){tl.innerHTML=`<ol class="tl-row">${t.items.map((x,i)=>`<li class="tl-i ${x.cur?'cur':''}" style="animation-delay:${i*60}ms"><span class="tl-dot"></span><button class="tl-card pr" data-tl="${i}" aria-label="Ampliar versão ${yrs(x)}"><img src="${esc(x.img)}" alt="" loading="lazy"></button><b>${yrs(x)}</b>${x.label?`<span>${esc(x.label)}</span>`:''}</li>`).join('')}</ol>${t.items.length<2?'<p class="tl-msg">Não há versões anteriores registradas para esta bandeira.</p>':''}`;const row=tl.querySelector('.tl-row');if(row)row.scrollLeft=row.scrollWidth;
+  if(tp)tp.innerHTML=t.src&&t.src.name==='Wikipédia'?`Versões anteriores e a atual, segundo a Wikipédia${t.src.url?` · <a class="lnk" href="${esc(t.src.url)}" target="_blank" rel="noopener">${esc(t.src.title||'ver página')}</a>`:''}. Toque para ampliar.`:'Versões registradas na Wikidata. Toque para ampliar.'}
+ else tl.innerHTML=`<p class="tl-msg">${t?'Não há versões anteriores registradas para esta bandeira.':'Não foi possível carregar a linha do tempo agora.'}</p>`};
+const renderLista=(f,l)=>{if(location.hash!=='#b-'+f.id)return;const box=$('wls'),sec=$('wlsec');if(!box)return;LST[f.id]=l;
+ if(!l){box.innerHTML='<p class="tl-msg">Não foi possível carregar a lista agora.</p>';return}
+ if(l.none||!l.sections||!l.sections.length){sec.hidden=true;return}
+ $('wlp').innerHTML=`Da página <a class="lnk" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.title)}</a> da Wikipédia${l.lang==='en'?` (em inglês · <a class="lnk" href="${esc(l.tr)}" target="_blank" rel="noopener">ler traduzida</a>)`:''}. Toque em uma bandeira para ampliar.`;
+ box.innerHTML=l.sections.map((s,si)=>`<div class="wl-s"><h3>${esc(s.name)} <small>${s.items.length}</small></h3><div class="wl-g ${s.items.length>8?'cut':''}">${s.items.map((it,ii)=>`<button class="wl-i pr" data-ws="${si}" data-wi="${ii}"><span class="wl-im"><img src="${esc(it.img)}" alt="" loading="lazy"></span><span class="wl-c">${esc(it.cap||it.file||'')}</span></button>`).join('')}</div>${s.items.length>8?`<button class="btn gh pr sm wl-more">Ver todas as ${s.items.length}</button>`:''}</div>`).join('')};
+document.addEventListener('click',e=>{const t=e.target.closest('[data-tl],[data-ws],.wl-more');if(!t)return;const id=location.hash.slice(3);
+ if(t.classList.contains('wl-more')){const g=t.previousElementSibling;g.classList.remove('cut');t.remove();return}
+ if(t.dataset.tl!=null){const T=TLS[id];if(T)viewer(T.items.map(x=>({...x,title:yrs(x),cap:x.label})),+t.dataset.tl,{url:T.src&&T.src.url});return}
+ const L=LST[id];if(L){const s=L.sections[+t.dataset.ws];viewer(s.items.map(x=>({...x,title:s.name})),+t.dataset.wi,{url:L.url})}});
 const det=id=>{const f=byId[id];if(!f){history.replaceState(null,'','#explorar');return route()}
- const isO=f.o==='original',isM=f.t==='militar',isN=f.t==='nautica',hist=!isO&&!isN;
+ const isO=f.o==='original',isM=f.t==='militar',isI=f.t==='ilha',isW=isM||isI,isN=f.t==='nautica',hist=!isO&&!isN;
  const rel=D.filter(x=>x.id!==f.id&&x.t===f.t&&x.r===f.r);const rel2=(rel.length>=4?rel:rel.concat(D.filter(x=>x.id!==f.id&&x.t===f.t&&x.r!==f.r))).slice(0,6);
- const fx=[['Proporção',f.ra?`${f.ra[0]}:${f.ra[1]}`:'…','fra'],...(isN?[]:[['Adoção',isO?'—':(f.y||'…'),'fado']]),[isN?'Letra':isM?'País':'Código',isM?f.pais:f.k]];
- const loc=isN?[['Uso','Comunicação marítima'],['Sistema','Código Internacional de Sinais']]:isO?[['Autor','@'+f.a],['Comunidade',f.comNome||'—']]:[['Designer',f.des?f.des.join(', '):'<span class="sk"></span>','fdes'],[f.t==='estado'?'Capital':f.t==='pais'?'Capital':'Continente',f.t==='militar'?f.ct:(f.cap||'—')],...(f.t==='militar'?[]:[['Continente',f.ct+(AMER.includes(f.r)?' · '+f.r.replace('América ','').replace(/^do |^d[ao] /,''):'')]])];
+ const fx=[['Proporção',f.ra?`${f.ra[0]}:${f.ra[1]}`:'…','fra'],...(isN?[]:[['Adoção',isO?'—':(f.y||'…'),'fado']]),[isN?'Letra':isW?'País':'Código',isW?f.pais:f.k]];
+ const loc=isN?[['Uso','Comunicação marítima'],['Sistema','Código Internacional de Sinais']]:isO?[['Autor','@'+f.a],['Comunidade',f.comNome||'—']]:[['Designer',f.des?f.des.join(', '):'<span class="sk"></span>','fdes'],[isW?'Continente':'Capital',isW?f.ct:(f.cap||'—')],...(isW?[]:[['Continente',f.ct+(AMER.includes(f.r)?' · '+f.r.replace('América ','').replace(/^do |^d[ao] /,''):'')]])];
  document.title=f.n+' · Flâmula';tint(f);
  const dlBtn=isM?`<a class="btn pr" id="fwlink" href="#" target="_blank" rel="noopener">${I('ext')}Abrir na Wikipédia</a>`:`<button class="btn pr" id="bdl">${I('dl')}Baixar SVG<span class="n" data-cd="${esc(f.id)}" style="opacity:.7">·&nbsp;<i>${fmt(nD(f))}</i></span></button>`;
- $('v-detalhe').innerHTML=`<a class="back lg pr" href="#${isM?'militares':'explorar'}">${I('back')}${isM?'Militares':'Explorar'}</a><div class="dgrid"><div class="dstage lg">${svg(f,'fl',false)}</div><div class="dinfo"><div class="dhead lg"><h1>${esc(f.n)}</h1>${f.of&&f.of!==f.n?`<p class="of">${esc(f.of)}</p>`:''}<div class="pills"><span class="o">${isO?'Original':isM?'Militar':'Oficial'}</span><span>${TN[f.t]}</span><span>${esc(f.ct||f.r)}</span>${isO?`<span>@${esc(f.a)}</span>`:''}</div>
+ $('v-detalhe').innerHTML=`<a class="back lg pr" href="#${isM?'militares':'explorar'}">${I('back')}${isM?'Militares':'Explorar'}</a><div class="dgrid"><div class="dstage lg">${svg(f,'fl',false)}</div><div class="dinfo"><div class="dhead lg"><h1>${esc(f.n)}</h1>${f.of&&f.of!==f.n?`<p class="of">${esc(f.of)}</p>`:''}<div class="pills"><span class="o">${isO?'Original':isM?'Militar':'Oficial'}</span><span>${TN[f.t]}</span><span>${esc(f.ct||f.r)}</span>${f.isl?'<span>Ilha</span>':''}${isO?`<span>@${esc(f.a)}</span>`:''}</div>
  <div class="acts"><button class="btn gh pr ${liked.has(f.id)?'on':''}" id="blike" aria-pressed="${liked.has(f.id)}">${I('heart')}<span class="n" data-cl="${esc(f.id)}"><i>${fmt(nL(f))}</i></span><span class="lbl">Curtir</span></button>${dlBtn}<button class="btn gh pr" id="bshare">${I('link')}Copiar link</button>${isM?'':`<a class="btn acc pr" href="#criar-${esc(f.id)}">${I('remix')}Remixar</a>`}</div></div>
  <div class="ficha">${fx.map(([l,v,i],j)=>`<div class="fx lg ${fx.length===2&&j===1?'s2':''}"><small>${l}</small><b ${i?`id="${i}"`:''}>${v==='…'?'<span class="sk" style="width:60px"></span>':esc(v)}</b></div>`).join('')}${loc.map(([l,v,i],k)=>`<div class="fx lg ${loc.length===3?['w','','s2'][k]:(k?'':'s2')}"><small>${l}</small><p class="k" ${i?`id="${i}"`:''}>${i?v:esc(v)}</p></div>`).join('')}
- ${f.desc?`<div class="fx lg w"><small>Desenho</small><p>${esc(f.desc)}</p></div>`:''}
+ ${f.desc?`<div class="fx lg w"><small>${isN?'Descrição e uso':'Desenho'}</small><p>${esc(f.desc)}</p></div>`:''}
  <div class="fx lg w"><small id="swl">${f.approx?'Cores aproximadas · carregando as cores do arquivo oficial':'Cores · toque para copiar o hex'}</small><div class="sw" id="sw">${swH(f)}</div></div>
- ${f.s?`<div class="fx lg w"><small>${isN?'Significado':'Simbologia'}</small><p>${esc(f.s)}</p></div>`:''}
+ ${f.s?`<div class="fx lg w"><small>Simbologia</small><p>${esc(f.s)}</p></div>`:''}
  ${hist?`<div class="fx lg w"><small>Contexto</small><div id="fctx"><span class="sk"></span><br><span class="sk" style="width:50%;margin-top:8px"></span></div></div>`:''}
- <div class="fx lg w"><small>Fonte e licença</small><p>${isO?`Criação de @${esc(f.a)}, aprovada pela moderação.`:isM?(f.fonte==='fotw'?'Desenho do Flâmula com base na descrição do Cerimonial da Marinha do Brasil. Contexto: Flags of the World.':'Imagem do Wikimedia Commons via Wikipédia. Bandeiras militares podem ter uso restrito por lei ou marca registrada; aqui aparecem só para consulta.'):f.fonte==='flagcdn'?'Arquivo oficial via Flagpedia/flagcdn, gerado a partir dos vetores do Wikimedia Commons. Domínio público.':'Arquivo oficial do Wikimedia Commons. Licença conferida arquivo a arquivo; na maioria dos casos, domínio público.'}${hist?' Adoção, designer, contexto e linha do tempo: Wikidata e Wikipédia (CC BY-SA).':''}</p></div></div></div></div>
- ${hist?`<section class="sec"><div class="shead"><div><h2>Linha do tempo</h2><p>Versões da bandeira registradas na Wikidata, da mais antiga à atual.</p></div></div><div class="tl lg" id="tl"><p class="tl-msg"><span class="sk" style="width:220px"></span></p></div></section>`:''}
+ <div class="fx lg w"><small>Fonte e licença</small><p>${isO?`Criação de @${esc(f.a)}, aprovada pela moderação.`:isM?(f.fonte==='fotw'?'Desenho do Flâmula com base na descrição do Cerimonial da Marinha do Brasil. Contexto: Flags of the World.':'Imagem do Wikimedia Commons via Wikipédia. Bandeiras militares podem ter uso restrito por lei ou marca registrada; aqui aparecem só para consulta.'):isI?'Imagem do Wikimedia Commons via Wikipédia. Licença conferida arquivo a arquivo.':f.fonte==='flagcdn'?'Arquivo oficial via Flagpedia/flagcdn, gerado a partir dos vetores do Wikimedia Commons. Domínio público.':'Arquivo oficial do Wikimedia Commons. Licença conferida arquivo a arquivo; na maioria dos casos, domínio público.'}${hist?' Bandeiras anteriores e contexto: Wikipédia; adoção e designer: Wikidata (CC BY-SA).':''}</p></div></div></div></div>
+ ${hist?`<section class="sec"><div class="shead"><div><h2>Linha do tempo</h2><p id="tlp">Bandeiras anteriores e a atual, segundo a Wikipédia.</p></div></div><div class="tl lg" id="tl"><p class="tl-msg"><span class="sk" style="width:220px"></span></p></div></section>`:''}
+ ${f.t==='pais'?`<section class="sec" id="wlsec"><div class="shead"><div><h2>Bandeiras do país</h2><p id="wlp">Carregando a lista de bandeiras da Wikipédia…</p></div></div><div id="wls"><p class="tl-msg"><span class="sk" style="width:260px"></span></p></div></section>`:''}
  <section class="sec"><div class="shead"><div><h2>${isO?'Outras criações':'Relacionadas'}</h2></div></div><div class="grid">${rel2.map(card).join('')}</div></section>`;
  const fl=$('v-detalhe').querySelector('.dstage>*');fl.style.viewTransitionName='flag';
  const setR=()=>{const el=$('fra');if(!el||f.ra)return;const w=fl.naturalWidth,h=fl.naturalHeight;el.textContent=(w&&h&&!(w===300&&h===150))?ratTxt(w,h):'—'};
  if(!f.ra){if(fl.tagName==='IMG'){fl.complete?setR():fl.addEventListener('load',setR,{once:true});fl.addEventListener('error',()=>{const el=$('fra');if(el)el.textContent='—'},{once:true})}else{const el=$('fra');if(el)el.textContent='—'}}
  if(isO){const a=$('fado');if(a)a.textContent='—'}
  if(f.approx)getColors(f).then(()=>{if(f.approx){const l=$('swl');if(l&&location.hash==='#b-'+f.id)l.textContent='Cores aproximadas · toque para copiar o hex'}});
- if(hist){if(window.FLWIKI)FLWIKI.info(f).then(w=>renderInfo(f,w)).catch(()=>renderInfo(f,null));else renderInfo(f,null)}
+ if(hist){const W=window.FLWIKI;if(!W){renderInfo(f,null);renderTL(f,null);renderLista(f,null)}else{
+  const pi=W.info(f).catch(()=>null),pl=f.t==='pais'?W.lista(f).catch(()=>null):Promise.resolve(null);
+  pi.then(w=>renderInfo(f,w));pl.then(l=>{if(f.t==='pais')renderLista(f,l)});
+  Promise.all([pi,pl]).then(([w,l])=>W.timeline(f,w,l)).then(t=>renderTL(f,t)).catch(()=>renderTL(f,null))}}
  if(isM&&f.wen){const wl=$('fwlink');wl.href='https://en.wikipedia.org/wiki/'+encodeURIComponent(f.wen.replace(/ /g,'_'))}else if(isM&&!f.wt){const wl=$('fwlink');wl.href='https://www.crwflags.com/fotw/flags/br~^.html';wl.innerHTML=I('ext')+'Abrir no Flags of the World'}
  $('bshare').onclick=()=>{navigator.clipboard.writeText(location.href).then(()=>toast('Link da bandeira copiado')).catch(()=>toast('Não foi possível copiar'))};
  $('blike').onclick=e=>{const on=!liked.has(f.id);on?liked.add(f.id):liked.delete(f.id);saveL();const b=e.currentTarget;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);window.FL_STATS?.inc('curtidas',f.id,on?1:-1);b.classList.remove('bump');void b.offsetWidth;b.classList.add('bump')};
@@ -618,14 +681,14 @@ addEventListener('fb-on',()=>FL_loadOriginals());if(window.FB&&FB.on)FL_loadOrig
 
 /* rotas com transição contínua */
 let view='home',lastDet=null;const scrollMem={};
-const VIEWS=['home','explorar','militares','detalhe','criar','perfil','comunidades','comunidade','admin','marca'];
-const viewOf=h=>h==='explorar'?'explorar':h==='marca'?'marca':h==='militares'?'militares':h.startsWith('b-')?'detalhe':(h==='criar'||h.startsWith('criar-'))?'criar':h==='perfil'?'perfil':h==='comunidades'?'comunidades':h.startsWith('c-')?'comunidade':h==='admin'?'admin':'home';
+const VIEWS=['home','explorar','militares','detalhe','criar','perfil','comunidades','comunidade','admin','marca','jogo'];
+const viewOf=h=>h==='explorar'?'explorar':h==='marca'?'marca':h==='militares'?'militares':h.startsWith('b-')?'detalhe':(h==='criar'||h.startsWith('criar-'))?'criar':h==='perfil'?'perfil':h==='comunidades'?'comunidades':h.startsWith('c-')?'comunidade':h==='admin'?'admin':h==='jogo'?'jogo':'home';
 const argOf=h=>h.startsWith('b-')?h.slice(2):h.startsWith('criar-')?h.slice(6):h.startsWith('c-')?h.slice(2):null;
-const route=()=>{const h=location.hash.slice(1);const v=viewOf(h);closeDD();closeSheet();
+const route=()=>{const h=location.hash.slice(1);const v=viewOf(h);closeDD();closeSheet();closeViewer();if(v!=='jogo'&&FL.stopGame)FL.stopGame();
  scrollMem[view]=scrollY;
  document.body.classList.remove('tinted');document.title='Flâmula';
  VIEWS.forEach(x=>$('v-'+x).hidden=x!==v);
- if(v==='explorar'){gal();if(st.t==='militar'||st.t==='todos')loadMil()}
+ if(v==='explorar'){gal();loadMil()}
  if(v==='militares'){renderMil();loadMil()}
  if(v==='home')loadMil();
  if(v==='detalhe')det(argOf(h));
@@ -647,7 +710,7 @@ document.addEventListener('click',e=>{const t=e.target.closest('button,a');if(!t
  if(t.dataset.soon){toast(`${t.dataset.soon}: em desenvolvimento.`);return}
  if(t.dataset.act){e.preventDefault();const a=FL.actions[t.dataset.act];if(a)a();else toast('Indisponível no momento');return}
  if(t.dataset.cat){Object.assign(st,{t:t.dataset.cat,o:'todas',r:'todas',q:''});$('q').value='';shown=PAGE;if(t.dataset.cat==='militar'){go('militares');return}go('explorar');if(view==='explorar')gal(true);return}
- if(t.dataset.t){st.t=t.dataset.t;refilter();if(st.t==='militar')loadMil();return}
+ if(t.dataset.t){st.t=t.dataset.t;refilter();return}
  if(t.dataset.o){st.o=t.dataset.o;refilter();return}
  if('clear' in t.dataset){Object.assign(st,{q:'',t:'todos',o:'todas',r:'todas'});$('q').value='';refilter();return}
  if(t.dataset.hex){navigator.clipboard.writeText(t.dataset.hex).then(()=>toast(t.dataset.hex+' copiado')).catch(()=>toast('Não foi possível copiar'));return}
@@ -662,5 +725,6 @@ document.addEventListener('DOMContentLoaded',()=>{route();requestAnimationFrame(
 </script>
 <script src="editor.js"></script>
 <script src="contas.js"></script>
+<script src="jogo.js"></script>
 </body>
 </html>
