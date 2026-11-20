@@ -100,6 +100,31 @@ css.textContent += `
 .pfaviso{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:22px;padding:14px 18px;margin:14px 18px 0}
 @media(max-width:760px){.adst{grid-template-columns:repeat(2,minmax(0,1fr))}.adcol{grid-template-columns:minmax(0,1fr)}.li.aduser{grid-template-columns:56px minmax(0,1fr)}.pfaviso{margin:12px 10px 0}}
 .pfadm b{min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:#fff;color:var(--oceano,#1B7FDC);font-size:12px;display:inline-grid;place-items:center;margin-left:2px}
+.avw{position:relative;display:inline-grid;flex:none;vertical-align:middle}
+.selo{position:absolute;right:-2%;bottom:-2%;width:38%;aspect-ratio:1;border-radius:50%;overflow:hidden;box-shadow:0 0 0 2.5px var(--bg),0 2px 6px rgba(0,0,0,.3);background:#fff;display:grid}
+.selo img,.selo svg{width:100%;height:100%;object-fit:cover}
+.pfc{isolation:isolate}.pfc>.pfsv{position:absolute;inset:0;width:100%;height:100%;z-index:-1}
+.pfc.b-faixas,.pfc.b-nordica,.pfc.b-sol,.pfc.b-estrelas{background:var(--c1)}
+.pfc.b-artico{background:radial-gradient(60% 90% at 85% 10%,rgba(13,184,211,.75),transparent 70%),radial-gradient(50% 70% at 10% 100%,rgba(27,127,220,.7),transparent 70%),linear-gradient(135deg,#0B4E7E,#193546)}
+.pfc.b-artico::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(230,243,248,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(230,243,248,.08) 1px,transparent 1px);background-size:44px 44px}
+.pfnau{position:absolute;inset:-40% -10%;display:grid;grid-template-columns:repeat(8,1fr);gap:18px;transform:rotate(-8deg);align-content:center;z-index:-1}
+.pfnau span{animation:flt 6s ease-in-out infinite alternate;animation-delay:calc(var(--k) * -.4s)}.pfnau .fl{width:100%;height:auto;border-radius:4px;box-shadow:0 8px 18px rgba(0,0,0,.3)}
+.pfc.b-nautico{background:linear-gradient(135deg,#0B4E7E,#193546)}
+.pfmos{position:absolute;inset:-30% -6%;display:grid;grid-template-columns:repeat(10,1fr);gap:8px;transform:rotate(-8deg);z-index:-1;opacity:.95}
+.pfmos img,.pfmos svg{width:100%;aspect-ratio:3/2;height:auto;object-fit:cover;border-radius:4px}
+.pfc.b-mosaico{background:#193546}
+.pfc.b-globo{background:radial-gradient(60% 90% at 80% 20%,color-mix(in srgb,var(--c1) 70%,transparent),transparent 70%),linear-gradient(135deg,#0B4E7E,#193546)}
+.pfglo{position:absolute;right:-4%;top:-30%;width:min(46%,380px);z-index:-1}.pffla{position:absolute;left:4%;top:10%;width:min(18%,160px);transform:rotate(-10deg);z-index:-1}.pfglo svg,.pffla svg{width:100%;height:auto;display:block}
+.pfcbtn{position:absolute;right:14px;top:14px;z-index:3;display:inline-flex;gap:6px;align-items:center;border:0;border-radius:999px;padding:8px 14px;color:#fff;font-weight:600;font-size:13.5px;--glass:rgba(10,30,45,.35)}
+.pfcbtn .ico{width:16px;height:16px}
+.pe-foto{display:flex;gap:16px;align-items:center;flex-wrap:wrap}.pe-av{width:84px;height:84px;font-size:34px}
+.dd-full .dd-btn{width:100%;justify-content:space-between}
+.field small{font-weight:400;color:var(--mut)}
+.pebn{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:6px}
+.pebn button{border:0;background:none;padding:0;display:grid;gap:5px;color:var(--ink);font:inherit;text-align:left}
+.pebn .pfc.mini{display:block;height:58px;border-radius:14px;position:relative;overflow:hidden;box-shadow:0 0 0 1px var(--line)}
+.pebn .pfc.mini::after{display:none}.pebn .pfc.mini .pfcf{width:46%;right:4%}
+.pebn button.on .pfc.mini{box-shadow:0 0 0 3px var(--oceano,#1B7FDC)}.pebn small{font-size:12px;font-weight:600;color:var(--mut)}.pebn button.on small{color:var(--ink)}
 .pfs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 18px 0}
 .pfs button{border:0;border-radius:22px;padding:14px 16px;text-align:left;display:grid;gap:2px;color:inherit}
 .pfs b{font:700 clamp(22px,2.6vw,30px)/1.1 var(--font-d);background:var(--aurora);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -114,7 +139,25 @@ document.head.appendChild(css);
 
 /* utilidades */
 const when = t => { const s = t && (t.seconds || (t.toDate && t.toDate().getTime() / 1000)); return s ? new Date(s * 1000).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }) : 'agora' };
-const avatar = (p, cls = 'av') => `<span class="${cls}">${p && p.foto ? `<img src="${esc(p.foto)}" alt="" referrerpolicy="no-referrer">` : esc(((p && p.nome) || '?').trim()[0] || '?').toUpperCase()}</span>`;
+const seloHTML = p => { const f = p && p.selo && byId[p.selo]; return f ? `<span class="selo" title="${esc(f.n)}">${svg(f, '', true)}</span>` : '' };
+const avatar = (p, cls = 'av') => `<span class="avw">${'<span class="' + cls + '">'}${p && p.foto ? `<img src="${esc(p.foto)}" alt="" referrerpolicy="no-referrer">` : esc(((p && p.nome) || '?').trim()[0] || '?').toUpperCase()}</span>${seloHTML(p)}</span>`;
+FL.seloHTML = seloHTML;
+/* capas temáticas do perfil, desenhadas com as cores da bandeira favorita */
+const BANNERS = [['artico', 'Ártico'], ['favorita', 'Bandeira favorita'], ['faixas', 'Faixas ao vento'], ['nordica', 'Cruz nórdica'], ['sol', 'Sol nascente'], ['estrelas', 'Céu de estrelas'], ['nautico', 'Sinais náuticos'], ['mosaico', 'Mosaico do mundo'], ['globo', 'Globo']];
+const hashN = t => [...String(t || 'x')].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
+const bannerHTML = (id, cs, fav, seed) => {
+  const c = cs.length ? cs : ['#0DB8D3', '#1B7FDC', '#065B98'], c0 = c[0], c1 = c[1] || '#FFFFFF', c2 = c[2] || c0;
+  const S = (inner, bg) => `<svg class="pfsv" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${bg ? `<rect width="1200" height="300" fill="${bg}"/>` : ''}${inner}</svg>`;
+  if (id === 'faixas') { const n = Math.min(c.length, 4) || 3; return S(c.slice(0, n).map((col, i) => { const y = i === 0 ? -20 : i * 300 / n; return `<path d="M-20 ${y}Q300 ${y - 46} 600 ${y}T1220 ${y}V320H-20Z" fill="${col}"/>` }).join('') + '<path d="M-20 300Q300 220 600 270T1220 240V320H-20Z" fill="#fff" opacity=".08"/>') }
+  if (id === 'nordica') return S(`<rect x="330" width="120" height="300" fill="${c1}"/><rect y="100" width="1200" height="100" fill="${c1}"/>${c[2] ? `<rect x="360" width="60" height="300" fill="${c2}"/><rect y="125" width="1200" height="50" fill="${c2}"/>` : ''}`, c0);
+  if (id === 'sol') { let r = ''; for (let k = 0; k < 16; k++) { const a = k * Math.PI / 8, b = a + Math.PI / 16; r += `<path d="M900 300L${900 + 1400 * Math.cos(a)} ${300 - 1400 * Math.sin(a)}L${900 + 1400 * Math.cos(b)} ${300 - 1400 * Math.sin(b)}Z" fill="${c0}"/>` } return S(r + `<circle cx="900" cy="300" r="120" fill="${c0}"/><circle cx="900" cy="300" r="120" fill="#fff" opacity=".12"/>`, c1) }
+  if (id === 'estrelas') { let r = ''; const rnd = (k => () => (k = (k * 16807) % 2147483647) / 2147483647)(hashN(seed) || 1); for (let k = 0; k < 46; k++) { const x = rnd() * 1200, y = rnd() * 300, z = 6 + rnd() * 16; r += `<use href="#pf-star" transform="translate(${x.toFixed(0)} ${y.toFixed(0)}) scale(${(z / 10).toFixed(2)})" fill="${c1}" opacity="${(.45 + rnd() * .55).toFixed(2)}"/>` } return S(`<defs><path id="pf-star" d="M0-10L2.9-3.1 9.5-3.1 4.2 1.2 6.2 8.1 0 4 -6.2 8.1 -4.2 1.2 -9.5-3.1 -2.9-3.1Z"/></defs>` + r, c0) }
+  if (id === 'nautico') { const N = D.filter(f => f.t === 'nautica').slice(0, 26); return `<div class="pfnau">${N.concat(N).slice(0, 24).map((f, k) => `<span style="--k:${k}">${svg(f, 'fl', false)}</span>`).join('')}</div>` }
+  if (id === 'mosaico') { const P = D.filter(f => f.t === 'pais' && !f.isl); const h = hashN(seed); const L = Array.from({ length: 30 }, (_, k) => P[(h + k * 37) % P.length]); return `<div class="pfmos">${L.map(f => svg(f, 'fl', true)).join('')}</div>` }
+  if (id === 'globo') return `<span class="pfglo"><svg viewBox="0 0 200 200"><use href="#s-globo"/></svg></span><span class="pffla"><svg viewBox="0 0 240 200"><use href="#s-flamula"/></svg></span>`;
+  if (id === 'favorita') return fav ? `<span class="pfcf">${svg(fav, 'fl', false)}</span>` : '';
+  return '';
+};
 const dataSrc = s => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s || '');
 const segH = (id, items, cur) => `<div class="seg" id="${id}"><i class="ind" aria-hidden="true"></i>${items.map(([v, l]) => `<button data-v="${v}" class="${v === cur ? 'on' : ''}" aria-pressed="${v === cur}">${l}</button>`).join('')}</div>`;
 const segMove = el => { if (!el) return; const b = el.querySelector('button.on'), ind = el.querySelector('.ind'); if (!b || !b.offsetWidth) return; ind.style.width = b.offsetWidth + 'px'; ind.style.transform = `translateX(${b.offsetLeft}px)`; ind.classList.add('moving'); setTimeout(() => ind.classList.remove('moving'), 220) };
@@ -274,11 +317,12 @@ FL.views.perfil = async () => {
   const u = FB().user, p = FB().profile || {};
   if (!u) { try { sessionStorage.setItem('fl-volta', 'perfil') } catch (e) { } return v.innerHTML = needLogin('ver seu perfil, enviar criações e participar de comunidades') }
   const fav = p.bandeira && byId[p.bandeira];
-  const cs = fav && fav.c && fav.c.length ? fav.c.slice(0, 3) : ['#7B6BFF', '#B45CF0', '#FF5C7A'];
+  const cs = fav && fav.c && fav.c.length ? fav.c.slice(0, 4) : ['#0DB8D3', '#1B7FDC', '#065B98'];
+  const bnr = BANNERS.some(b => b[0] === p.banner) ? p.banner : (fav ? 'favorita' : 'artico');
   const likes = likesLocal().filter(id => byId[id]);
   const rec = recLocal(); const melhor = ['dificil', 'medio', 'facil'].map(n => [n, (rec[n] || [])[0]]).find(x => x[1]);
   v.innerHTML = `<div class="pfh">
-   <div class="pfc" style="--c1:${esc(cs[0])};--c2:${esc(cs[1] || cs[0])};--c3:${esc(cs[2] || cs[0])}">${fav ? `<span class="pfcf">${svg(fav, 'fl', false)}</span>` : ''}</div>
+   <div class="pfc b-${esc(bnr)}" style="--c1:${esc(cs[0])};--c2:${esc(cs[1] || cs[0])};--c3:${esc(cs[2] || cs[0])}">${bannerHTML(bnr, cs, fav, u.uid)}<button class="pfcbtn lg pr" id="pfbanner" aria-label="Trocar a capa">${FL.I('edit')}<span>Capa</span></button></div>
    <div class="pfb lg">${avatar(p, 'av pfav')}
     <div class="pfn"><h1>${esc(p.nome || 'Sem nome')}</h1><p>${esc(p.bio || 'Conte um pouco sobre você e as bandeiras de que mais gosta.')}</p>
      <div class="pfm">${p.criadoEm ? `<span>No Flâmula desde ${when(p.criadoEm)}</span>` : ''}${fav ? `<a class="pfchip" href="#b-${esc(fav.id)}">${svg(fav, '', true)}Favorita: ${esc(fav.n)}</a>` : ''}${FB().admin ? `<span class="stl aprovada">${FB().dono ? 'Administrador e moderador' : 'Administrador'}</span>` : ''}</div></div>
@@ -291,13 +335,37 @@ FL.views.perfil = async () => {
   segBind($('pft'), t => { pfTab = t; pane() });
   v.querySelectorAll('.pfs [data-go]').forEach(b => b.onclick = () => { setTab(b.dataset.go); $('pft').scrollIntoView({ behavior: 'smooth', block: 'center' }) });
   $('pfout').onclick = async () => { await FB().logout(); toast('Você saiu da conta'); FL.go('inicio') };
-  $('pfedit').onclick = () => {
-    let band = p.bandeira || '';
-    sheet('Editar perfil', `<div class="form"><label class="field">Nome<input id="ped" maxlength="60" value="${esc(p.nome || '')}"></label><label class="field">Bio<textarea id="peb" maxlength="280" placeholder="Até 280 caracteres">${esc(p.bio || '')}</textarea></label><div class="field">Bandeira favorita<div id="pefav"></div><small style="font-weight:400">As cores dela pintam a capa do seu perfil.</small></div><p class="err" id="peerr" hidden></p><button class="btn acc pr" id="peok">Salvar</button></div>`);
-    const ops = D.filter(f => f.o !== 'original' && f.t !== 'criacao').sort((a, b) => a.n.localeCompare(b.n, 'pt')).map(f => ({ v: f.id, l: f.n, sw: f.c && f.c[0] }));
-    dd($('pefav'), { label: 'Bandeira favorita', placeholder: 'Escolha uma bandeira…', search: true, value: band, width: 320, items: [{ v: '', l: 'Nenhuma' }].concat(ops), onChange: x => { band = x } });
-    $('peok').onclick = async () => { const nome = $('ped').value.trim(); if (!nome) return; try { await FB().saveProfile({ nome, bio: $('peb').value.trim(), bandeira: band }); closeSheet(); toast('Perfil atualizado'); FL.views.perfil() } catch (e) { const er = $('peerr'); er.textContent = fbErr(e); er.hidden = false } };
+  const editar = (foco) => {
+    let band = p.bandeira || '', selo = p.selo || '', banner = bnr, foto = p.foto || '';
+    const ops = D.filter(f => f.o !== 'original' && f.t !== 'criacao' && !f.oculta).sort((a, b) => a.n.localeCompare(b.n, 'pt')).map(f => ({ v: f.id, l: f.n, fl: f.id }));
+    const csOf = () => { const f = band && byId[band]; return f && f.c && f.c.length ? f.c.slice(0, 4) : ['#0DB8D3', '#1B7FDC', '#065B98'] };
+    const el = sheet('Editar perfil', `<div class="form">
+      <div class="pe-foto"><span id="pefv"></span><div class="erow"><label class="btn gh pr sm" for="pefile">Trocar foto</label>${u.photoURL ? '<button class="btn gh pr sm" id="pegoo">Usar a do Google</button>' : ''}<button class="btn gh pr sm" id="perm">Remover</button></div><input type="file" id="pefile" accept="image/*" hidden></div>
+      <label class="field">Nome<input id="ped" maxlength="60" value="${esc(p.nome || '')}"></label>
+      <label class="field">Bio<textarea id="peb" maxlength="280" placeholder="Até 280 caracteres">${esc(p.bio || '')}</textarea></label>
+      <div class="field">Bandeira favorita<div id="pefav" class="dd-full"></div><small>As cores dela pintam a capa.</small></div>
+      <div class="field">Mini bandeira no avatar<div id="pesel" class="dd-full"></div><small>Aparece no cantinho da sua foto, em todo o site.</small></div>
+      <div class="field" id="pecapa">Capa do perfil<div class="pebn" id="pebn"></div></div>
+      <p class="err" id="peerr" hidden></p><button class="btn acc pr" id="peok">Salvar</button></div>`);
+    const prev = () => { $('pefv').innerHTML = avatar({ nome: $('ped') ? $('ped').value : p.nome, foto, selo }, 'av pe-av') };
+    const capas = () => { const c = csOf(), fv = band && byId[band]; $('pebn').innerHTML = BANNERS.map(([id, nm]) => `<button type="button" class="pr ${id === banner ? 'on' : ''}" data-bn="${id}" aria-pressed="${id === banner}"><span class="pfc mini b-${id}" style="--c1:${c[0]};--c2:${c[1] || c[0]};--c3:${c[2] || c[0]}">${bannerHTML(id, c, fv, u.uid)}</span><small>${nm}</small></button>`).join('') };
+    prev(); capas();
+    dd($('pefav'), { label: 'Bandeira favorita', placeholder: 'Escolha uma bandeira…', search: true, value: band, width: 320, items: [{ v: '', l: 'Nenhuma' }].concat(ops), onChange: x => { band = x; if (x && banner === 'artico') banner = 'favorita'; capas() } });
+    dd($('pesel'), { label: 'Mini bandeira no avatar', placeholder: 'Nenhuma', search: true, value: selo, width: 320, items: [{ v: '', l: 'Nenhuma' }].concat(ops), onChange: x => { selo = x; prev() } });
+    $('ped').addEventListener('input', prev);
+    $('pebn').onclick = e => { const b = e.target.closest('[data-bn]'); if (!b) return; banner = b.dataset.bn; capas() };
+    $('pefile').onchange = async e => {
+      const f = e.target.files[0]; if (!f) return; if (!/^image\//.test(f.type)) return toast('Escolha um arquivo de imagem');
+      try { const bm = await createImageBitmap(f); const n = 320, k = Math.min(bm.width, bm.height); const c = document.createElement('canvas'); c.width = c.height = n; const x = c.getContext('2d'); x.drawImage(bm, (bm.width - k) / 2, (bm.height - k) / 2, k, k, 0, 0, n, n); foto = c.toDataURL('image/jpeg', .86); if (foto.length > 240000) foto = c.toDataURL('image/jpeg', .7); prev() } catch (er) { toast('Não foi possível ler esta imagem') }
+    };
+    if ($('pegoo')) $('pegoo').onclick = () => { foto = u.photoURL; prev() };
+    $('perm').onclick = () => { foto = ''; prev() };
+    if (foco === 'capa') setTimeout(() => $('pecapa').scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+    $('peok').onclick = async () => { const nome = $('ped').value.trim(); if (!nome) return; $('peok').disabled = true; try { await FB().saveProfile({ nome, bio: $('peb').value.trim(), bandeira: band, selo, banner, foto }); closeSheet(); toast('Perfil atualizado'); FL.views.perfil(); FL.refreshAcc && FL.refreshAcc() } catch (e) { const er = $('peerr'); er.textContent = fbErr(e); er.hidden = false; $('peok').disabled = false } };
   };
+  $('pfedit').onclick = () => editar();
+  $('pfbanner').onclick = () => editar('capa');
+
   if (FB().admin && FB().pendentes) FB().pendentes().then(L => { const b = $('pfpend'); if (b && L.length) { b.textContent = L.length; b.hidden = false; b.title = L.length + ' envios aguardando moderação' } }).catch(() => { });
   FB().meusEnvios().then(L => { const n = $('pfn'); if (n) n.textContent = L.length }).catch(() => { const n = $('pfn'); if (n) n.textContent = '0' });
   const pane = async () => {
