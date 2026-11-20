@@ -394,7 +394,9 @@ footer a:hover,footer button:hover{color:var(--ink)}
  .dhead{padding:18px}
  .acts .btn{flex:1 1 auto}
 }
-@media(max-width:520px){.bento{grid-template-columns:minmax(0,1fr)}.cat.big,.cat.wide{grid-column:auto;grid-row:auto}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.stg{padding:14px}.cnt{gap:8px;padding:8px 12px 12px}.meta{padding:2px 12px 0}.meta b{font-size:15px}.tag,.by{margin-left:0}.pal{grid-template-columns:repeat(2,minmax(0,1fr))}.mot{grid-template-columns:minmax(0,1fr)}.tl-i{width:150px}.tl-card{height:100px}.hstats{gap:20px}.hstats b{font-size:24px}.ctapic{height:180px}}
+@media(max-width:520px){.hstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:26px}.hstats b{font-size:26px}.hstats span{font-size:12.5px;line-height:1.3;display:block}
+ #scene .o1{opacity:.55}#scene .o3{opacity:.6}
+.bento{grid-template-columns:minmax(0,1fr)}.cat.big,.cat.wide{grid-column:auto;grid-row:auto}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.stg{padding:14px}.cnt{gap:8px;padding:8px 12px 12px}.meta{padding:2px 12px 0}.meta b{font-size:15px}.tag,.by{margin-left:0}.pal{grid-template-columns:repeat(2,minmax(0,1fr))}.mot{grid-template-columns:minmax(0,1fr)}.tl-i{width:150px}.tl-card{height:100px}.hstats{gap:20px}.hstats b{font-size:24px}.ctapic{height:180px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition-duration:.01s!important}}
 @media(prefers-reduced-transparency:reduce){.lg,.btn.gh,.dd-menu,.sh{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--stage)}}
 </style>
@@ -484,6 +486,7 @@ footer a:hover,footer button:hover{color:var(--ink)}
 <main id="v-detalhe" hidden class="wrap"></main>
 <main id="v-criar" hidden class="wrap"></main>
 <main id="v-entrar" hidden class="wrap"></main>
+<main id="v-decidir" hidden class="wrap"></main>
 <main id="v-perfil" hidden class="wrap"></main>
 <main id="v-comunidades" hidden class="wrap"></main>
 <main id="v-comunidade" hidden class="wrap"></main>
@@ -610,6 +613,7 @@ renderCats();
 const CUR=['br','jp','gb','us','fr','de','it','ca','mx','ar','pt','kr','ch','se','br-sp','ics-a'];
 /* configuração da galeria feita pelos administradores: ocultas, nomes e destaques */
 const aplicaGaleria=d=>{window.FL_GALERIA=d||{};const oc=new Set(d.ocultas||[]),nm=d.nomes||{};D.forEach(f=>{if(f.n0==null)f.n0=f.n;f.oculta=oc.has(f.id);f.n=nm[f.id]||f.n0});if(view==='home'){renderDest();renderCats&&renderCats()}if(view==='explorar')gal()};
+addEventListener('fl-toast',e=>toast(e.detail));
 addEventListener('fl-galeria',e=>aplicaGaleria(e.detail||{}));
 const renderDest=()=>{const G=window.FL_GALERIA||{};const fix=(G.destaques||[]).map(i=>byId[i]).filter(f=>f&&!f.oculta);if(fix.length){$('destp').textContent='Escolhidas pela curadoria do Flâmula.';$('dest').innerHTML=fix.map(card).join('');return}const real=S.on&&off().some(f=>nD(f)>0);$('destp').textContent=real?'As mais baixadas do Flâmula.':'Seleção da curadoria.';$('dest').innerHTML=(real?off().sort((a,b)=>nD(b)-nD(a)||a.n.localeCompare(b.n,'pt')).slice(0,10):CUR.map(i=>byId[i]).filter(Boolean)).map(card).join('')};
 renderDest();
@@ -747,7 +751,7 @@ const det=id=>{const f=byId[id];if(!f){history.replaceState(null,'','#explorar')
  const loc=isN?[['Uso','Comunicação marítima'],['Sistema','Código Internacional de Sinais']]:isO?[['Autor','@'+f.a],['Comunidade',f.comNome||'—']]:[['Designer',f.des?f.des.join(', '):'<span class="sk"></span>','fdes'],[isW?'Continente':'Capital',isW?f.ct:(f.cap||'—')],...(isW?[]:[['Continente',f.ct+(AMER.includes(f.r)?' · '+f.r.replace('América ','').replace(/^do |^d[ao] /,''):'')]])];
  document.title=f.n+' · Flâmula';tint(f);
  const dlBtn=isM?`<a class="btn pr" id="fwlink" href="#" target="_blank" rel="noopener">${I('ext')}Abrir na Wikipédia</a>`:`<button class="btn pr" id="bdl">${I('dl')}Baixar SVG<span class="n" data-cd="${esc(f.id)}" style="opacity:.7">·&nbsp;<i>${fmt(nD(f))}</i></span></button>`;
- $('v-detalhe').innerHTML=`<a class="back lg pr" href="#${isM?'militares':'explorar'}">${I('back')}${isM?'Militares':'Explorar'}</a><div class="dgrid"><div class="dstage lg">${svg(f,'fl',false)}</div><div class="dinfo"><div class="dhead lg"><h1>${esc(f.n)}</h1>${f.of&&f.of!==f.n?`<p class="of">${esc(f.of)}</p>`:''}<div class="pills"><span class="o">${isO?'Original':isM?'Militar':'Oficial'}</span><span>${TN[f.t]}</span><span>${esc(f.ct||f.r)}</span>${f.isl?'<span>Ilha</span>':''}${isO?`<span>@${esc(f.a)}</span>`:''}</div>
+ $('v-detalhe').innerHTML=`<a class="back lg pr" href="#${isM?'militares':'explorar'}">${I('back')}${isM?'Militares':'Explorar'}</a><div class="dgrid"><div class="dstage lg">${svg(f,'fl',false)}</div><div class="dinfo"><div class="dhead lg"><h1>${esc(f.n)}</h1>${f.of&&f.of!==f.n?`<p class="of">${esc(f.of)}</p>`:''}<div class="pills"><span class="o">${isO?'Original':isM?'Militar':'Oficial'}</span>${isM?'':`<span>${TN[f.t]}</span>`}<span>${esc(f.ct||f.r)}</span>${f.isl?'<span>Ilha</span>':''}${isO?`<span>@${esc(f.a)}</span>`:''}</div>
  <div class="acts"><button class="btn gh pr ${liked.has(f.id)?'on':''}" id="blike" aria-pressed="${liked.has(f.id)}">${I('heart')}<span class="n" data-cl="${esc(f.id)}"><i>${fmt(nL(f))}</i></span><span class="lbl">Curtir</span></button>${dlBtn}<button class="btn gh pr" id="bshare">${I('link')}Copiar link</button>${isM?'':`<a class="btn acc pr" href="#criar-${esc(f.id)}">${I('remix')}Remixar</a>`}</div></div>
  <div class="ficha">${fx.map(([l,v,i],j)=>`<div class="fx lg ${fx.length===2&&j===1?'s2':''}"><small>${l}</small><b ${i?`id="${i}"`:''}>${v==='…'?'<span class="sk" style="width:60px"></span>':esc(v)}</b></div>`).join('')}${loc.map(([l,v,i],k)=>`<div class="fx lg ${loc.length===3?['w','','s2'][k]:(k?'':'s2')}"><small>${l}</small><p class="k" ${i?`id="${i}"`:''}>${i?v:esc(v)}</p></div>`).join('')}
  ${f.desc?`<div class="fx lg w"><small>${isN?'Descrição e uso':'Desenho'}</small><p>${esc(f.desc)}</p></div>`:''}
@@ -790,9 +794,9 @@ addEventListener('fb-on',()=>FL_loadOriginals());if(window.FB&&FB.on)FL_loadOrig
 
 /* rotas com transição contínua */
 let view='home',lastDet=null;const scrollMem={};
-const VIEWS=['entrar','home','explorar','militares','detalhe','criar','perfil','comunidades','comunidade','admin','marca','jogo'];
-const viewOf=h=>h==='entrar'?'entrar':h==='explorar'?'explorar':h==='marca'?'marca':(h==='militares'||h.startsWith('fotw-'))?'militares':h.startsWith('b-')?'detalhe':(h==='criar'||h.startsWith('criar-'))?'criar':h==='perfil'?'perfil':h==='comunidades'?'comunidades':h.startsWith('c-')?'comunidade':h==='admin'?'admin':h==='jogo'?'jogo':'home';
-const argOf=h=>h.startsWith('b-')?h.slice(2):h.startsWith('criar-')?h.slice(6):h.startsWith('c-')?h.slice(2):null;
+const VIEWS=['decidir','entrar','home','explorar','militares','detalhe','criar','perfil','comunidades','comunidade','admin','marca','jogo'];
+const viewOf=h=>h.startsWith('decidir-')?'decidir':h==='entrar'?'entrar':h==='explorar'?'explorar':h==='marca'?'marca':(h==='militares'||h.startsWith('fotw-'))?'militares':h.startsWith('b-')?'detalhe':(h==='criar'||h.startsWith('criar-'))?'criar':h==='perfil'?'perfil':h==='comunidades'?'comunidades':h.startsWith('c-')?'comunidade':h==='admin'?'admin':h==='jogo'?'jogo':'home';
+const argOf=h=>h.startsWith('decidir-')?h.slice(8):h.startsWith('b-')?h.slice(2):h.startsWith('criar-')?h.slice(6):h.startsWith('c-')?h.slice(2):null;
 const route=()=>{const h=location.hash.slice(1);const v=viewOf(h);closeDD();closeSheet();closeViewer();if(v!=='jogo'&&FL.stopGame)FL.stopGame();
  scrollMem[view]=scrollY;
  document.body.classList.remove('tinted');document.title='Flâmula';

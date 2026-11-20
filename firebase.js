@@ -38,6 +38,9 @@ else {
         await papel(u);
       }
       FB.ready = true; ev('fb-user', { user: u, admin: FB.admin, profile: FB.profile });
+      /* se um administrador aprovar o pedido desta conta, o acesso aparece sem precisar sair e entrar */
+      if (FB._unadm) { FB._unadm(); FB._unadm = null }
+      if (u && !FB.dono) FB._unadm = F.onSnapshot(F.doc(db, 'admins', u.uid), s => { const a = s.exists(); if (a !== FB.admin) { FB.admin = a; ev('fb-user', { user: FB.user, admin: a, profile: FB.profile }); if (a) ev('fl-toast', 'Seu pedido foi aprovado: você agora é administrador do Flâmula') } }, () => { });
     });
 
     /* papel da conta: administrador principal (dono, e-mail verificado), admin por documento, ou comum */
@@ -101,6 +104,24 @@ else {
       colaborar: d => F.addDoc(col('colaboradores'), { nome: d.nome, email: d.email, area: d.area, mensagem: d.mensagem, uid: FB.user?.uid || '', criadoEm: F.serverTimestamp() }),
       colaboradores: () => list(F.query(col('colaboradores'), F.orderBy('criadoEm', 'desc'), F.limit(100))),
       apagarColaborador: id => F.deleteDoc(F.doc(db, 'colaboradores', id)),
+
+      /* pedidos para ser administrador ou colaborador (aviso por e-mail via /api/pedido) */
+      pedir: async (tipo, d) => {
+        const r = await F.addDoc(col('pedidos'), { tipo, nome: d.nome || FB.profile?.nome || '', email: d.email || FB.user?.email || '', area: d.area || '', mensagem: d.mensagem || '', uid: FB.user?.uid || '', status: 'pendente', criadoEm: F.serverTimestamp() });
+        let aviso = false; try { const x = await fetch('/api/pedido', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: r.id }) }); aviso = x.ok } catch (e) { }
+        return { id: r.id, aviso };
+      },
+      meusPedidos: () => FB.user ? list(F.query(col('pedidos'), F.where('uid', '==', FB.user.uid))) : Promise.resolve([]),
+      pedido: async id => { const s = await F.getDoc(F.doc(db, 'pedidos', id)); return s.exists() ? { id, ...s.data() } : null },
+      pedidos: () => list(F.query(col('pedidos'), F.orderBy('criadoEm', 'desc'), F.limit(100))),
+      decidir: async (p, aprovar) => {
+        if (aprovar && p.uid) {
+          if (p.tipo === 'admin') await F.setDoc(F.doc(db, 'admins', p.uid), { em: F.serverTimestamp(), por: me().uid });
+          else await F.updateDoc(F.doc(db, 'usuarios', p.uid), { colaborador: true, colaboradorArea: p.area || '' });
+        }
+        await F.updateDoc(F.doc(db, 'pedidos', p.id), { status: aprovar ? 'aprovado' : 'recusado', decididoEm: F.serverTimestamp(), decididoPor: me().uid });
+      },
+      apagarPedido: id => F.deleteDoc(F.doc(db, 'pedidos', id)),
 
       /* administração */
       usuarios: () => list(F.query(col('usuarios'), F.limit(500))),

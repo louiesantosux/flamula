@@ -129,6 +129,7 @@ css.textContent += `
 body.tinted .pfs b,body.tinted .adst b{background:none;-webkit-text-fill-color:currentColor;color:color-mix(in srgb,var(--fa) 70%,#fff)}
 body.tinted #pft .ind{background:color-mix(in srgb,var(--fa) 35%,transparent)}
 body.tinted .pfchip,body.tinted .pfcbtn{--glass:color-mix(in srgb,var(--fa) 22%,rgba(10,20,30,.35))}
+.dec{max-width:620px;display:grid;gap:6px}.dec p{margin:0}.dec-m{white-space:pre-wrap;padding:12px 14px;border-radius:14px;background:var(--chip);margin:6px 0!important}.dec .acts{margin-top:10px}
 .pfs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0 0}
 .pfs button{border:0;border-radius:22px;padding:14px 16px;text-align:left;display:grid;gap:2px;color:inherit}
 .pfs b{font:700 clamp(22px,2.6vw,30px)/1.1 var(--font-d);background:var(--aurora);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -228,14 +229,51 @@ FL.views.entrar = async () => {
 FL.actions['verificar-email'] = async () => { try { await FB().verificarEmail(); toast('Link de confirmação enviado para o seu e-mail') } catch (e) { toast(fbErr(e)) } };
 FL.actions['ja-confirmei'] = async () => { try { await FB().atualizarConta(); toast(FB().admin ? 'Acesso de administrador ativado' : 'O e-mail ainda não aparece como confirmado'); if (FL.view === 'admin') FL.views.admin(); if (FL.view === 'perfil') FL.views.perfil() } catch (e) { toast(fbErr(e)) } };
 /* pedir para ser administrador */
-FL.actions['admin-pedido'] = () => {
+const STP = { pendente: ['Em análise', 'pendente'], aprovado: ['Aprovado', 'aprovada'], recusado: ['Recusado', 'reprovada'] };
+FL.actions['admin-pedido'] = async () => {
   const u = FB().user, p = FB().profile;
-  const body = encodeURIComponent(`Olá! Quero me tornar administrador do Flâmula.\n\nNome: ${p?.nome || ''}\nUID: ${u?.uid || '(entre no site para ver seu UID)'}\n\nMotivo:\n`);
+  if (!FB().on) return toast(`Indisponível no momento. Escreva para ${ADMIN_EMAIL}.`);
+  if (!u) { sheet('Seja administrador', `<div class="form"><p style="margin:0">Administradores aprovam as criações enviadas, cuidam das comunidades e dos pedidos. Entre na sua conta para fazer o pedido.</p><button class="btn acc pr" data-act="login">Entrar</button></div>`); return }
+  if (FB().admin) return toast('Você já é administrador');
+  const meus = (await FB().meusPedidos().catch(() => [])).filter(x => x.tipo === 'admin');
+  const aberto = meus.find(x => x.status === 'pendente');
+  if (aberto) { sheet('Seja administrador', `<div class="form"><p style="margin:0">Seu pedido está <b>em análise</b>. Você recebe o painel de administração no perfil assim que ele for aprovado.</p></div>`); return }
   sheet('Seja administrador', `<div class="form">
-    <p style="margin:0">Administradores aprovam as criações enviadas pela comunidade e cuidam das comunidades e dos formulários. Para pedir acesso, envie um e-mail com o seu UID para:</p>
-    <div class="box lg"><div class="kv"><div><small>E-mail</small><code>${ADMIN_EMAIL}</code></div>${u ? `<div><small>Seu UID</small><code>${esc(u.uid)}</code></div>` : ''}</div></div>
-    ${u ? '' : '<p class="ehint" style="margin:0;color:var(--mut)">Entre na sua conta antes, para que o UID vá junto no e-mail.</p>'}
-    <div class="acts"><a class="btn acc pr" href="mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent('Pedido de administrador · Flâmula')}&body=${body}" target="_blank" rel="noopener">Escrever e-mail</a><button class="btn gh pr" data-copy="${ADMIN_EMAIL}">Copiar e-mail</button>${u ? `<button class="btn gh pr" data-copy="${esc(u.uid)}">Copiar UID</button>` : '<button class="btn gh pr" data-act="login">Entrar</button>'}</div></div>`);
+    <p style="margin:0;color:var(--mut)">Administradores aprovam as criações enviadas, cuidam das comunidades e dos pedidos. Conte por que quer ajudar: o pedido chega por e-mail ao administrador principal.</p>
+    <label class="field">Nome<input id="apn" maxlength="80" value="${esc(p?.nome || '')}"></label>
+    <label class="field">Por que quer ser administrador<textarea id="apm" maxlength="2000" placeholder="Sua experiência com bandeiras, moderação ou comunidades"></textarea></label>
+    <p class="err" id="aperr" hidden></p><button class="btn acc pr" id="apok">Enviar pedido</button></div>`);
+  $('apok').onclick = async () => {
+    const nome = $('apn').value.trim(), mensagem = $('apm').value.trim(), er = $('aperr');
+    if (!nome || mensagem.length < 10) { er.textContent = 'Informe o nome e escreva uma mensagem um pouco maior.'; er.hidden = false; return }
+    $('apok').disabled = true;
+    try { const r = await FB().pedir('admin', { nome, mensagem }); closeSheet(); toast(r.aviso ? 'Pedido enviado. Você será avisado no perfil.' : 'Pedido registrado. O administrador verá no painel.') } catch (e) { er.textContent = fbErr(e); er.hidden = false; $('apok').disabled = false }
+  };
+};
+
+/* decisão vinda dos botões do e-mail: #decidir-<id>-aprovar | -declinar */
+FL.views.decidir = async arg => {
+  const v = $('v-decidir'); document.title = 'Pedido · Flâmula'; v.innerHTML = loading();
+  const m = String(arg || '').match(/^([A-Za-z0-9]+)-(aprovar|declinar)$/);
+  await waitUser(); if (FL.view !== 'decidir') return;
+  const card = (t, txt, extra = '') => v.innerHTML = `<div class="phead"><h1>${t}</h1></div><div class="box lg dec">${txt}${extra}</div>`;
+  if (!m) return card('Link inválido', '<p>Este link de decisão não está completo.</p>');
+  if (!FB().on) return v.innerHTML = offMsg();
+  if (!FB().user) { try { sessionStorage.setItem('fl-volta', location.hash.slice(1)) } catch (e) { } return v.innerHTML = needLogin('decidir este pedido') }
+  if (!FB().admin) return card('Acesso restrito', '<p>Só administradores decidem pedidos. Entre com a conta de administrador.</p>');
+  const [, id, acao] = m; const ap = acao === 'aprovar';
+  try {
+    const p = await FB().pedido(id); if (!p) return card('Pedido não encontrado', '<p>Ele pode ter sido apagado.</p>');
+    const quem = `<p><b>${esc(p.nome || 'Sem nome')}</b>${p.email ? ' · ' + esc(p.email) : ''}</p><p style="color:var(--mut)">${p.tipo === 'admin' ? 'Pedido para ser administrador' : 'Pedido para ser colaborador'}</p>${p.mensagem ? `<p class="dec-m">${esc(p.mensagem)}</p>` : ''}`;
+    const voltar = '<div class="acts"><a class="btn gh pr" href="#admin">Ver todos os pedidos</a></div>';
+    if (p.status !== 'pendente') return card('Pedido já decidido', quem + `<p>Status: <span class="stl ${STP[p.status]?.[1] || ''}">${STP[p.status]?.[0] || esc(p.status)}</span></p>`, voltar);
+    if (p.tipo === 'admin' && ap && !FB().dono) return card('Só o administrador principal', quem + '<p>Promover alguém a administrador é exclusivo do administrador principal.</p>', voltar);
+    if (p.tipo === 'admin' && ap && !p.uid) return card('Pedido sem conta', quem + '<p>Este pedido não está ligado a uma conta do Flâmula.</p>', voltar);
+    await FB().decidir(p, ap);
+    adTab = 'pedidos';
+    card(ap ? 'Pedido aprovado' : 'Pedido declinado', quem + (ap ? (p.tipo === 'admin' ? '<p>A pessoa agora é administradora: o botão de admin já aparece no perfil dela.</p>' : '<p>A pessoa agora aparece como colaboradora no Flâmula.</p>') : '<p>O pedido foi recusado e a pessoa verá o status no perfil.</p>'), voltar);
+    toast(ap ? 'Pedido aprovado' : 'Pedido declinado');
+  } catch (e) { card('Não foi possível decidir', `<p>${esc(fbErr(e))}</p>`) }
 };
 
 /* torne-se um colaborador */
@@ -257,7 +295,7 @@ FL.actions.colaborar = () => {
     if (!d.nome) return err('Informe seu nome.'); if (!/^\S+@\S+\.\S+$/.test(d.email)) return err('Informe um e-mail válido.'); if (d.mensagem.length < 10) return err('Escreva uma mensagem um pouco maior.');
     if (!FB().on) return err(`Formulário indisponível no momento. Escreva para ${ADMIN_EMAIL}.`);
     $('cbok').disabled = true;
-    try { await FB().colaborar(d); closeSheet(); toast('Recebemos o seu formulário. Obrigado!') } catch (e) { err(fbErr(e)); $('cbok').disabled = false }
+    try { await FB().pedir('colaborador', d); closeSheet(); toast('Recebemos o seu pedido. Obrigado!') } catch (e) { err(fbErr(e)); $('cbok').disabled = false }
   };
 };
 
@@ -332,7 +370,7 @@ FL.views.perfil = async () => {
    <div class="pfc b-${esc(bnr)}" style="--c1:${esc(cs[0])};--c2:${esc(cs[1] || cs[0])};--c3:${esc(cs[2] || cs[0])}">${bannerHTML(bnr, cs, fav, u.uid)}<button class="pfcbtn lg pr" id="pfbanner" aria-label="Trocar a capa">${FL.I('edit')}<span>Capa</span></button></div>
    <div class="pfb lg">${avatar(p, 'av pfav')}
     <div class="pfn"><h1>${esc(p.nome || 'Sem nome')}</h1><p>${esc(p.bio || 'Conte um pouco sobre você e as bandeiras de que mais gosta.')}</p>
-     <div class="pfm">${p.criadoEm ? `<span>No Flâmula desde ${when(p.criadoEm)}</span>` : ''}${fav ? `<a class="pfchip" href="#b-${esc(fav.id)}">${svg(fav, '', true)}Favorita: ${esc(fav.n)}</a>` : ''}${FB().admin ? `<span class="stl aprovada">${FB().dono ? 'Administrador e moderador' : 'Administrador'}</span>` : ''}</div></div>
+     <div class="pfm">${p.criadoEm ? `<span>No Flâmula desde ${when(p.criadoEm)}</span>` : ''}${fav ? `<a class="pfchip" href="#b-${esc(fav.id)}">${svg(fav, '', true)}Favorita: ${esc(fav.n)}</a>` : ''}${FB().admin ? `<span class="stl aprovada">${FB().dono ? 'Administrador e moderador' : 'Administrador'}</span>` : ''}${p.colaborador ? '<span class="stl pendente">Colaborador</span>' : ''}</div></div>
     <div class="pfa">${FB().admin ? `<a class="btn acc pr pfadm" href="#admin"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>Painel de administração<b id="pfpend" hidden></b></a>` : ''}<button class="btn ${FB().admin ? 'gh' : 'acc'} pr" id="pfedit">Editar perfil</button><button class="btn gh pr" id="pfout">Sair</button></div></div>
    ${FB().donoPendente ? `<div class="pfaviso lg"><span><b>Confirme o seu e-mail para ativar o painel de administração.</b> Ou entre com o Google usando o mesmo endereço.</span><span class="erow"><button class="btn acc pr sm" data-act="verificar-email">Enviar link</button><button class="btn gh pr sm" data-act="ja-confirmei">Já confirmei</button></span></div>` : ''}
    <div class="pfs"><button class="lg pr" data-go="criacoes"><b id="pfn">–</b><span>Criações</span></button><button class="lg pr" data-go="curtidas"><b>${likes.length}</b><span>Curtidas</span></button><button class="lg pr" data-go="comunidades"><b>${(p.comunidades || []).length}</b><span>Comunidades</span></button><button class="lg pr" data-go="jogo"><b>${melhor ? melhor[1].acertos + '/10' : '–'}</b><span>${melhor ? 'Recorde · ' + NIVN[melhor[0]][0] : 'Recorde no jogo'}</span></button></div></div>
@@ -400,8 +438,10 @@ FL.views.perfil = async () => {
     } else {
       x.innerHTML = '';
       box.innerHTML = `<div class="list"><div class="box lg"><div class="kv"><div><small>E-mail da conta</small><code>${esc(u.email || '—')}</code></div><div><small>Forma de login</small><code>${(u.providerData || []).some(d => d.providerId === 'google.com') ? 'Google' : 'E-mail e senha'}</code></div><div><small>UID</small><code>${esc(u.uid)}</code></div></div><div class="acts"><button class="btn gh pr sm" data-copy="${esc(u.uid)}">Copiar UID</button></div></div>
-      <div class="box lg">${FB().admin ? `<p><b>Você é administrador.</b> Acesse o painel para moderar envios, comunidades e formulários.</p><div class="acts"><a class="btn acc pr sm" href="#admin">Abrir painel</a></div>` : `<p><b>Quer ser administrador?</b> Envie um e-mail para <b>${ADMIN_EMAIL}</b> com o seu UID e conte por que quer ajudar.</p><div class="acts"><button class="btn acc pr sm" data-act="admin-pedido">Pedir acesso</button></div>`}</div>
+      <div class="box lg">${FB().admin ? `<p><b>Você é administrador.</b> Acesse o painel para moderar envios, comunidades e formulários.</p><div class="acts"><a class="btn acc pr sm" href="#admin">Abrir painel</a></div>` : `<p><b>Quer ser administrador?</b> Faça o pedido aqui: ele chega por e-mail ao administrador principal, e o painel aparece no seu perfil quando for aprovado.</p><div class="acts"><button class="btn acc pr sm" data-act="admin-pedido">Pedir acesso</button></div>`}</div>
+      <div class="box lg" id="pfped"><p><b>Seus pedidos</b></p><p class="pfnote" style="margin:0">Carregando…</p></div>
       <div class="box lg"><p><b>Quer colaborar de outro jeito?</b> Curadoria, pesquisa histórica, tradução, design ou código.</p><div class="acts"><button class="btn gh pr sm" data-act="colaborar">Torne-se um colaborador</button></div></div></div>`;
+      FB().meusPedidos().then(L => { const b = $('pfped'); if (!b) return; L.sort((a, c) => ((c.criadoEm?.seconds) || 0) - ((a.criadoEm?.seconds) || 0)); b.innerHTML = '<p><b>Seus pedidos</b></p>' + (L.length ? `<div class="list" style="gap:6px">${L.map(q => `<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><span>${q.tipo === 'admin' ? 'Administrador' : 'Colaborador'} · ${when(q.criadoEm)}</span><span class="stl ${STP[q.status]?.[1] || ''}">${STP[q.status]?.[0] || esc(q.status)}</span></div>`).join('')}</div>` : '<p class="pfnote" style="margin:0">Nenhum pedido feito.</p>') }).catch(() => { const b = $('pfped'); if (b) b.remove() });
     }
   };
   pane();
@@ -454,7 +494,7 @@ FL.views.admin = async () => {
   if (!FB().on) return v.innerHTML = offMsg();
   if (!FB().user) return v.innerHTML = needLogin('acessar o painel de administração');
   if (!FB().admin) return v.innerHTML = FB().donoPendente ? restricted('Confirme o seu e-mail', 'Esta conta é a do administrador principal, mas o e-mail ainda não foi confirmado. Confirme pelo link enviado ao seu e-mail, ou entre com o Google usando o mesmo endereço.', '<button class="btn acc pr" data-act="verificar-email">Enviar link de confirmação</button><button class="btn gh pr" data-act="ja-confirmei">Já confirmei</button>') : restricted('Acesso restrito', `Esta página é só para administradores. Para pedir acesso, envie um e-mail para <b>${ADMIN_EMAIL}</b> com o seu UID.`, '<button class="btn acc pr" data-act="admin-pedido">Pedir acesso</button>');
-  v.innerHTML = `<div class="phead"><h1>Administração</h1><p>${FB().dono ? 'Você é o administrador principal e moderador do Flâmula.' : 'Você é administrador do Flâmula.'} Acompanhe os números, modere envios, cuide da galeria e das contas.</p></div><div class="tabsrow">${segH('adt', [['geral', 'Visão geral'], ['envios', 'Envios'], ['galeria', 'Galeria'], ['usuarios', 'Usuários'], ['comunidades', 'Comunidades'], ['colaboradores', 'Colaboradores']], adTab)}</div><div id="adp"></div>`;
+  v.innerHTML = `<div class="phead"><h1>Administração</h1><p>${FB().dono ? 'Você é o administrador principal e moderador do Flâmula.' : 'Você é administrador do Flâmula.'} Acompanhe os números, modere envios, cuide da galeria e das contas.</p></div><div class="tabsrow">${segH('adt', [['geral', 'Visão geral'], ['envios', 'Envios'], ['galeria', 'Galeria'], ['usuarios', 'Usuários'], ['comunidades', 'Comunidades'], ['pedidos', 'Pedidos']], adTab)}</div><div id="adp"></div>`;
   requestAnimationFrame(() => segMove($('adt')));
   segBind($('adt'), t => { adTab = t; pane() });
   const irPara = t => { adTab = t; $('adt').querySelectorAll('button').forEach(x => { x.classList.toggle('on', x.dataset.v === t); x.setAttribute('aria-pressed', x.dataset.v === t) }); segMove($('adt')); pane() };
@@ -462,10 +502,10 @@ FL.views.admin = async () => {
     const box = $('adp'); box.innerHTML = loading();
     try {
       if (adTab === 'geral') {
-        const [us, pe, ap, re, co, cb, est] = await Promise.all([FB().contar('usuarios'), FB().contar('envios', 'status', 'pendente'), FB().contar('envios', 'status', 'aprovada'), FB().contar('envios', 'status', 'reprovada'), FB().contar('comunidades'), FB().contar('colaboradores'), FB().estatisticas().catch(() => ({}))]);
+        const [us, pe, ap, re, co, cb, est] = await Promise.all([FB().contar('usuarios'), FB().contar('envios', 'status', 'pendente'), FB().contar('envios', 'status', 'aprovada'), FB().contar('envios', 'status', 'reprovada'), FB().contar('comunidades'), FB().contar('pedidos', 'status', 'pendente'), FB().estatisticas().catch(() => ({}))]);
         const top = (o, n = 8) => Object.entries(o || {}).filter(([id]) => byId[id]).sort((a, b) => b[1] - a[1]).slice(0, n);
         const tl = (L, u) => L.length ? `<div class="adtop">${L.map(([id, n], k) => `<a class="pr" href="#b-${esc(id)}"><b>${k + 1}</b>${flagThumb(id)}<span>${esc(byId[id].n)}</span><small>${fmtN(n)} ${u}</small></a>`).join('')}</div>` : '<p class="pfnote">Ainda sem dados.</p>';
-        box.innerHTML = `<div class="adst">${[['Usuários', us, 'usuarios'], ['Aguardando moderação', pe, 'envios'], ['Criações aprovadas', ap, 'galeria'], ['Reprovadas', re, 'envios'], ['Comunidades', co, 'comunidades'], ['Pedidos de colaboração', cb, 'colaboradores'], ['Downloads', soma(est.downloads), ''], ['Curtidas', soma(est.curtidas), '']].map(([l, n, t]) => `<button class="lg pr" ${t ? `data-ir="${t}"` : 'disabled'}><b>${fmtN(n)}</b><span>${l}</span></button>`).join('')}</div>
+        box.innerHTML = `<div class="adst">${[['Usuários', us, 'usuarios'], ['Aguardando moderação', pe, 'envios'], ['Criações aprovadas', ap, 'galeria'], ['Reprovadas', re, 'envios'], ['Comunidades', co, 'comunidades'], ['Pedidos pendentes', cb, 'pedidos'], ['Downloads', soma(est.downloads), ''], ['Curtidas', soma(est.curtidas), '']].map(([l, n, t]) => `<button class="lg pr" ${t ? `data-ir="${t}"` : 'disabled'}><b>${fmtN(n)}</b><span>${l}</span></button>`).join('')}</div>
         <div class="adcol"><section><h3>Mais baixadas</h3>${tl(top(est.downloads), 'downloads')}</section><section><h3>Mais curtidas</h3>${tl(top(est.curtidas), 'curtidas')}</section></div>`;
         box.querySelectorAll('[data-ir]').forEach(b => b.onclick = () => irPara(b.dataset.ir));
       }
@@ -484,11 +524,21 @@ FL.views.admin = async () => {
         const L = await FB().comunidades();
         box.innerHTML = L.length ? `<div class="list">${L.map(c => `<div class="li lg"><div class="th">${flagThumb(c.bandeira)}</div><div><b>${esc(c.nome)}</b><div class="m"><span>${c.membros || 0} membros</span><span>Criada por ${esc(c.donoNome || '—')}</span><span>${when(c.criadaEm)}</span></div></div><div class="acts"><a class="btn gh pr sm" href="#c-${esc(c.id)}">Abrir</a><button class="btn dg pr sm" data-rmc="${esc(c.id)}">Apagar</button></div></div>`).join('')}</div>` : '<div class="empty"><b>Nenhuma comunidade criada</b></div>';
         box.querySelectorAll('[data-rmc]').forEach(b => b.onclick = async () => { if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Confirmar'; return } try { await FB().apagarComunidade(b.dataset.rmc); toast('Comunidade apagada'); pane() } catch (e) { toast(fbErr(e)) } });
-      } else if (adTab === 'colaboradores') {
-        const L = await FB().colaboradores();
+      } else if (adTab === 'pedidos') {
+        const P = await FB().pedidos();
+        const AREA2 = { curadoria: 'Curadoria de bandeiras', pesquisa: 'Pesquisa histórica', traducao: 'Tradução', design: 'Design', desenvolvimento: 'Desenvolvimento', moderacao: 'Moderação', direitos: 'Direitos autorais e remoção', outro: 'Outro' };
+        const antigos = await FB().colaboradores().catch(() => []);
+        box.innerHTML = (P.length ? `<div class="list">${P.map(p => `<div class="box lg"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><b>${esc(p.nome || 'Sem nome')}</b><span><span class="stl ${p.tipo === 'admin' ? 'aprovada' : 'pendente'}">${p.tipo === 'admin' ? 'Administrador' : 'Colaborador' + (p.area ? ' · ' + esc(AREA2[p.area] || p.area) : '')}</span> <span class="stl ${STP[p.status]?.[1] || ''}">${STP[p.status]?.[0] || esc(p.status)}</span></span></div><p style="color:var(--mut);font-size:14px">${esc(p.email || '')}${p.uid ? '' : ' · sem conta'} · ${when(p.criadoEm)}</p>${p.mensagem ? `<p style="white-space:pre-wrap">${esc(p.mensagem)}</p>` : ''}<div class="acts">${p.status === 'pendente' ? `${p.tipo === 'admin' && !FB().dono ? '' : `<button class="btn acc pr sm" data-pa="${esc(p.id)}">Aprovar</button>`}<button class="btn gh pr sm" data-pd="${esc(p.id)}">Declinar</button>` : ''}${p.email ? `<a class="btn gh pr sm" href="mailto:${esc(p.email)}" target="_blank" rel="noopener">Responder</a>` : ''}<button class="btn dg pr sm" data-px="${esc(p.id)}">Apagar</button></div></div>`).join('')}</div>` : '<div class="empty"><b>Nenhum pedido ainda</b><p>Os pedidos de administrador e de colaboração aparecem aqui e chegam por e-mail.</p></div>')
+          + (antigos.length ? `<h3 style="margin:30px 0 10px">Formulários antigos de colaboração</h3><div id="adold"></div>` : '');
+        const go = async (id, ap) => { const p = P.find(x => x.id === id); try { await FB().decidir(p, ap); toast(ap ? 'Pedido aprovado' : 'Pedido declinado'); pane() } catch (e) { toast(fbErr(e)) } };
+        box.querySelectorAll('[data-pa]').forEach(b => b.onclick = () => go(b.dataset.pa, true));
+        box.querySelectorAll('[data-pd]').forEach(b => b.onclick = () => go(b.dataset.pd, false));
+        box.querySelectorAll('[data-px]').forEach(b => b.onclick = async () => { if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Confirmar'; return } try { await FB().apagarPedido(b.dataset.px); pane() } catch (e) { toast(fbErr(e)) } });
+        if (!antigos.length) return;
+        const L = antigos; const box0 = box; { const box = $('adold');
         const AREA = { curadoria: 'Curadoria de bandeiras', pesquisa: 'Pesquisa histórica', traducao: 'Tradução', design: 'Design', desenvolvimento: 'Desenvolvimento', moderacao: 'Moderação', direitos: 'Direitos autorais e remoção', outro: 'Outro' };
         box.innerHTML = L.length ? `<div class="list">${L.map(c => `<div class="box lg"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><b>${esc(c.nome)}</b><span class="stl pendente">${esc(AREA[c.area] || c.area)}</span></div><p style="color:var(--mut);font-size:14px">${esc(c.email)} · ${when(c.criadoEm)}</p><p style="white-space:pre-wrap">${esc(c.mensagem)}</p><div class="acts"><a class="btn gh pr sm" href="mailto:${esc(c.email)}" target="_blank" rel="noopener">Responder</a><button class="btn dg pr sm" data-rmk="${esc(c.id)}">Apagar</button></div></div>`).join('')}</div>` : '<div class="empty"><b>Nenhum formulário recebido</b></div>';
-        box.querySelectorAll('[data-rmk]').forEach(b => b.onclick = async () => { try { await FB().apagarColaborador(b.dataset.rmk); pane() } catch (e) { toast(fbErr(e)) } });
+        box.querySelectorAll('[data-rmk]').forEach(b => b.onclick = async () => { try { await FB().apagarColaborador(b.dataset.rmk); pane() } catch (e) { toast(fbErr(e)) } }); }
       }
       if (adTab === 'galeria') {
         const G = { destaques: [], ocultas: [], nomes: {}, ...(await FB().galeria().catch(() => ({}))) };
