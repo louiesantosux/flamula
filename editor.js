@@ -354,7 +354,15 @@ FL.openEditor = id => {
     const cs = f.c.map(x => x.toUpperCase()); S.lay = cs.length >= 3 ? 'h' : 'lisa'; S.k = Math.min(3, cs.length); S.c = fill7(cs);
     const mid = S.lay === 'lisa' ? S.c[0] : S.c[Math.floor(S.k / 2)];
     S.ch[0].c = cs.find(x => x !== mid) || '#FFFFFF'; if (S.lay === 'lisa') { S.ch[0].s = 'disco'; S.ch[0].z = .5 }
-    hist = []; hi = -1; renderAll(); commit(); toast('Paleta de ' + f.n + ' carregada no editor');
+    if (f.remixImg) {
+      /* remix de uma bandeira da lista: a imagem original entra como camada, cobrindo a bandeira inteira */
+      S.name = 'Remix de ' + f.n; S.lay = 'lisa'; S.k = 1; S.c = fill7(['#FFFFFF'].concat(cs)); S.ch = []; S.img = null;
+      hist = []; hi = -1; renderAll(); commit(); toast('Carregando a bandeira no editor…');
+      fetch(f.remixImg, { mode: 'cors' }).then(r => { if (!r.ok) throw 0; return r.blob() })
+        .then(b => new Promise((ok, no) => { const rd = new FileReader(); rd.onload = () => ok(rd.result); rd.onerror = no; rd.readAsDataURL(b) }))
+        .then(src => { S.img = { src, x: .5, y: .5, z: Math.min(2, S.ra[1] / S.ra[0]), op: 1 }; renderAll(); commit(); toast('Bandeira carregada. Desenhe por cima ou ajuste a imagem em Imagem') })
+        .catch(() => toast('Não foi possível carregar a imagem; a paleta dela foi aplicada'));
+    } else { hist = []; hi = -1; renderAll(); commit(); toast('Paleta de ' + f.n + ' carregada no editor') }
   } else if (hi < 0) {
     let saved = null; try { saved = localStorage.getItem(KEY) } catch (e) { }
     if (saved) { try { S = JSON.parse(saved) } catch (e) { S = fresh() } }

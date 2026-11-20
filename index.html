@@ -208,7 +208,12 @@ body.tinted{--glass:light-dark(rgba(255,255,255,.52),rgba(24,24,28,.5))}
 .back{display:inline-flex;align-items:center;gap:6px;margin:28px 0 16px;font-weight:600;padding:8px 16px 8px 10px;border-radius:999px}
 .dgrid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px;align-items:start}
 .dstage{border-radius:36px;aspect-ratio:5/4;display:grid;place-items:center;padding:clamp(20px,6%,56px);position:sticky;top:96px}
-.dstage svg,.dstage img{width:100%;height:100%;object-fit:contain}
+.dstage>svg,.dstage>img{width:100%;height:100%;object-fit:contain}
+.dstage .pk svg{width:17px;height:17px;flex:none}
+.dstage.pkon{padding-bottom:clamp(120px,24%,150px)}
+.pk{position:absolute;left:12px;right:12px;bottom:12px;border-radius:22px;padding:12px;display:flex;flex-direction:column;gap:10px;z-index:2}
+.pk p{margin:0;font-size:13px;line-height:1.35;color:var(--mut);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.pk p b{color:var(--ink);font-size:14px;margin-right:6px}
+.pk-a{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.pk-a .btn{min-height:36px}.pk-a .ic{margin-left:auto}
 .dstage .fl{filter:drop-shadow(0 0 .6px rgba(0,0,0,.4)) drop-shadow(0 22px 34px rgba(0,0,0,.28))}
 .dhead{border-radius:28px;padding:22px;margin-bottom:10px}
 .dhead h1{font-size:clamp(28px,3.6vw,46px);margin-bottom:10px}
@@ -411,7 +416,7 @@ footer a:hover,footer button:hover{color:var(--ink)}
 
 <main id="v-militares" hidden class="wrap">
   <div class="phead"><h1>Bandeiras militares</h1><p>Estandartes e pavilhões das forças armadas, com o contexto de cada um. As imagens vêm do Wikimedia Commons, da Wikipédia e do Flags of the World (FOTW), sempre com crédito.</p></div>
-  <div class="notice lg"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span>Bandeiras militares podem ter uso restrito por lei ou por marca registrada. Aqui elas aparecem só para consulta: download e remix ficam desativados.</span></div>
+  <div class="notice lg"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><span>Bandeiras militares podem ter uso restrito por lei ou por marca registrada. As imagens da Wikipédia podem ser baixadas e remixadas; as do FOTW podem ser baixadas com crédito ao autor, mas não alteradas.</span></div>
   <div id="milg"></div>
 </main>
 
@@ -625,12 +630,35 @@ const renderTL=(f,t)=>{if(location.hash!=='#b-'+f.id)return;const tl=$('tl'),tp=
 const renderLista=(f,l)=>{if(location.hash!=='#b-'+f.id)return;const box=$('wls'),sec=$('wlsec');if(!box)return;LST[f.id]=l;
  if(!l){box.innerHTML='<p class="tl-msg">Não foi possível carregar a lista agora.</p>';return}
  if(l.none||!l.sections||!l.sections.length){sec.hidden=true;return}
- $('wlp').innerHTML=`Da página <a class="lnk" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.title)}</a> da Wikipédia${l.lang==='en'?` (em inglês · <a class="lnk" href="${esc(l.tr)}" target="_blank" rel="noopener">ler traduzida</a>)`:''}. Toque em uma bandeira para ampliar.`;
+ $('wlp').innerHTML=`Da página <a class="lnk" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.title)}</a> da Wikipédia${l.lang==='en'?` (em inglês · <a class="lnk" href="${esc(l.tr)}" target="_blank" rel="noopener">ler traduzida</a>)`:''}. Toque em uma bandeira para vê-la em destaque, baixar ou remixar.`;
  box.innerHTML=l.sections.map((s,si)=>`<div class="wl-s"><h3>${esc(s.name)} <small>${s.items.length}</small></h3><div class="wl-g ${s.items.length>8?'cut':''}">${s.items.map((it,ii)=>`<button class="wl-i pr" data-ws="${si}" data-wi="${ii}"><span class="wl-im"><img src="${esc(it.img)}" alt="" loading="lazy"></span><span class="wl-c">${esc(it.cap||it.file||'')}</span></button>`).join('')}</div>${s.items.length>8?`<button class="btn gh pr sm wl-more">Ver todas as ${s.items.length}</button>`:''}</div>`).join('')};
 document.addEventListener('click',e=>{const t=e.target.closest('[data-tl],[data-ws],.wl-more');if(!t)return;const id=location.hash.slice(3);
  if(t.classList.contains('wl-more')){const g=t.previousElementSibling;g.classList.remove('cut');t.remove();return}
- if(t.dataset.tl!=null){const T=TLS[id];if(T)viewer(T.items.map(x=>({...x,title:yrs(x),cap:x.label})),+t.dataset.tl,{url:T.src&&T.src.url});return}
- const L=LST[id];if(L){const s=L.sections[+t.dataset.ws];viewer(s.items.map(x=>({...x,title:s.name})),+t.dataset.wi,{url:L.url})}});
+ const base=byId[id];if(!base)return;
+ if(t.dataset.tl!=null){const T=TLS[id];if(T){const x=T.items[+t.dataset.tl];pickFlag({...x,title:yrs(x),cap:x.label,page:T.src&&T.src.url},base,{list:T.items.map(y=>({...y,title:yrs(y),cap:y.label})),idx:+t.dataset.tl})}return}
+ const L=LST[id];if(L){const s=L.sections[+t.dataset.ws];const x=s.items[+t.dataset.wi];pickFlag({...x,title:s.name,page:L.url},base,{list:s.items.map(y=>({...y,title:s.name})),idx:+t.dataset.wi})}});
+/* bandeira escolhida numa lista: vai para o palco da página, com ampliar, download e remix */
+const fracOf=(w,h)=>{let best=[h,w],bd=9;for(let b=1;b<=20;b++){const a=Math.round(b*h/w);if(!a)continue;const d=Math.abs(a/b-h/w);if(d<bd-1e-9){bd=d;best=[a,b]}if(d<.004)break}return best};
+const fileOf=it=>{let n=it.nome||it.file||decodeURIComponent(((it.big||it.img||'').split('?')[0].split('/').pop())||'bandeira');n=n.replace(/^\d+px-/,'').replace(/\.svg\.png$/i,'.svg');return n.replace(/[^\w.\-À-ÿ ]+/g,'').replace(/ /g,'_')||'bandeira.png'};
+const origOf=it=>it.file?'https://commons.wikimedia.org/wiki/Special:FilePath/'+encodeURIComponent(String(it.file).replace(/^(File|Ficheiro|Arquivo):/i,'').replace(/ /g,'_')):null;
+const pickFlag=(it,base,o={})=>{const st=document.querySelector(o.stage||'#v-detalhe .dstage');if(!st)return;
+ if(st._home==null)st._home=st.innerHTML;st._pk={it,base,o};st.classList.add('pkon');
+ const fw=!!it.fotw;
+ st.innerHTML=`<img class="fl" src="${esc(it.big||it.img)}" alt="${esc(it.cap||it.title||'Bandeira')}" style="view-transition-name:flag"><div class="pk lg"><p><b>${esc(it.title||'Bandeira')}</b>${esc(it.cap||'')}${it.credito?' · '+esc(it.credito):''}</p><div class="pk-a"><button class="btn pr sm" data-pk="dl">${I('dl')}Baixar</button>${fw?'':`<button class="btn acc pr sm" data-pk="rx">${I('remix')}Remixar</button>`}<button class="btn gh pr sm" data-pk="zoom">${I('ext')}Ampliar</button><button class="ic pr" data-pk="x" aria-label="Voltar à bandeira principal" title="Voltar à bandeira principal">${I('x')}</button></div></div>`;
+ const im=st.querySelector('img');im.onerror=()=>{if(it.img&&im.src!==it.img)im.src=it.img};
+ const top=st.getBoundingClientRect().top;if(top<60||top>innerHeight*.5)st.scrollIntoView({behavior:RM.matches?'auto':'smooth',block:'center'})};
+const unpick=st=>{if(st._home==null)return;st.innerHTML=st._home;st._home=null;st._pk=null;st.classList.remove('pkon')};
+document.addEventListener('click',async e=>{const b=e.target.closest('[data-pk]');if(!b)return;const st=b.closest('.dstage');if(!st||!st._pk)return;const {it,base,o}=st._pk;const a=b.dataset.pk;
+ if(a==='x')return unpick(st);
+ if(a==='zoom'){const L=o.list||[it];viewer(L,o.idx||0,{url:it.page,urlLabel:it.fotw?'Página no FOTW':'Página na Wikipédia'});return}
+ if(a==='dl'){b.disabled=true;try{let r=null;const og=origOf(it);if(og){try{r=await fetch(og,{mode:'cors'});if(!r.ok)r=null}catch(er){r=null}}if(!r)r=await fetch(it.big||it.img,{mode:'cors'});if(!r.ok)throw 0;saveBlob(await r.blob(),og?String(it.file).replace(/^(File|Ficheiro|Arquivo):/i,'').replace(/ /g,'_'):fileOf(it));toast(it.fotw?'Download iniciado. Credite: '+(it.credito||'autor')+' · FOTW Flags Of The World':'Download iniciado')}catch(er){window.open(it.big||it.img,'_blank','noopener');toast('Arquivo aberto em nova aba')}b.disabled=false;return}
+ if(a==='rx'){b.disabled=true;const im=st.querySelector('img.fl');const ra=im&&im.naturalWidth?fracOf(im.naturalWidth,im.naturalHeight):(base.ra||[2,3]);
+  let c=base.c||['#FFFFFF','#000000'];const src=it.big||it.img;
+  const og=origOf(it),svgU=og&&/\.svg$/i.test(it.file)?og:(/\.svg$/i.test(src.split('?')[0])?src:null);if(svgU){try{const ac=new AbortController();setTimeout(()=>ac.abort(),3500);const r=await fetch(svgU,{signal:ac.signal});if(r.ok){const cs=colorsIn(await r.text());if(cs.length)c=cs.slice(0,6)}}catch(er){}}
+  const vid='x'+Math.abs([...src].reduce((h,ch)=>(h*31+ch.charCodeAt(0))|0,7)).toString(36);
+  byId[vid]={id:vid,k:'—',n:(it.cap||it.title||'Bandeira').replace(/\s+/g,' ').slice(0,60),t:base.t,o:'oficial',r:base.r,ra,c,remixImg:src,src,d:base.d};
+  b.disabled=false;go('criar-'+vid)}
+});
 const det=id=>{const f=byId[id];if(!f){history.replaceState(null,'','#explorar');return route()}
  const isO=f.o==='original',isM=f.t==='militar',isI=f.t==='ilha',isW=isM||isI,isN=f.t==='nautica',hist=!isO&&!isN;
  const rel=D.filter(x=>x.id!==f.id&&x.t===f.t&&x.r===f.r);const rel2=(rel.length>=4?rel:rel.concat(D.filter(x=>x.id!==f.id&&x.t===f.t&&x.r!==f.r))).slice(0,6);
@@ -719,7 +747,7 @@ document.addEventListener('click',e=>{const t=e.target.closest('button,a');if(!t
  if(t.tagName==='A'&&t.getAttribute('href')&&t.getAttribute('href')[0]==='#'&&t.getAttribute('href').length>1&&!e.metaKey&&!e.ctrlKey){e.preventDefault();const h=t.getAttribute('href').slice(1);const src=t.classList.contains('card')?t.querySelector('.stg>*'):null;go(h,src)}
 });
 var FL_loadOriginals;
-window.FL={$,toast,esc,norm,D,byId,I,fmt,svg,draw,card,viewer,saveBlob,tint,colorsIn,dd,sheet,closeSheet,go:h=>go(h),route,addOriginal,views:{},actions:{},get view(){return view},reloadOriginals:()=>FL_loadOriginals()};
+window.FL={$,toast,esc,norm,D,byId,I,fmt,svg,draw,card,viewer,pickFlag,unpick,saveBlob,tint,colorsIn,dd,sheet,closeSheet,go:h=>go(h),route,addOriginal,views:{},actions:{},get view(){return view},reloadOriginals:()=>FL_loadOriginals()};
 document.addEventListener('DOMContentLoaded',()=>{route();requestAnimationFrame(()=>moveInd())});
 }
 </script>
