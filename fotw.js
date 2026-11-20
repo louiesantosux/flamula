@@ -150,7 +150,7 @@ const pais = async code => {
   try {
     await pegaLista();
     const p = LISTA.find(x => x.code === code); if (!p) throw new Error('País não encontrado na lista do FOTW');
-    CUR = p.nome; const f = paisDe(code); document.title = 'Militares · ' + p.pt + ' · Flâmula';
+    CUR = p.nome; const f = paisDe(code); if (f && FL.tint) FL.tint(f); document.title = 'Militares · ' + p.pt + ' · Flâmula';
     PAG = p.links.map(l => ({ href: l.href, nome: rot(l, p) }));
     BASE = f || { id: 'fw-' + code, c: ['#FFFFFF', '#000000'], t: 'militar', r: '', ra: [2, 3] };
     box.innerHTML = `<a class="back lg pr" href="#militares">${FL.I('back')}Militares</a>
