@@ -240,6 +240,11 @@ const fill7 = a => Array.from({ length: 7 }, (_, i) => a[i % a.length].toUpperCa
 const fresh = () => ({ name: 'Minha bandeira', ra: [2, 3], lay: 'h', k: 3, c: fill7(['#0E1B3D', '#EFEBE4', '#FF5A1F', '#FF8A3D']), ch: [{ s: 'star5', x: .5, y: .5, z: .3, r: 0, c: '#FF5A1F' }], img: null, sel: 0, ly: null, lsel: null });
 let S = fresh(), hist = [], hi = -1, mode = 'plana', guides = false, tab = 'base', built = false;
 const snap = () => JSON.stringify(S);
+/* estado original do remix: "Recomeçar" volta a ele */
+const OKEY = 'flamula-remix-original';
+let origem = null; try { origem = localStorage.getItem(OKEY) } catch (e) { }
+const marcaOrigem = () => { origem = snap(); try { localStorage.setItem(OKEY, origem) } catch (e) { } };
+const limpaOrigem = () => { origem = null; try { localStorage.removeItem(OKEY) } catch (e) { } };
 const commit = () => { const j = snap(); if (hist[hi] === j) return; hist = hist.slice(0, hi + 1); hist.push(j); if (hist.length > 80) hist.shift(); hi = hist.length - 1; try { localStorage.setItem(KEY, j) } catch (e) { } tools() };
 const restore = j => { S = JSON.parse(j); if (S.ly === undefined) S.ly = null; renderAll() };
 const undo = () => { if (hi > 0) { hi--; restore(hist[hi]); try { localStorage.setItem(KEY, hist[hi]) } catch (e) { } } };
@@ -256,7 +261,7 @@ const segSet = (el, v) => { el.querySelectorAll('button').forEach(b => { b.class
 const shell = () => {
   $('v-criar').innerHTML = `
   <div class="ehead"><div><h1>Editor</h1><p>Monte uma bandeira no navegador: proporção, layout, cores e símbolos, com prévia no mastro. Não precisa de conta para criar e baixar.</p></div>
-   <div class="etools"><button class="ic pr" id="eundo" aria-label="Desfazer" title="Desfazer (Ctrl+Z)">${ico('undo')}</button><button class="ic pr" id="eredo" aria-label="Refazer" title="Refazer (Ctrl+Shift+Z)">${ico('redo')}</button><button class="btn gh pr" id="erand">${ico('dice')}Surpreenda-me</button><button class="btn gh pr" id="ereset">${ico('reset')}Recomeçar</button></div></div>
+   <div class="etools"><button class="ic pr" id="eundo" aria-label="Desfazer" title="Desfazer (Ctrl+Z)">${ico('undo')}</button><button class="ic pr" id="eredo" aria-label="Refazer" title="Refazer (Ctrl+Shift+Z)">${ico('redo')}</button><button class="btn gh pr" id="erand">${ico('dice')}Surpreenda-me</button><button class="btn gh pr" id="ereset" title="No remix, volta a bandeira ao original; fora dele, limpa o editor">${ico('reset')}Recomeçar</button></div></div>
   <div class="egrid">
    <section class="epv">
     <div class="ecv lg" id="ecv"></div>
@@ -392,7 +397,10 @@ const bind = () => {
     if (t.id === 'eundo') return undo();
     if (t.id === 'eredo') return redo();
     if (t.id === 'erand') return random();
-    if (t.id === 'ereset') { const keep = S.name; S = fresh(); S.name = keep; renderAll(); commit(); return toast('Editor reiniciado') }
+    if (t.id === 'ereset') {
+      if (origem && snap() !== origem) { S = JSON.parse(origem); if (S.ly && S.ly.L.length) { tab = 'camadas'; segSet($('etabs'), 'camadas') } renderAll(); commit(); return toast('Remix restaurado: a bandeira voltou ao original') }
+      limpaOrigem(); S = fresh(); renderAll(); commit(); return toast('Editor reiniciado');
+    }
     if (t.id === 'eguides') { guides = !guides; t.setAttribute('aria-pressed', guides); t.classList.toggle('on', guides); cv(); return }
     if (t.dataset.ra) { S.ra = t.dataset.ra.split(':').map(Number); renderAll(); commit(); return }
     if (t.dataset.lay) { S.lay = t.dataset.lay; renderAll(); commit(); return }
@@ -429,7 +437,7 @@ const bind = () => {
   root.addEventListener('change', e => {
     const t = e.target;
     if (t.id === 'efile') return loadImg(t.files[0]);
-    if (t.id === 'esvgfile') { const f = t.files[0]; if (!f) return; if (f.size > 3 * 1024 * 1024) return toast('SVG acima de 3 MB'); f.text().then(txt => { usarCamadas(importSVG(txt)); toast('SVG importado em camadas') }).catch(() => toast('Não foi possível ler este SVG')); return }
+    if (t.id === 'esvgfile') { const f = t.files[0]; if (!f) return; if (f.size > 3 * 1024 * 1024) return toast('SVG acima de 3 MB'); f.text().then(txt => { usarCamadas(importSVG(txt)); marcaOrigem(); toast('SVG importado em camadas') }).catch(() => toast('Não foi possível ler este SVG')); return }
     if (t.dataset.lc || t.dataset.lt) { pane(); }
     if (t.id === 'ek' || t.dataset.ci || t.dataset.ct) { pane(); }
     commit();
@@ -506,9 +514,9 @@ FL.openEditor = id => {
   const f = id && byId[id];
   if (f) {
     /* remix: tenta abrir a bandeira em camadas editáveis; se não houver SVG, cai para imagem ou paleta */
-    S = fresh(); S.name = 'Remix de ' + f.n; S.ch = []; S.sel = null; S.lay = 'lisa'; S.c = fill7(['#FFFFFF']); if (f.ra) S.ra = f.ra.slice();
+    limpaOrigem(); S = fresh(); S.name = 'Remix de ' + f.n; S.ch = []; S.sel = null; S.lay = 'lisa'; S.c = fill7(['#FFFFFF']); if (f.ra) S.ra = f.ra.slice();
     hist = []; hi = -1; renderAll(); toast('Abrindo ' + f.n + ' em camadas…');
-    svgTextOf(f).then(txt => { const ly = importSVG(txt); S.name = 'Remix de ' + f.n; hist = []; hi = -1; usarCamadas(ly); toast(`${ly.L.length} camadas prontas: arraste, estique e recolora`) })
+    svgTextOf(f).then(txt => { const ly = importSVG(txt); S.name = 'Remix de ' + f.n; hist = []; hi = -1; usarCamadas(ly); marcaOrigem(); toast(`${ly.L.length} camadas prontas: arraste, estique e recolora`) })
       .catch(() => fallback(f));
   } else if (hi < 0) {
     let saved = null; try { saved = localStorage.getItem(KEY) } catch (e) { }
@@ -529,9 +537,9 @@ const fallback = f => {
       hist = []; hi = -1; renderAll(); commit(); toast('Carregando a bandeira no editor…');
       fetch(f.remixImg, { mode: 'cors' }).then(r => { if (!r.ok) throw 0; return r.blob() })
         .then(b => new Promise((ok, no) => { const rd = new FileReader(); rd.onload = () => ok(rd.result); rd.onerror = no; rd.readAsDataURL(b) }))
-        .then(src => { S.img = { src, x: .5, y: .5, z: Math.min(2, S.ra[1] / S.ra[0]), op: 1 }; renderAll(); commit(); toast('Bandeira carregada. Desenhe por cima ou ajuste a imagem em Imagem') })
+        .then(src => { S.img = { src, x: .5, y: .5, z: Math.min(2, S.ra[1] / S.ra[0]), op: 1 }; renderAll(); commit(); marcaOrigem(); toast('Bandeira carregada. Desenhe por cima ou ajuste a imagem em Imagem') })
         .catch(() => toast('Não foi possível carregar a imagem; a paleta dela foi aplicada'));
-    } else { hist = []; hi = -1; renderAll(); commit(); toast('Não deu para abrir em camadas; a paleta de ' + f.n + ' foi carregada') }
+    } else { hist = []; hi = -1; renderAll(); commit(); marcaOrigem(); toast('Não deu para abrir em camadas; a paleta de ' + f.n + ' foi carregada') }
   }
 };
 if (/^#criar(-|$)/.test(location.hash) && !$('v-criar').hidden) FL.openEditor(location.hash.length > 7 ? location.hash.slice(7) : null);
