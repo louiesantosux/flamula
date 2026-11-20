@@ -123,7 +123,7 @@ const limpa = t => t.replace(/^File:/, '').replace(/\.(svg|png)$/i, '').replace(
 async function arquivos(cat) {
   const out = []; let cont = '';
   for (let k = 0; k < 4; k++) {
-    const j = await cj('action=query&generator=categorymembers&gcmtitle=' + encodeURIComponent(cat) + '&gcmtype=file&gcmlimit=50&prop=imageinfo&iiprop=url|mime|size&iiurlwidth=800' + cont);
+    const j = await cj('action=query&generator=categorymembers&gcmtitle=' + encodeURIComponent(cat) + '&gcmtype=file&gcmlimit=50&prop=imageinfo&iiprop=url|mime|size&iiurlwidth=960' + cont);
     ((j.query && j.query.pages) || []).forEach(p => { const ii = p.imageinfo && p.imageinfo[0]; if (!ii) return; if (!(/svg/.test(ii.mime) || (/png/.test(ii.mime) && ii.width >= 500))) return; out.push({ file: p.title.replace(/^File:/, ''), label: limpa(p.title), thumb: ii.thumburl || ii.url, url: ii.url, page: ii.descriptionurl, svg: /svg/.test(ii.mime) }) });
     if (!j.continue) break; cont = '&gcmcontinue=' + encodeURIComponent(j.continue.gcmcontinue) + '&continue=' + encodeURIComponent(j.continue.continue || '');
   }
@@ -133,12 +133,19 @@ async function commons(code, alt) {
   const name = nomeEn(code, alt), nn = nrm(name);
   const s = await cj('action=query&list=search&srnamespace=14&srlimit=20&srsearch=' + encodeURIComponent('intitle:"military flags of" ' + name.replace(/^the /, '')));
   const cand = ((s.query && s.query.search) || []).map(x => x.title).map(t => { const m = t.match(/^Category:Military flags of (.+)$/i); if (!m) return null; const r = nrm(m[1]); return { t, sc: r === nn ? 100 : r.includes(nn) || nn.includes(r) ? 60 - Math.abs(r.length - nn.length) : 0 } }).filter(x => x && x.sc > 0).sort((a, b) => b.sc - a.sc).slice(0, 3);
+  const RUIM = / by |photograph|photos|in art|stamps|on ships|uniform|people|ceremon|parades|museum|videos|maps|logos|patches|vehicles|aircraft|in use|on buildings|fictional|commemorat/i;
+  const subcats = async t => { const j = await cj('action=query&list=categorymembers&cmtitle=' + encodeURIComponent(t) + '&cmtype=subcat&cmlimit=60'); return ((j.query && j.query.categorymembers) || []).map(x => x.title).filter(x => !RUIM.test(x)) };
+  const lotes = async (L, f, n = 6) => { const out = []; for (let i = 0; i < L.length; i += n) out.push(...await Promise.all(L.slice(i, i + n).map(f))); return out };
   for (const c of cand) {
-    const sub = await cj('action=query&list=categorymembers&cmtitle=' + encodeURIComponent(c.t) + '&cmtype=subcat&cmlimit=40');
-    const subs = ((sub.query && sub.query.categorymembers) || []).map(x => x.title).filter(t => !/ by |photograph|in art|stamps|on ships|historical|uniform/i.test(t)).slice(0, 14);
-    const grupos = await Promise.all([c.t].concat(subs).map(async t => ({ sec: t === c.t ? '' : t.replace(/^Category:/, ''), itens: await arquivos(t).catch(() => []) })));
+    /* percorre a categoria e duas camadas de subcategorias (ex.: Naval ensigns of X > Naval ensigns of X (1990s)) */
+    const cats = [c.t], vistas = new Set(cats); let nivel = [c.t];
+    for (let d = 0; d < 2 && cats.length < 30; d++) {
+      const prox = (await lotes(nivel, t => subcats(t).catch(() => []))).flat().filter(t => !vistas.has(t) && (vistas.add(t), true));
+      cats.push(...prox.slice(0, 30 - cats.length)); nivel = prox.slice(0, 20);
+    }
+    const grupos = await lotes(cats, async t => ({ sec: t === c.t ? '' : t.replace(/^Category:/, ''), itens: await arquivos(t).catch(() => []) }));
     const vistos = new Set(); const itens = [];
-    grupos.forEach(g => g.itens.forEach(it => { if (vistos.has(it.file) || itens.length >= 400) return; vistos.add(it.file); itens.push({ ...it, sec: g.sec }) }));
+    grupos.forEach(g => g.itens.forEach(it => { if (vistos.has(it.file) || itens.length >= 500) return; vistos.add(it.file); itens.push({ ...it, sec: g.sec }) }));
     if (itens.length) return { categoria: c.t, url: 'https://commons.wikimedia.org/wiki/' + encodeURIComponent(c.t.replace(/ /g, '_')), nome: name, itens };
   }
   return { categoria: null, nome: name, itens: [] };
