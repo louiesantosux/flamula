@@ -43,7 +43,7 @@
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
 html{background:light-dark(#F1F8FB,#193546);scroll-padding-top:calc(90px + env(safe-area-inset-top));-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);background-image:radial-gradient(70% 55% at 80% 75%,light-dark(rgba(13,184,211,.28),rgba(13,184,211,.32)),transparent 62%),radial-gradient(60% 55% at 5% 100%,light-dark(rgba(27,127,220,.22),rgba(27,127,220,.45)),transparent 60%),linear-gradient(180deg,light-dark(#F1F8FB,#193546) 0%,light-dark(#E2F1F8,#0F2B3C) 45%,light-dark(#CFE8F4,#0A4A78) 100%);background-attachment:fixed;color:var(--ink);font:16px/1.5 var(--font);letter-spacing:-.01em;overflow-x:clip;-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--font);letter-spacing:-.01em;overflow-x:clip;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
@@ -87,7 +87,7 @@ body.compact .links{max-width:0;opacity:0;pointer-events:none}
 .btn.sm{min-height:38px;padding:0 14px;font-size:14px}
 .dock{display:none}
 /* hero */
-.hero{position:relative;margin-top:-80px;padding:120px 0 40px}
+.hero{position:relative;margin-top:-80px;padding:112px 0 0}
 .hpanel{border-radius:40px;padding:clamp(24px,4vw,56px)}
 .hero h1{color:light-dark(#0E2433,#E6F3F8);background:linear-gradient(180deg,light-dark(#0E2433,#BDE6F2) 0%,light-dark(#065B98,#F2F9FC) 75%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;padding-bottom:.08em}
 .hgrid{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:28px;align-items:center}
@@ -105,7 +105,8 @@ body.compact .links{max-width:0;opacity:0;pointer-events:none}
 @keyframes wv{from{transform:translateY(-7px)}to{transform:translateY(7px)}}
 .round{width:50px;height:50px;border-radius:999px;display:grid;place-items:center;background:#fff;color:#111;flex:none}
 /* seções */
-.sec{padding-top:52px;padding-bottom:8px}
+.sec{padding-top:clamp(44px,6vw,72px);padding-bottom:0}
+.sec>.shead:first-child,.sec .shead:first-child{margin-top:0}
 .shead{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:18px;flex-wrap:wrap}
 .shead p{margin:6px 0 0;color:var(--mut)}
 .more{font-weight:600;color:var(--azul);white-space:nowrap}
@@ -146,7 +147,7 @@ body:not(.stats) .n{display:none}
 .ctapic>span{position:absolute;width:50%}
 .ctapic>span>*{display:block;width:100%;height:auto;filter:drop-shadow(0 14px 24px rgba(0,0,0,.2))}
 /* explorar */
-.phead{padding:36px 0 18px}
+.phead{padding:clamp(28px,4vw,40px) 0 20px}
 .phead h1{font-size:clamp(32px,4.4vw,52px)}
 .phead p{margin:8px 0 0;color:var(--mut);max-width:70ch}
 .bar{position:sticky;top:84px;z-index:10;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px;border-radius:28px;margin-bottom:18px}
@@ -211,7 +212,7 @@ body:not(.stats) .n{display:none}
 .err{color:#FF3B30;font-size:14px;margin:0}
 /* detalhe */
 /* cena 3D do fundo: globos, flâmulas e órbitas atrás do vidro */
-#scene{position:fixed;inset:0;z-index:-2;pointer-events:none;overflow:hidden}
+#scene{position:fixed;inset:0;z-index:-2;pointer-events:none;overflow:hidden;background-image:radial-gradient(70% 55% at 80% 75%,light-dark(rgba(13,184,211,.28),rgba(13,184,211,.32)),transparent 62%),radial-gradient(60% 55% at 5% 100%,light-dark(rgba(27,127,220,.22),rgba(27,127,220,.45)),transparent 60%),linear-gradient(180deg,light-dark(#F1F8FB,#193546) 0%,light-dark(#E2F1F8,#0F2B3C) 45%,light-dark(#CFE8F4,#0A4A78) 100%);}
 #scene::before{content:'';position:absolute;inset:0;background-image:linear-gradient(light-dark(rgba(6,91,152,.07),rgba(230,243,248,.05)) 1px,transparent 1px),linear-gradient(90deg,light-dark(rgba(6,91,152,.07),rgba(230,243,248,.05)) 1px,transparent 1px);background-size:104px 104px;mask-image:linear-gradient(180deg,#000,rgba(0,0,0,.4))}
 #scene .o{position:absolute;display:block;animation:sflt 14s ease-in-out infinite alternate;will-change:transform}
 #scene .o svg{width:100%;height:auto;display:block;overflow:visible}
@@ -312,7 +313,7 @@ body.tinted .btn.acc,.acts .on{background:var(--fa,var(--acc));color:var(--fa-in
 .ghd{display:flex;align-items:center;gap:10px;margin:28px 0 12px;font:700 20px var(--font-d)}
 .ghd img,.ghd svg{height:22px;width:auto;border-radius:3px;box-shadow:0 0 0 1px var(--line)}
 /* marca */
-.bhero{margin-top:-80px;padding:130px 0 30px}.bhero .wrap{border-radius:40px;padding:clamp(24px,4vw,56px)}.bhero .wm{color:light-dark(#0E2433,#E6F3F8);background:linear-gradient(180deg,light-dark(#0E2433,#BDE6F2) 0%,light-dark(#065B98,#F2F9FC) 75%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.bhero{margin-top:-80px;padding:112px 0 0}.bpanel{border-radius:40px;padding:clamp(24px,4vw,56px)}.bhero .wm{color:light-dark(#0E2433,#E6F3F8);background:linear-gradient(180deg,light-dark(#0E2433,#BDE6F2) 0%,light-dark(#065B98,#F2F9FC) 75%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .bhero .logo .mk{width:clamp(64px,9vw,104px);height:auto}
 .bhero .wm{font-size:clamp(48px,9vw,104px)}
 .bhero p{max-width:56ch;color:var(--mut);font-size:17px;margin:22px 0 0}
@@ -341,7 +342,7 @@ body.tinted .btn.acc,.acts .on{background:var(--fa,var(--acc));color:var(--fa-in
 .bump{animation:bump .7s var(--spring)}
 @keyframes bump{0%{transform:scale(1)}30%{transform:scale(1.14,1.08)}100%{transform:scale(1)}}
 /* rodapé, toast */
-footer{margin-top:72px;padding:40px 0 calc(48px + env(safe-area-inset-bottom));border-top:1px solid var(--line);font-size:14px;color:var(--mut)}
+footer{margin-top:clamp(64px,8vw,104px);padding:40px 0 calc(48px + env(safe-area-inset-bottom));border-top:1px solid var(--line);font-size:14px;color:var(--mut)}
 .fgrid{display:grid;grid-template-columns:1.4fr repeat(3,minmax(0,1fr));gap:24px}
 footer b{display:block;color:var(--ink);margin-bottom:8px}
 footer a,footer button{display:block;padding:4px 0;border:0;background:none;color:var(--mut);font-size:14px;text-align:left}
@@ -362,7 +363,9 @@ footer a:hover,footer button:hover{color:var(--ink)}
 @media(max-width:860px){.links{display:none}.pill{padding-left:14px}}
 @media(max-width:760px){
  .hgrid,.typo{grid-template-columns:minmax(0,1fr)}
- .hero{padding-top:118px}
+ .hero{padding-top:100px}
+ .sec{padding-top:44px}
+ .cat{min-height:0}.cat.wide{min-height:0}.minis{margin-top:6px}
  .act .sm{display:none}
  body{padding-bottom:calc(104px + env(safe-area-inset-bottom))}
  .dock{display:flex;position:fixed;left:50%;translate:-50% 0;width:calc(100% - 24px);max-width:440px;bottom:max(12px,env(safe-area-inset-bottom));z-index:30;justify-content:space-around;align-items:center;padding:6px;border-radius:32px;view-transition-name:dock;transition:width var(--dur) var(--spring),padding var(--dur) var(--spring)}
@@ -484,10 +487,10 @@ footer a:hover,footer button:hover{color:var(--ink)}
 <main id="v-jogo" hidden class="wrap"></main>
 
 <main id="v-marca" hidden>
-  <section class="bhero"><div class="wrap lg">
+  <section class="bhero"><div class="wrap"><div class="bpanel lg">
     <div class="logo"><svg class="mk"><use href="#mk"/></svg><span class="wm">flâmula</span></div>
     <p>A marca parte da flâmula de sinalização: uma bandeira estreita, presa ao mastro e sempre em movimento. As cores vêm do mar aberto, onde as flâmulas de sinalização nasceram: o Glaciar da superfície, o Oceano e o Profundo das águas, e o Abismo do fundo. Os globos e as flâmulas em 3D flutuam atrás do vidro.</p>
-  </div></section>
+  </div></div></section>
   <section class="sec wrap"><div class="shead"><div><h2>Símbolo</h2><p>Mastro e flâmula ondulada. Funciona sozinho a partir de 16 px, como no ícone do navegador.</p></div></div>
     <div class="tiles"><div class="tile" style="background:#fff;color:var(--grafite);box-shadow:0 1px 0 var(--line)"><svg class="mk"><use href="#mk"/></svg></div><div class="tile" style="background:var(--ceu);color:#fff"><svg class="mk"><use href="#mk"/></svg></div><div class="tile" style="background:var(--onix);color:#fff"><div class="logo"><svg class="mk" style="width:44px;height:44px"><use href="#mk"/></svg><span class="wm" style="font-size:32px">flâmula</span></div></div></div></section>
   <section class="sec wrap"><div class="shead"><div><h2>Paleta</h2><p>Nas páginas de cada bandeira, a paleta da própria bandeira assume o fundo.</p></div></div><div class="pal" id="pal"></div></section>

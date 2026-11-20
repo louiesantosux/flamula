@@ -19,6 +19,7 @@ css.textContent = `
 .fw-cs{margin-top:30px}.fw-cs .ghd{margin-top:0}.fw-cs .ghd small{color:var(--mut);font-weight:600;font-size:14px}.fw-cs .ghd a{margin-left:auto;font:600 14px var(--font);color:var(--azul);text-decoration:none}
 .fw-grid.cut>:nth-child(n+13){display:none}.fw-more{margin-top:12px}
 .fw-det>summary{list-style:none;cursor:pointer;padding:16px 20px;border-radius:22px;background:var(--chip);margin-bottom:16px}.fw-det>summary::-webkit-details-marker{display:none}.fw-det>summary h2{margin:0;font:700 20px var(--font-d)}.fw-det>summary p{margin:4px 0 0;color:var(--mut);font-size:14px}.fw-det>summary h2::after{content:' ▾';color:var(--mut)}.fw-det[open]>summary h2::after{content:' ▴'}
+.fw-hero .acts{margin-top:16px}.fw-hero .dhead p{line-height:1.5}
 .fw-hero .dstage:empty::after{content:'Toque em uma bandeira abaixo';color:var(--mut)}
 .fw-sec{margin-top:40px}.fw-busca{display:flex;gap:10px;align-items:center;margin:14px 0 16px}
 .fw-busca input{flex:1;min-height:44px;border-radius:999px;border:1px solid var(--line);background:var(--chip);padding:0 18px;font:inherit;color:inherit}

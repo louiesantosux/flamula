@@ -11,6 +11,7 @@ css.textContent = `
 .ehead h1{font-size:clamp(32px,4.4vw,52px)}
 .ehead p{margin:8px 0 0;color:var(--mut);max-width:58ch}
 .etools{display:flex;gap:6px;flex-wrap:wrap}
+@media(max-width:760px){.ehead{padding:28px 0 16px}.etools{width:100%;flex-wrap:nowrap}.etools .btn{flex:1 1 0;justify-content:center;padding-inline:10px;font-size:14px;min-width:0;white-space:nowrap}.etools .btn svg{display:none}.etools .ic{flex:none}}
 .etools .ic[disabled]{opacity:.35;cursor:default}
 .egrid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:18px;align-items:start}
 .epv{position:sticky;top:96px;display:grid;gap:12px}
