@@ -113,6 +113,37 @@ function parsePage(html, file) {
   return { titulo, url: pageUrl + (hash ? '#' + hash : ''), parcial, itens, links: links.slice(0, 200) };
 }
 
+/* ---------- Wikimedia Commons: bandeiras militares em alta resolução ---------- */
+const CAPI = 'https://commons.wikimedia.org/w/api.php?format=json&formatversion=2&';
+const cj = async q => { const r = await fetch(CAPI + q, { headers: { 'user-agent': UA } }); if (!r.ok) throw new Error('Commons respondeu ' + r.status); return r.json() };
+const EN = { us: 'United States', gb: 'United Kingdom', cn: "People's Republic of China", tw: 'Republic of China', ru: 'Russia', kp: 'North Korea', kr: 'South Korea', cd: 'Democratic Republic of the Congo', cg: 'Republic of the Congo', mm: 'Myanmar', cz: 'Czech Republic', va: 'Vatican City', ci: 'Ivory Coast', sz: 'Eswatini', mk: 'North Macedonia', cs: 'Montenegro', ir: 'Iran', sy: 'Syria', la: 'Laos', vn: 'Vietnam', bo: 'Bolivia', ve: 'Venezuela', tz: 'Tanzania', md: 'Moldova', nl: 'the Netherlands', ph: 'the Philippines', ae: 'the United Arab Emirates', bs: 'the Bahamas', gm: 'the Gambia', cv: 'Cape Verde', tr: 'Turkey', su: 'the Soviet Union' };
+const nrm = t => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/^the\s+/, '').replace(/[^a-z0-9]+/g, ' ').trim();
+const nomeEn = (code, alt) => { if (EN[code]) return EN[code]; try { const n = new Intl.DisplayNames(['en'], { type: 'region' }).of(code.toUpperCase()); if (n && n !== code.toUpperCase()) return n.replace(/\s*\(.*\)$/, '') } catch (e) { } return alt || code };
+const limpa = t => t.replace(/^File:/, '').replace(/\.(svg|png)$/i, '').replace(/_/g, ' ').trim();
+async function arquivos(cat) {
+  const out = []; let cont = '';
+  for (let k = 0; k < 4; k++) {
+    const j = await cj('action=query&generator=categorymembers&gcmtitle=' + encodeURIComponent(cat) + '&gcmtype=file&gcmlimit=50&prop=imageinfo&iiprop=url|mime|size&iiurlwidth=800' + cont);
+    ((j.query && j.query.pages) || []).forEach(p => { const ii = p.imageinfo && p.imageinfo[0]; if (!ii) return; if (!(/svg/.test(ii.mime) || (/png/.test(ii.mime) && ii.width >= 500))) return; out.push({ file: p.title.replace(/^File:/, ''), label: limpa(p.title), thumb: ii.thumburl || ii.url, url: ii.url, page: ii.descriptionurl, svg: /svg/.test(ii.mime) }) });
+    if (!j.continue) break; cont = '&gcmcontinue=' + encodeURIComponent(j.continue.gcmcontinue) + '&continue=' + encodeURIComponent(j.continue.continue || '');
+  }
+  return out;
+}
+async function commons(code, alt) {
+  const name = nomeEn(code, alt), nn = nrm(name);
+  const s = await cj('action=query&list=search&srnamespace=14&srlimit=20&srsearch=' + encodeURIComponent('intitle:"military flags of" ' + name.replace(/^the /, '')));
+  const cand = ((s.query && s.query.search) || []).map(x => x.title).map(t => { const m = t.match(/^Category:Military flags of (.+)$/i); if (!m) return null; const r = nrm(m[1]); return { t, sc: r === nn ? 100 : r.includes(nn) || nn.includes(r) ? 60 - Math.abs(r.length - nn.length) : 0 } }).filter(x => x && x.sc > 0).sort((a, b) => b.sc - a.sc).slice(0, 3);
+  for (const c of cand) {
+    const sub = await cj('action=query&list=categorymembers&cmtitle=' + encodeURIComponent(c.t) + '&cmtype=subcat&cmlimit=40');
+    const subs = ((sub.query && sub.query.categorymembers) || []).map(x => x.title).filter(t => !/ by |photograph|in art|stamps|on ships|historical|uniform/i.test(t)).slice(0, 14);
+    const grupos = await Promise.all([c.t].concat(subs).map(async t => ({ sec: t === c.t ? '' : t.replace(/^Category:/, ''), itens: await arquivos(t).catch(() => []) })));
+    const vistos = new Set(); const itens = [];
+    grupos.forEach(g => g.itens.forEach(it => { if (vistos.has(it.file) || itens.length >= 400) return; vistos.add(it.file); itens.push({ ...it, sec: g.sec }) }));
+    if (itens.length) return { categoria: c.t, url: 'https://commons.wikimedia.org/wiki/' + encodeURIComponent(c.t.replace(/ /g, '_')), nome: name, itens };
+  }
+  return { categoria: null, nome: name, itens: [] };
+}
+
 module.exports = async (req, res) => {
   const q = req.query || {};
   try {
@@ -126,13 +157,14 @@ module.exports = async (req, res) => {
       res.status(200).end(Buffer.from(await r.arrayBuffer())); return;
     }
     let data;
-    if (q.lista) data = { paises: parseLista(await get(BASE + 'flags/x-milt.html')) };
+    if (q.commons) { if (!/^[a-z]{2}$/.test(String(q.commons))) { res.status(400).json({ erro: 'código inválido' }); return } data = await commons(String(q.commons), String(q.nome || '').slice(0, 80)) }
+    else if (q.lista) data = { paises: parseLista(await get(BASE + 'flags/x-milt.html')) };
     else if (q.p) {
       const file = String(q.p);
       if (!/^[\w^~!.\-]+\.html?(#[\w\-.]*)?$/i.test(file)) { res.status(400).json({ erro: 'página inválida' }); return }
       data = parsePage(await get(BASE + 'flags/' + file.split('#')[0].split('/').map(encodeURIComponent).join('/')), file);
     } else { res.status(400).json({ erro: 'use ?lista=1, ?p= ou ?img=' }); return }
-    data.fonte = 'FOTW Flags Of The World website at https://www.fotw.info/';
+    data.fonte = q.commons ? 'Wikimedia Commons' : 'FOTW Flags Of The World website at https://www.fotw.info/';
     res.setHeader('cache-control', 'public, max-age=3600, s-maxage=604800, stale-while-revalidate=2592000');
     res.status(200).json(data);
   } catch (e) {
