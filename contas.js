@@ -246,8 +246,9 @@ FL.actions['admin-pedido'] = async () => {
   $('apok').onclick = async () => {
     const nome = $('apn').value.trim(), mensagem = $('apm').value.trim(), er = $('aperr');
     if (!nome || mensagem.length < 10) { er.textContent = 'Informe o nome e escreva uma mensagem um pouco maior.'; er.hidden = false; return }
-    $('apok').disabled = true;
-    try { const r = await FB().pedir('admin', { nome, mensagem }); closeSheet(); toast(r.aviso ? 'Pedido enviado. Você será avisado no perfil.' : 'Pedido registrado. O administrador verá no painel.') } catch (e) { er.textContent = fbErr(e); er.hidden = false; $('apok').disabled = false }
+    const b = $('apok'); b.disabled = true; b.textContent = 'Enviando…'; er.hidden = true;
+    try { const r = await FB().pedir('admin', { nome, mensagem }); closeSheet(); toast(r.aviso ? 'Pedido enviado ao administrador. Acompanhe em Meu perfil → Conta.' : 'Pedido registrado. O e-mail não saiu, mas o administrador vê o pedido no painel.') }
+    catch (e) { console.error('[Flâmula] pedido:', e); er.textContent = e && e.code === 'permission-denied' ? 'O site ainda não aceita pedidos: as regras novas do Firestore não foram publicadas.' : fbErr(e); er.hidden = false; b.disabled = false; b.textContent = 'Enviar pedido' }
   };
 };
 
@@ -294,8 +295,8 @@ FL.actions.colaborar = () => {
     const d = { nome: $('cbn').value.trim(), email: $('cbe').value.trim(), area: area.value, mensagem: $('cbm').value.trim() };
     if (!d.nome) return err('Informe seu nome.'); if (!/^\S+@\S+\.\S+$/.test(d.email)) return err('Informe um e-mail válido.'); if (d.mensagem.length < 10) return err('Escreva uma mensagem um pouco maior.');
     if (!FB().on) return err(`Formulário indisponível no momento. Escreva para ${ADMIN_EMAIL}.`);
-    $('cbok').disabled = true;
-    try { await FB().pedir('colaborador', d); closeSheet(); toast('Recebemos o seu pedido. Obrigado!') } catch (e) { err(fbErr(e)); $('cbok').disabled = false }
+    const b = $('cbok'); b.disabled = true; b.textContent = 'Enviando…'; err('');
+    try { await FB().pedir('colaborador', d); closeSheet(); toast('Recebemos o seu pedido. Obrigado!') } catch (e) { console.error('[Flâmula] pedido:', e); err(e && e.code === 'permission-denied' ? 'O site ainda não aceita pedidos: as regras novas do Firestore não foram publicadas.' : fbErr(e)); b.disabled = false; b.textContent = 'Enviar' }
   };
 };
 
