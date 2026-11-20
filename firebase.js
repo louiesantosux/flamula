@@ -21,6 +21,9 @@ else {
     F.onSnapshot(sref, s => { const d = s.data() || {}; ev('fl-stats', { downloads: d.downloads || {}, curtidas: d.curtidas || {} }) }, e => { console.warn('[Flâmula] contagens:', e.message); ev('fl-stats-off') });
     window.FL_STATS = { inc: (t, id, n = 1) => { if (!['downloads', 'curtidas'].includes(t) || !/^[a-z0-9-]{2,40}$/i.test(id)) return; return F.setDoc(sref, { [t]: { [id]: F.increment(n) } }, { merge: true }).catch(e => console.warn('[Flâmula]', e.message)) } };
 
+    /* configuração pública da galeria (destaques, ocultas, nomes), definida pelos administradores */
+    F.onSnapshot(F.doc(db, 'config', 'galeria'), s => ev('fl-galeria', s.exists() ? s.data() : {}), () => { });
+
     /* sessão */
     U.onAuthStateChanged(auth, async u => {
       FB.user = u; FB.admin = false; FB.profile = null;
@@ -32,12 +35,21 @@ else {
           else FB.profile = s.data();
         } catch (e) { FB.profile = { nome: u.displayName || 'Sem nome', foto: u.photoURL || '', bio: '', comunidades: [] } }
         /* administrador principal e moderador: a conta do dono do site (e-mail verificado); demais admins ficam em admins/{uid} */
-        FB.dono = (u.email || '').toLowerCase() === 'louieikishima@gmail.com' && u.emailVerified;
-        try { FB.admin = FB.dono || (await F.getDoc(F.doc(db, 'admins', u.uid))).exists() } catch (e) { FB.admin = FB.dono }
+        await papel(u);
       }
       FB.ready = true; ev('fb-user', { user: u, admin: FB.admin, profile: FB.profile });
     });
 
+    /* papel da conta: administrador principal (dono, e-mail verificado), admin por documento, ou comum */
+    const DONO = 'louieikishima@gmail.com';
+    const papel = async u => {
+      const mail = (u.email || '').toLowerCase();
+      FB.donoPendente = mail === DONO && !u.emailVerified;
+      FB.dono = mail === DONO && !!u.emailVerified;
+      try { FB.admin = FB.dono || (await F.getDoc(F.doc(db, 'admins', u.uid))).exists() } catch (e) { FB.admin = FB.dono }
+      if (FB.admin) console.info('[Flâmula] conta com acesso de administrador');
+      else if (FB.donoPendente) console.info('[Flâmula] confirme o e-mail para ativar o acesso de administrador');
+    };
     const me = () => { if (!FB.user) throw new Error('login'); return FB.user };
     Object.assign(FB, {
       on: true,
@@ -50,6 +62,8 @@ else {
       signup: async (nome, e, p) => { const c = await U.createUserWithEmailAndPassword(auth, e, p); await U.updateProfile(c.user, { displayName: nome }); await F.setDoc(F.doc(db, 'usuarios', c.user.uid), { nome }, { merge: true }); FB.profile = { ...(FB.profile || {}), nome }; ev('fb-user', { user: c.user, admin: FB.admin, profile: FB.profile }); return c },
       reset: e => U.sendPasswordResetEmail(auth, e),
       logout: () => U.signOut(auth),
+      verificarEmail: () => U.sendEmailVerification(auth.currentUser),
+      atualizarConta: async () => { const u = auth.currentUser; if (!u) return; await u.reload(); await u.getIdToken(true); await papel(auth.currentUser); FB.user = auth.currentUser; ev('fb-user', { user: FB.user, admin: FB.admin, profile: FB.profile }) },
       saveProfile: async d => { await F.setDoc(F.doc(db, 'usuarios', me().uid), d, { merge: true }); FB.profile = { ...FB.profile, ...d }; ev('fb-user', { user: FB.user, admin: FB.admin, profile: FB.profile }) },
 
       /* criações enviadas pelo editor */
@@ -86,7 +100,20 @@ else {
       /* colaboradores */
       colaborar: d => F.addDoc(col('colaboradores'), { nome: d.nome, email: d.email, area: d.area, mensagem: d.mensagem, uid: FB.user?.uid || '', criadoEm: F.serverTimestamp() }),
       colaboradores: () => list(F.query(col('colaboradores'), F.orderBy('criadoEm', 'desc'), F.limit(100))),
-      apagarColaborador: id => F.deleteDoc(F.doc(db, 'colaboradores', id))
+      apagarColaborador: id => F.deleteDoc(F.doc(db, 'colaboradores', id)),
+
+      /* administração */
+      usuarios: () => list(F.query(col('usuarios'), F.limit(500))),
+      admins: async () => (await F.getDocs(col('admins'))).docs.map(d => d.id),
+      promover: uid => F.setDoc(F.doc(db, 'admins', uid), { em: F.serverTimestamp(), por: me().uid }),
+      rebaixar: uid => F.deleteDoc(F.doc(db, 'admins', uid)),
+      banir: (uid, sim) => F.updateDoc(F.doc(db, 'usuarios', uid), sim ? { banido: true, banidoEm: F.serverTimestamp(), banidoPor: me().uid } : { banido: false, banidoEm: null, banidoPor: null }),
+      enviosDe: uid => list(F.query(col('envios'), F.where('uid', '==', uid))),
+      editarEnvio: (id, d) => F.updateDoc(F.doc(db, 'envios', id), d),
+      contar: async (nome, campo, valor) => { const q = campo ? F.query(col(nome), F.where(campo, '==', valor)) : col(nome); try { return (await F.getCountFromServer(q)).data().count } catch (e) { return null } },
+      estatisticas: async () => { const s = await F.getDoc(sref); return s.exists() ? s.data() : {} },
+      galeria: async () => { const s = await F.getDoc(F.doc(db, 'config', 'galeria')); return s.exists() ? s.data() : {} },
+      salvarGaleria: async d => { await F.setDoc(F.doc(db, 'config', 'galeria'), d, { merge: true }); ev('fl-galeria', { ...(window.FL_GALERIA || {}), ...d }) }
     });
     ev('fb-on');
   } catch (err) {

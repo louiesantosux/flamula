@@ -16,9 +16,9 @@ css.textContent = `
 .pfa{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
 .tabsrow{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
 .stl{display:inline-flex;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
-.stl.pendente{background:rgba(255,159,10,.16);color:#C77700}
-.stl.aprovada{background:rgba(52,199,89,.16);color:#1E8E3E}
-.stl.reprovada{background:rgba(255,59,48,.14);color:#D70015}
+.stl.pendente{background:rgba(255,159,10,.16);color:light-dark(#C77700,#FFB340)}
+.stl.aprovada{background:rgba(52,199,89,.16);color:light-dark(#1E8E3E,#4ADE80)}
+.stl.reprovada{background:rgba(255,59,48,.16);color:light-dark(#D70015,#FF6B61)}
 .list{display:grid;gap:10px}
 .li{display:grid;grid-template-columns:132px minmax(0,1fr) auto;gap:16px;align-items:center;padding:12px;border-radius:24px}
 .li .th{aspect-ratio:3/2;display:grid;place-items:center;background:var(--chip);border-radius:16px;padding:10px}
@@ -87,12 +87,24 @@ css.textContent += `
 .pfm{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-top:10px;font-size:13.5px;color:var(--mut)}
 .pfchip{display:inline-flex;gap:8px;align-items:center;padding:4px 12px 4px 5px;border-radius:999px;background:var(--chip);color:var(--ink);font-weight:600}.pfchip img,.pfchip svg{width:26px;height:18px;object-fit:cover;border-radius:4px}
 @media(max-width:760px){.pfa{flex-wrap:wrap}.pfa a.btn.pfadm{flex:1 1 100%;justify-content:center}}
+.adst{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.adst button{border:0;border-radius:22px;padding:16px;text-align:left;display:grid;gap:2px;color:inherit}.adst button[disabled]{cursor:default;opacity:1}
+.adst b{font:700 clamp(24px,2.8vw,32px)/1.1 var(--font-d);background:var(--aurora);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}.adst span{font-size:13px;color:var(--mut);font-weight:600}
+.adcol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:26px}.adcol h3,.adsec h3{font-size:19px;margin-bottom:10px}.adsec h3 small{color:var(--mut);font-weight:600;font-size:14px}
+.adsec{margin-bottom:34px}
+.adtop{display:grid;gap:6px}.adtop a{display:grid;grid-template-columns:22px 44px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 12px;border-radius:14px;background:var(--chip)}
+.adtop a>b{color:var(--mut);font-size:13px}.adtop img,.adtop svg{width:44px;height:30px;object-fit:cover;border-radius:5px}.adtop span{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.adtop small{color:var(--mut)}
+.adchips{display:flex;flex-wrap:wrap;gap:8px}.adchip{display:inline-flex;align-items:center;gap:8px;padding:4px 4px 4px 6px;border-radius:999px;background:var(--chip);font-weight:600;font-size:14px}
+.adchip img,.adchip svg{width:28px;height:19px;object-fit:cover;border-radius:4px}.adchip button{width:26px;height:26px;border-radius:999px;border:0;background:rgba(127,127,127,.2);color:inherit;font-size:16px;line-height:1}
+.aduser .th{background:none;padding:0;width:64px;aspect-ratio:auto}.aduser .th .av{width:52px;height:52px;font-size:20px}.li.aduser{grid-template-columns:64px minmax(0,1fr) auto}
+.pfaviso{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:22px;padding:14px 18px;margin:14px 18px 0}
+@media(max-width:760px){.adst{grid-template-columns:repeat(2,minmax(0,1fr))}.adcol{grid-template-columns:minmax(0,1fr)}.li.aduser{grid-template-columns:56px minmax(0,1fr)}.pfaviso{margin:12px 10px 0}}
 .pfadm b{min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:#fff;color:var(--oceano,#1B7FDC);font-size:12px;display:inline-grid;place-items:center;margin-left:2px}
 .pfs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 18px 0}
 .pfs button{border:0;border-radius:22px;padding:14px 16px;text-align:left;display:grid;gap:2px;color:inherit}
 .pfs b{font:700 clamp(22px,2.6vw,30px)/1.1 var(--font-d);background:var(--aurora);-webkit-background-clip:text;background-clip:text;color:transparent}
 .pfs span{font-size:13px;color:var(--mut);font-weight:600}
-.tabsrow .seg{overflow-x:auto;scrollbar-width:none}.tabsrow #pft button{flex:none!important}
+.tabsrow .seg{overflow-x:auto;scrollbar-width:none}.tabsrow #pft button,.tabsrow #adt button{flex:none!important}.tabsrow #adt{max-width:100%}
 .pfj{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .pfjc{border-radius:24px;padding:18px;display:grid;gap:4px;border-top:3px solid var(--nv)}.pfjc small{color:var(--nv);font-weight:700}.pfjc b{font:700 34px/1 var(--font-d)}.pfjc span{color:var(--mut);font-size:14px}
 .pfnote{color:var(--mut);font-size:13px;margin-top:14px}
@@ -166,6 +178,8 @@ FL.views.entrar = async () => {
   $('lgreset').onclick = async () => { const em = $('lge').value.trim(); if (!/^\S+@\S+\.\S+$/.test(em)) return err('Digite seu e-mail acima para receber o link.'); try { await FB().reset(em); err(''); toast('Enviamos um link de redefinição para o seu e-mail') } catch (e) { err(fbErr(e)) } };
 };
 
+FL.actions['verificar-email'] = async () => { try { await FB().verificarEmail(); toast('Link de confirmação enviado para o seu e-mail') } catch (e) { toast(fbErr(e)) } };
+FL.actions['ja-confirmei'] = async () => { try { await FB().atualizarConta(); toast(FB().admin ? 'Acesso de administrador ativado' : 'O e-mail ainda não aparece como confirmado'); if (FL.view === 'admin') FL.views.admin(); if (FL.view === 'perfil') FL.views.perfil() } catch (e) { toast(fbErr(e)) } };
 /* pedir para ser administrador */
 FL.actions['admin-pedido'] = () => {
   const u = FB().user, p = FB().profile;
@@ -269,6 +283,7 @@ FL.views.perfil = async () => {
     <div class="pfn"><h1>${esc(p.nome || 'Sem nome')}</h1><p>${esc(p.bio || 'Conte um pouco sobre você e as bandeiras de que mais gosta.')}</p>
      <div class="pfm">${p.criadoEm ? `<span>No Flâmula desde ${when(p.criadoEm)}</span>` : ''}${fav ? `<a class="pfchip" href="#b-${esc(fav.id)}">${svg(fav, '', true)}Favorita: ${esc(fav.n)}</a>` : ''}${FB().admin ? `<span class="stl aprovada">${FB().dono ? 'Administrador e moderador' : 'Administrador'}</span>` : ''}</div></div>
     <div class="pfa">${FB().admin ? `<a class="btn acc pr pfadm" href="#admin"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>Painel de administração<b id="pfpend" hidden></b></a>` : ''}<button class="btn ${FB().admin ? 'gh' : 'acc'} pr" id="pfedit">Editar perfil</button><button class="btn gh pr" id="pfout">Sair</button></div></div>
+   ${FB().donoPendente ? `<div class="pfaviso lg"><span><b>Confirme o seu e-mail para ativar o painel de administração.</b> Ou entre com o Google usando o mesmo endereço.</span><span class="erow"><button class="btn acc pr sm" data-act="verificar-email">Enviar link</button><button class="btn gh pr sm" data-act="ja-confirmei">Já confirmei</button></span></div>` : ''}
    <div class="pfs"><button class="lg pr" data-go="criacoes"><b id="pfn">–</b><span>Criações</span></button><button class="lg pr" data-go="curtidas"><b>${likes.length}</b><span>Curtidas</span></button><button class="lg pr" data-go="comunidades"><b>${(p.comunidades || []).length}</b><span>Comunidades</span></button><button class="lg pr" data-go="jogo"><b>${melhor ? melhor[1].acertos + '/10' : '–'}</b><span>${melhor ? 'Recorde · ' + NIVN[melhor[0]][0] : 'Recorde no jogo'}</span></button></div></div>
   <div class="tabsrow">${segH('pft', [['criacoes', 'Criações'], ['curtidas', 'Curtidas'], ['comunidades', 'Comunidades'], ['jogo', 'Jogo'], ['conta', 'Conta']], pfTab)}<div id="pfx"></div></div><div id="pfp"></div>`;
   requestAnimationFrame(() => segMove($('pft')));
@@ -355,19 +370,31 @@ FL.views.comunidade = async id => {
 };
 
 /* painel de administração (só administradores) */
-let adTab = 'envios';
+let adTab = 'geral';
+const fmtN = n => n == null ? '–' : Number(n).toLocaleString('pt-BR');
+const soma = o => Object.values(o || {}).reduce((a, b) => a + (+b || 0), 0);
 FL.views.admin = async () => {
   const v = $('v-admin'); document.title = 'Admin · Flâmula'; v.innerHTML = loading();
   await waitUser(); if (FL.view !== 'admin') return;
   if (!FB().on) return v.innerHTML = offMsg();
   if (!FB().user) return v.innerHTML = needLogin('acessar o painel de administração');
-  if (!FB().admin) return v.innerHTML = restricted('Acesso restrito', `Esta página é só para administradores. Para pedir acesso, envie um e-mail para <b>${ADMIN_EMAIL}</b> com o seu UID.`, '<button class="btn acc pr" data-act="admin-pedido">Pedir acesso</button>');
-  v.innerHTML = `<div class="phead"><h1>Administração</h1><p>Modere as criações enviadas, as comunidades e os formulários de colaboração.</p></div><div class="tabsrow">${segH('adt', [['envios', 'Envios'], ['comunidades', 'Comunidades'], ['colaboradores', 'Colaboradores']], adTab)}</div><div id="adp"></div>`;
+  if (!FB().admin) return v.innerHTML = FB().donoPendente ? restricted('Confirme o seu e-mail', 'Esta conta é a do administrador principal, mas o e-mail ainda não foi confirmado. Confirme pelo link enviado ao seu e-mail, ou entre com o Google usando o mesmo endereço.', '<button class="btn acc pr" data-act="verificar-email">Enviar link de confirmação</button><button class="btn gh pr" data-act="ja-confirmei">Já confirmei</button>') : restricted('Acesso restrito', `Esta página é só para administradores. Para pedir acesso, envie um e-mail para <b>${ADMIN_EMAIL}</b> com o seu UID.`, '<button class="btn acc pr" data-act="admin-pedido">Pedir acesso</button>');
+  v.innerHTML = `<div class="phead"><h1>Administração</h1><p>${FB().dono ? 'Você é o administrador principal e moderador do Flâmula.' : 'Você é administrador do Flâmula.'} Acompanhe os números, modere envios, cuide da galeria e das contas.</p></div><div class="tabsrow">${segH('adt', [['geral', 'Visão geral'], ['envios', 'Envios'], ['galeria', 'Galeria'], ['usuarios', 'Usuários'], ['comunidades', 'Comunidades'], ['colaboradores', 'Colaboradores']], adTab)}</div><div id="adp"></div>`;
+  requestAnimationFrame(() => segMove($('adt')));
   segBind($('adt'), t => { adTab = t; pane() });
+  const irPara = t => { adTab = t; $('adt').querySelectorAll('button').forEach(x => { x.classList.toggle('on', x.dataset.v === t); x.setAttribute('aria-pressed', x.dataset.v === t) }); segMove($('adt')); pane() };
   const pane = async () => {
     const box = $('adp'); box.innerHTML = loading();
     try {
-      if (adTab === 'envios') {
+      if (adTab === 'geral') {
+        const [us, pe, ap, re, co, cb, est] = await Promise.all([FB().contar('usuarios'), FB().contar('envios', 'status', 'pendente'), FB().contar('envios', 'status', 'aprovada'), FB().contar('envios', 'status', 'reprovada'), FB().contar('comunidades'), FB().contar('colaboradores'), FB().estatisticas().catch(() => ({}))]);
+        const top = (o, n = 8) => Object.entries(o || {}).filter(([id]) => byId[id]).sort((a, b) => b[1] - a[1]).slice(0, n);
+        const tl = (L, u) => L.length ? `<div class="adtop">${L.map(([id, n], k) => `<a class="pr" href="#b-${esc(id)}"><b>${k + 1}</b>${flagThumb(id)}<span>${esc(byId[id].n)}</span><small>${fmtN(n)} ${u}</small></a>`).join('')}</div>` : '<p class="pfnote">Ainda sem dados.</p>';
+        box.innerHTML = `<div class="adst">${[['Usuários', us, 'usuarios'], ['Aguardando moderação', pe, 'envios'], ['Criações aprovadas', ap, 'galeria'], ['Reprovadas', re, 'envios'], ['Comunidades', co, 'comunidades'], ['Pedidos de colaboração', cb, 'colaboradores'], ['Downloads', soma(est.downloads), ''], ['Curtidas', soma(est.curtidas), '']].map(([l, n, t]) => `<button class="lg pr" ${t ? `data-ir="${t}"` : 'disabled'}><b>${fmtN(n)}</b><span>${l}</span></button>`).join('')}</div>
+        <div class="adcol"><section><h3>Mais baixadas</h3>${tl(top(est.downloads), 'downloads')}</section><section><h3>Mais curtidas</h3>${tl(top(est.curtidas), 'curtidas')}</section></div>`;
+        box.querySelectorAll('[data-ir]').forEach(b => b.onclick = () => irPara(b.dataset.ir));
+      }
+      else if (adTab === 'envios') {
         const L = (await FB().pendentes()).sort((a, b) => ((a.criadoEm?.seconds) || 0) - ((b.criadoEm?.seconds) || 0));
         box.innerHTML = L.length ? `<div class="list">${L.map(e => `<div class="li lg"><div class="th"><img src="${dataSrc(e.svg)}" alt=""></div><div><b>${esc(e.nome)}</b><div class="m"><span>@${esc(e.autor)}</span><span>${when(e.criadoEm)}</span>${e.comunidade ? '<span>Para uma comunidade</span>' : ''}</div></div><div class="acts"><button class="btn acc pr sm" data-ok="${esc(e.id)}">Aprovar</button><button class="btn gh pr sm" data-no="${esc(e.id)}">Reprovar</button><button class="btn dg pr sm" data-rm="${esc(e.id)}">Apagar</button></div></div>`).join('')}</div>` : '<div class="empty"><b>Nenhum envio aguardando</b><p>Tudo moderado por aqui.</p></div>';
         box.querySelectorAll('[data-ok]').forEach(b => b.onclick = async () => { try { await FB().moderar(b.dataset.ok, 'aprovada'); toast('Criação aprovada'); FL.reloadOriginals(); pane() } catch (e) { toast(fbErr(e)) } });
@@ -382,11 +409,53 @@ FL.views.admin = async () => {
         const L = await FB().comunidades();
         box.innerHTML = L.length ? `<div class="list">${L.map(c => `<div class="li lg"><div class="th">${flagThumb(c.bandeira)}</div><div><b>${esc(c.nome)}</b><div class="m"><span>${c.membros || 0} membros</span><span>Criada por ${esc(c.donoNome || '—')}</span><span>${when(c.criadaEm)}</span></div></div><div class="acts"><a class="btn gh pr sm" href="#c-${esc(c.id)}">Abrir</a><button class="btn dg pr sm" data-rmc="${esc(c.id)}">Apagar</button></div></div>`).join('')}</div>` : '<div class="empty"><b>Nenhuma comunidade criada</b></div>';
         box.querySelectorAll('[data-rmc]').forEach(b => b.onclick = async () => { if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Confirmar'; return } try { await FB().apagarComunidade(b.dataset.rmc); toast('Comunidade apagada'); pane() } catch (e) { toast(fbErr(e)) } });
-      } else {
+      } else if (adTab === 'colaboradores') {
         const L = await FB().colaboradores();
         const AREA = { curadoria: 'Curadoria de bandeiras', pesquisa: 'Pesquisa histórica', traducao: 'Tradução', design: 'Design', desenvolvimento: 'Desenvolvimento', moderacao: 'Moderação', direitos: 'Direitos autorais e remoção', outro: 'Outro' };
         box.innerHTML = L.length ? `<div class="list">${L.map(c => `<div class="box lg"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><b>${esc(c.nome)}</b><span class="stl pendente">${esc(AREA[c.area] || c.area)}</span></div><p style="color:var(--mut);font-size:14px">${esc(c.email)} · ${when(c.criadoEm)}</p><p style="white-space:pre-wrap">${esc(c.mensagem)}</p><div class="acts"><a class="btn gh pr sm" href="mailto:${esc(c.email)}" target="_blank" rel="noopener">Responder</a><button class="btn dg pr sm" data-rmk="${esc(c.id)}">Apagar</button></div></div>`).join('')}</div>` : '<div class="empty"><b>Nenhum formulário recebido</b></div>';
         box.querySelectorAll('[data-rmk]').forEach(b => b.onclick = async () => { try { await FB().apagarColaborador(b.dataset.rmk); pane() } catch (e) { toast(fbErr(e)) } });
+      }
+      if (adTab === 'galeria') {
+        const G = { destaques: [], ocultas: [], nomes: {}, ...(await FB().galeria().catch(() => ({}))) };
+        const ap = await FB().aprovadas().catch(() => []);
+        const salvar = async (d, msg) => { try { await FB().salvarGaleria(d); toast(msg); pane() } catch (e) { toast(fbErr(e)) } };
+        const oficiais = D.filter(f => f.t !== 'criacao').sort((a, b) => (a.n0 || a.n).localeCompare(b.n0 || b.n, 'pt'));
+        box.innerHTML = `<section class="adsec"><h3>Destaques da página inicial</h3><p class="pfnote" style="margin:0 0 10px">Escolha até 12 bandeiras para a seção "Em destaque". Sem escolha, a seção mostra as mais baixadas.</p>
+          <div class="adchips">${G.destaques.map(id => byId[id] ? `<span class="adchip">${flagThumb(id)}${esc(byId[id].n)}<button class="pr" data-undest="${esc(id)}" aria-label="Tirar dos destaques">×</button></span>` : '').join('') || '<span class="pfnote">Nenhum destaque escolhido.</span>'}</div>
+          <div class="erow" style="margin-top:10px"><div id="addest"></div>${G.destaques.length ? '<button class="btn gh pr sm" id="limpadest">Voltar às mais baixadas</button>' : ''}</div></section>
+         <section class="adsec"><h3>Criações publicadas <small>${ap.length}</small></h3>${ap.length ? `<div class="list">${ap.map(e => `<div class="li lg"><div class="th"><img src="${dataSrc(e.svg)}" alt=""></div><div><b>${esc(e.nome)}</b><div class="m"><span>@${esc(e.autor)}</span><span>${when(e.criadoEm)}</span></div></div><div class="acts"><a class="btn gh pr sm" href="#b-u-${esc(e.id)}">Ver</a><button class="btn gh pr sm" data-ren="${esc(e.id)}">Renomear</button><button class="btn gh pr sm" data-volta="${esc(e.id)}">Voltar à moderação</button><button class="btn dg pr sm" data-rmp="${esc(e.id)}">Apagar</button></div></div>`).join('')}</div>` : '<div class="empty"><b>Nenhuma criação publicada ainda</b></div>'}</section>
+         <section class="adsec"><h3>Bandeiras do acervo</h3><p class="pfnote" style="margin:0 0 10px">Renomeie, oculte da galeria ou destaque qualquer bandeira oficial. As mudanças valem para todos os visitantes.</p>
+          <div class="fw-busca" style="margin:0 0 12px"><input id="adq" type="search" placeholder="Buscar bandeira do acervo" autocomplete="off"></div><div class="list" id="adres"></div>
+          ${G.ocultas.length ? `<p class="elabel" style="margin-top:16px">Ocultas da galeria</p><div class="adchips">${G.ocultas.map(id => byId[id] ? `<span class="adchip">${flagThumb(id)}${esc(byId[id].n0 || byId[id].n)}<button class="pr" data-mostra="${esc(id)}" aria-label="Mostrar de novo">×</button></span>` : '').join('')}</div>` : ''}</section>`;
+        dd($('addest'), { label: 'Adicionar destaque', placeholder: 'Adicionar destaque…', search: true, value: '', width: 320, items: oficiais.concat(D.filter(f => f.t === 'criacao')).filter(f => !G.destaques.includes(f.id)).map(f => ({ v: f.id, l: f.n, sw: f.c && f.c[0] })), onChange: id => { if (!id) return; if (G.destaques.length >= 12) return toast('Máximo de 12 destaques'); salvar({ destaques: G.destaques.concat([id]) }, 'Destaque adicionado') } });
+        box.querySelectorAll('[data-undest]').forEach(b => b.onclick = () => salvar({ destaques: G.destaques.filter(x => x !== b.dataset.undest) }, 'Destaque removido'));
+        if ($('limpadest')) $('limpadest').onclick = () => salvar({ destaques: [] }, 'A seção volta a mostrar as mais baixadas');
+        box.querySelectorAll('[data-mostra]').forEach(b => b.onclick = () => salvar({ ocultas: G.ocultas.filter(x => x !== b.dataset.mostra) }, 'Bandeira visível de novo'));
+        box.querySelectorAll('[data-ren]').forEach(b => b.onclick = () => { const e = ap.find(x => x.id === b.dataset.ren); sheet('Renomear criação', `<div class="form"><label class="field">Nome<input id="rnn" maxlength="60" value="${esc(e.nome)}"></label><button class="btn acc pr" id="rnok">Salvar</button></div>`); $('rnok').onclick = async () => { const nome = $('rnn').value.trim(); if (!nome) return; try { await FB().editarEnvio(e.id, { nome }); closeSheet(); toast('Nome atualizado'); FL.reloadOriginals(); pane() } catch (er) { toast(fbErr(er)) } } });
+        box.querySelectorAll('[data-volta]').forEach(b => b.onclick = async () => { try { await FB().moderar(b.dataset.volta, 'pendente'); toast('A criação voltou para a moderação'); FL.reloadOriginals(); pane() } catch (e) { toast(fbErr(e)) } });
+        box.querySelectorAll('[data-rmp]').forEach(b => b.onclick = async () => { if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Confirmar'; return } try { await FB().apagarEnvio(b.dataset.rmp); toast('Criação apagada'); FL.reloadOriginals(); pane() } catch (e) { toast(fbErr(e)) } });
+        const res = () => {
+          const q = norm($('adq').value || ''); const L = q ? oficiais.filter(f => norm([f.n0 || f.n, f.n, f.k, f.pais].join(' ')).includes(q)).slice(0, 30) : [];
+          $('adres').innerHTML = !q ? '<p class="pfnote" style="margin:0">Digite para buscar entre as bandeiras oficiais.</p>' : L.length ? L.map(f => `<div class="li lg"><div class="th">${flagThumb(f.id)}</div><div><b>${esc(f.n)}</b><div class="m"><span>${esc(f.n0 && f.n0 !== f.n ? 'Nome original: ' + f.n0 : f.of || '')}</span>${f.oculta ? '<span class="stl reprovada">Oculta</span>' : ''}${G.destaques.includes(f.id) ? '<span class="stl aprovada">Destaque</span>' : ''}</div></div><div class="acts"><button class="btn gh pr sm" data-renb="${esc(f.id)}">Renomear</button><button class="btn gh pr sm" data-oc="${esc(f.id)}">${f.oculta ? 'Mostrar' : 'Ocultar'}</button><button class="btn gh pr sm" data-dst="${esc(f.id)}">${G.destaques.includes(f.id) ? 'Tirar destaque' : 'Destacar'}</button></div></div>`).join('') : '<p class="pfnote" style="margin:0">Nada encontrado.</p>';
+          $('adres').querySelectorAll('[data-oc]').forEach(b => b.onclick = () => { const id = b.dataset.oc; const oc = G.ocultas.includes(id) ? G.ocultas.filter(x => x !== id) : G.ocultas.concat([id]); salvar({ ocultas: oc }, G.ocultas.includes(id) ? 'Bandeira visível de novo' : 'Bandeira oculta da galeria') });
+          $('adres').querySelectorAll('[data-dst]').forEach(b => b.onclick = () => { const id = b.dataset.dst; if (!G.destaques.includes(id) && G.destaques.length >= 12) return toast('Máximo de 12 destaques'); salvar({ destaques: G.destaques.includes(id) ? G.destaques.filter(x => x !== id) : G.destaques.concat([id]) }, 'Destaques atualizados') });
+          $('adres').querySelectorAll('[data-renb]').forEach(b => b.onclick = () => { const f = byId[b.dataset.renb]; sheet('Renomear bandeira', `<div class="form"><label class="field">Nome exibido<input id="rnb" maxlength="80" value="${esc(f.n)}"></label><p class="pfnote" style="margin:0">Nome original: ${esc(f.n0 || f.n)}. Deixe igual ao original para desfazer.</p><button class="btn acc pr" id="rnbok">Salvar</button></div>`); $('rnbok').onclick = () => { const nome = $('rnb').value.trim(); const nm = { ...G.nomes }; if (!nome || nome === (f.n0 || f.n)) delete nm[f.id]; else nm[f.id] = nome; closeSheet(); FB().salvarGaleria({ nomes: nm }).then(() => { toast('Nome atualizado'); pane() }).catch(e => toast(fbErr(e))) } });
+        };
+        $('adq').oninput = res; res();
+      } else if (adTab === 'usuarios') {
+        const [U, A] = await Promise.all([FB().usuarios(), FB().admins().catch(() => [])]);
+        const adm = new Set(A), meu = FB().user.uid;
+        U.sort((a, b) => ((b.criadoEm?.seconds) || 0) - ((a.criadoEm?.seconds) || 0));
+        box.innerHTML = `<div class="tabsrow" style="margin-bottom:12px"><div class="fw-busca" style="margin:0;flex:1"><input id="adu" type="search" placeholder="Buscar por nome ou UID" autocomplete="off"></div><span class="pfnote" style="margin:0">${U.length} contas</span></div><div class="list" id="adul"></div>
+          <p class="pfnote">${FB().dono ? 'Só você, como administrador principal, promove e remove administradores.' : 'Só o administrador principal promove e remove administradores.'} Contas banidas não enviam criações, não criam nem entram em comunidades e não entram no ranking.</p>`;
+        const draw = () => {
+          const q = norm($('adu').value || ''); const L = U.filter(u => !q || norm((u.nome || '') + ' ' + u.id).includes(q)).slice(0, 200);
+          $('adul').innerHTML = L.length ? L.map(u => { const eu = u.id === meu, ad = adm.has(u.id) || (eu && FB().admin); return `<div class="li lg aduser"><div class="th">${avatar(u)}</div><div><b>${esc(u.nome || 'Sem nome')}${eu ? ' <small style="color:var(--mut)">(você)</small>' : ''}</b><div class="m">${ad ? '<span class="stl aprovada">Administrador</span>' : ''}${u.banido ? '<span class="stl reprovada">Banido</span>' : ''}<span>${u.criadoEm ? 'Desde ' + when(u.criadoEm) : 'Sem data'}</span><span>${(u.comunidades || []).length} comunidades</span><code style="font-size:12px">${esc(u.id.slice(0, 10))}…</code></div></div><div class="acts"><button class="btn gh pr sm" data-env="${esc(u.id)}">Envios</button>${!eu && FB().dono && !u.banido ? `<button class="btn gh pr sm" data-adm="${esc(u.id)}">${adm.has(u.id) ? 'Remover admin' : 'Tornar admin'}</button>` : ''}${!eu && !adm.has(u.id) ? `<button class="btn ${u.banido ? 'gh' : 'dg'} pr sm" data-ban="${esc(u.id)}">${u.banido ? 'Desbanir' : 'Banir'}</button>` : ''}</div></div>` }).join('') : '<div class="empty"><b>Nenhuma conta encontrada</b></div>';
+          $('adul').querySelectorAll('[data-ban]').forEach(b => b.onclick = async () => { const u = U.find(x => x.id === b.dataset.ban); if (!u.banido && b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Confirmar banimento'; return } try { await FB().banir(u.id, !u.banido); u.banido = !u.banido; toast(u.banido ? 'Conta banida' : 'Banimento removido'); draw() } catch (e) { toast(fbErr(e)) } });
+          $('adul').querySelectorAll('[data-adm]').forEach(b => b.onclick = async () => { const id = b.dataset.adm; try { if (adm.has(id)) { await FB().rebaixar(id); adm.delete(id); toast('Acesso de administrador removido') } else { await FB().promover(id); adm.add(id); toast('Conta promovida a administrador') } draw() } catch (e) { toast(fbErr(e)) } });
+          $('adul').querySelectorAll('[data-env]').forEach(b => b.onclick = async () => { const u = U.find(x => x.id === b.dataset.env); const el = sheet('Envios de ' + (u.nome || 'Sem nome'), loading()); try { const L2 = await FB().enviosDe(u.id); const bx = el.querySelector('.restr') ? el.querySelector('.restr').parentElement : el; bx.innerHTML = L2.length ? `<div class="list">${L2.map(e => `<div class="li"><div class="th"><img src="${dataSrc(e.svg)}" alt=""></div><div><b>${esc(e.nome)}</b><div class="m"><span class="stl ${esc(e.status)}">${esc(e.status)}</span><span>${when(e.criadoEm)}</span></div></div></div>`).join('')}</div>` : '<p class="pfnote">Esta conta ainda não enviou criações.</p>' } catch (e) { toast(fbErr(e)) } });
+        };
+        $('adu').oninput = draw; draw();
       }
     } catch (e) { box.innerHTML = `<div class="empty"><b>Não foi possível carregar</b><p>${esc(fbErr(e))}</p></div>` }
   };

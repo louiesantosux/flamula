@@ -604,7 +604,10 @@ const renderCats=()=>{const catDef=[['pais','Países e territórios','big'],['na
  $('cats').innerHTML=catDef.map(([t,l,c])=>{const fs=c==='big'?['br','jp','gb','us','in','ch'].map(i=>byId[i]):D.filter(f=>f.t===t||(t==='ilha'&&f.isl)).slice(0,4);return `<button class="cat pr ${c}" data-cat="${t}"><div><b>${l}</b><br><span>${cnt(t)} bandeiras</span></div><div class="minis">${fs.map(f=>svg(f)).join('')}</div></button>`}).join('')};
 renderCats();
 const CUR=['br','jp','gb','us','fr','de','it','ca','mx','ar','pt','kr','ch','se','br-sp','ics-a'];
-const renderDest=()=>{const real=S.on&&off().some(f=>nD(f)>0);$('destp').textContent=real?'As mais baixadas do Flâmula.':'Seleção da curadoria.';$('dest').innerHTML=(real?off().sort((a,b)=>nD(b)-nD(a)||a.n.localeCompare(b.n,'pt')).slice(0,10):CUR.map(i=>byId[i]).filter(Boolean)).map(card).join('')};
+/* configuração da galeria feita pelos administradores: ocultas, nomes e destaques */
+const aplicaGaleria=d=>{window.FL_GALERIA=d||{};const oc=new Set(d.ocultas||[]),nm=d.nomes||{};D.forEach(f=>{if(f.n0==null)f.n0=f.n;f.oculta=oc.has(f.id);f.n=nm[f.id]||f.n0});if(view==='home'){renderDest();renderCats&&renderCats()}if(view==='explorar')gal()};
+addEventListener('fl-galeria',e=>aplicaGaleria(e.detail||{}));
+const renderDest=()=>{const G=window.FL_GALERIA||{};const fix=(G.destaques||[]).map(i=>byId[i]).filter(f=>f&&!f.oculta);if(fix.length){$('destp').textContent='Escolhidas pela curadoria do Flâmula.';$('dest').innerHTML=fix.map(card).join('');return}const real=S.on&&off().some(f=>nD(f)>0);$('destp').textContent=real?'As mais baixadas do Flâmula.':'Seleção da curadoria.';$('dest').innerHTML=(real?off().sort((a,b)=>nD(b)-nD(a)||a.n.localeCompare(b.n,'pt')).slice(0,10):CUR.map(i=>byId[i]).filter(Boolean)).map(card).join('')};
 renderDest();
 const renderCom=()=>{const c=D.filter(f=>f.o==='original').sort((a,b)=>b.added-a.added).slice(0,10);$('secom').hidden=!c.length;$('ult').innerHTML=c.map(card).join('')};
 $('gamepic').innerHTML=['fr','it','ie'].map((i,k)=>`<span style="left:${[4,28,48][k]}%;top:${[6,36,2][k]}%;transform:rotate(${[-8,4,10][k]}deg)">${svg(byId[i],'fl')}</span>`).join('');
@@ -628,7 +631,7 @@ const gal=(anim)=>{
  $('orig').querySelectorAll('button').forEach(b=>{b.classList.toggle('on',b.dataset.o===st.o);b.setAttribute('aria-pressed',b.dataset.o===st.o)});moveInd(anim);
  $('tipos').querySelectorAll('.chip').forEach(b=>{b.classList.toggle('on',b.dataset.t===st.t);b.setAttribute('aria-pressed',b.dataset.t===st.t)});
  ddCont.set(st.r);ddOrd.set(st.s);
- const L=D.filter(f=>(st.t==='todos'||f.t===st.t||(st.t==='ilha'&&f.isl))&&(st.o==='todas'||f.o===st.o)&&inCont(f)&&(!st.q||norm([f.n,f.k,f.a,f.cap,f.of,f.pais].join(' ')).includes(norm(st.q))));
+ const L=D.filter(f=>!f.oculta&&(st.t==='todos'||f.t===st.t||(st.t==='ilha'&&f.isl))&&(st.o==='todas'||f.o===st.o)&&inCont(f)&&(!st.q||norm([f.n,f.k,f.a,f.cap,f.of,f.pais].join(' ')).includes(norm(st.q))));
  const so={popular:byPop,recentes:(a,b)=>b.added-a.added,downloads:(a,b)=>nD(b)-nD(a)||a.n.localeCompare(b.n,'pt'),az:(a,b)=>a.n.localeCompare(b.n,'pt')}[st.s];L.sort(so);
  $('ptot').textContent=`${off().length} bandeiras oficiais: ${cnt('pais')} países e territórios, ${cnt('estado')} estados do Brasil e ${cnt('nautica')} sinais náuticos, além de ${cnt('militar')} bandeiras militares${cnt('criacao')?` e ${cnt('criacao')} ${cnt('criacao')>1?'criações':'criação'} da comunidade`:''}.`;
  $('res').textContent=L.length?`${L.length} ${L.length>1?'resultados':'resultado'}`:'';
