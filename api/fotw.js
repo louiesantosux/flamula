@@ -10,7 +10,7 @@
 */
 const BASE = 'https://www.crwflags.com/fotw/';
 const UA = 'Mozilla/5.0 (compatible; Flamula/1.0; leitor de consulta com crédito ao FOTW)';
-const NAV = /^(index|search|disclaim|mirror|contact|keywords|x-|fotw|whatsnew|faq|vexilla|links|nav|abbr|siteinfo|editors|thanks|books|glossary|vxt|mirrors|copyright|flagspot)/i;
+const NAV = /^(mailme|keyword|bib-|index|search|disclaim|mirror|contact|keywords|x-|fotw|whatsnew|faq|vexilla|links|nav|abbr|siteinfo|editors|thanks|books|glossary|vxt|mirrors|copyright|flagspot)/i;
 
 const ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', laquo: '«', raquo: '»', ndash: '–', mdash: '—', hellip: '…', deg: '°', middot: '·', copy: '©', rsquo: '’', lsquo: '‘', rdquo: '”', ldquo: '“', szlig: 'ß' };
 const ACC = { acute: '\u0301', grave: '\u0300', circ: '\u0302', tilde: '\u0303', uml: '\u0308', ring: '\u030A', cedil: '\u0327', caron: '\u030C' };
@@ -106,7 +106,7 @@ function parsePage(html, file) {
   }
   for (const it of itens) {
     const t = it.after.replace(/[ \t\r\f\v]+/g, ' ');
-    const c = t.match(/\b(images?\s+(?:[a-z]+\s+){0,2}by\s+[^\n]{2,160})/i); it.credito = c ? c[1].trim() : '';
+    const c = t.match(/\b(images?\s+(?:[a-z]+\s+){0,2}by\s+[^\n]{2,160})/i); it.credito = c ? c[1].replace(/\s+/g, ' ').trim() : '';
     const p = t.match(/proportions?\s*:?\s*(\d+(?:[.,]\d+)?\s*:\s*\d+(?:[.,]\d+)?)/i); it.prop = p ? p[1].replace(/\s/g, '') : '';
     delete it.after; if (it.label === it.sec) it.label = it.alt || it.sec;
   }
