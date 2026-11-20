@@ -86,6 +86,8 @@ css.textContent += `
 .pfn h1{font-size:clamp(26px,3.4vw,40px)}.pfn p{margin:6px 0 0;color:var(--mut);max-width:60ch}
 .pfm{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-top:10px;font-size:13.5px;color:var(--mut)}
 .pfchip{display:inline-flex;gap:8px;align-items:center;padding:4px 12px 4px 5px;border-radius:999px;background:var(--chip);color:var(--ink);font-weight:600}.pfchip img,.pfchip svg{width:26px;height:18px;object-fit:cover;border-radius:4px}
+@media(max-width:760px){.pfa{flex-wrap:wrap}.pfa a.btn.pfadm{flex:1 1 100%;justify-content:center}}
+.pfadm b{min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:#fff;color:var(--oceano,#1B7FDC);font-size:12px;display:inline-grid;place-items:center;margin-left:2px}
 .pfs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 18px 0}
 .pfs button{border:0;border-radius:22px;padding:14px 16px;text-align:left;display:grid;gap:2px;color:inherit}
 .pfs b{font:700 clamp(22px,2.6vw,30px)/1.1 var(--font-d);background:var(--aurora);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -266,7 +268,7 @@ FL.views.perfil = async () => {
    <div class="pfb lg">${avatar(p, 'av pfav')}
     <div class="pfn"><h1>${esc(p.nome || 'Sem nome')}</h1><p>${esc(p.bio || 'Conte um pouco sobre você e as bandeiras de que mais gosta.')}</p>
      <div class="pfm">${p.criadoEm ? `<span>No Flâmula desde ${when(p.criadoEm)}</span>` : ''}${fav ? `<a class="pfchip" href="#b-${esc(fav.id)}">${svg(fav, '', true)}Favorita: ${esc(fav.n)}</a>` : ''}${FB().admin ? `<span class="stl aprovada">${FB().dono ? 'Administrador e moderador' : 'Administrador'}</span>` : ''}</div></div>
-    <div class="pfa"><button class="btn acc pr" id="pfedit">Editar perfil</button><button class="btn gh pr" id="pfout">Sair</button></div></div>
+    <div class="pfa">${FB().admin ? `<a class="btn acc pr pfadm" href="#admin"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>Painel de administração<b id="pfpend" hidden></b></a>` : ''}<button class="btn ${FB().admin ? 'gh' : 'acc'} pr" id="pfedit">Editar perfil</button><button class="btn gh pr" id="pfout">Sair</button></div></div>
    <div class="pfs"><button class="lg pr" data-go="criacoes"><b id="pfn">–</b><span>Criações</span></button><button class="lg pr" data-go="curtidas"><b>${likes.length}</b><span>Curtidas</span></button><button class="lg pr" data-go="comunidades"><b>${(p.comunidades || []).length}</b><span>Comunidades</span></button><button class="lg pr" data-go="jogo"><b>${melhor ? melhor[1].acertos + '/10' : '–'}</b><span>${melhor ? 'Recorde · ' + NIVN[melhor[0]][0] : 'Recorde no jogo'}</span></button></div></div>
   <div class="tabsrow">${segH('pft', [['criacoes', 'Criações'], ['curtidas', 'Curtidas'], ['comunidades', 'Comunidades'], ['jogo', 'Jogo'], ['conta', 'Conta']], pfTab)}<div id="pfx"></div></div><div id="pfp"></div>`;
   requestAnimationFrame(() => segMove($('pft')));
@@ -281,6 +283,7 @@ FL.views.perfil = async () => {
     dd($('pefav'), { label: 'Bandeira favorita', placeholder: 'Escolha uma bandeira…', search: true, value: band, width: 320, items: [{ v: '', l: 'Nenhuma' }].concat(ops), onChange: x => { band = x } });
     $('peok').onclick = async () => { const nome = $('ped').value.trim(); if (!nome) return; try { await FB().saveProfile({ nome, bio: $('peb').value.trim(), bandeira: band }); closeSheet(); toast('Perfil atualizado'); FL.views.perfil() } catch (e) { const er = $('peerr'); er.textContent = fbErr(e); er.hidden = false } };
   };
+  if (FB().admin && FB().pendentes) FB().pendentes().then(L => { const b = $('pfpend'); if (b && L.length) { b.textContent = L.length; b.hidden = false; b.title = L.length + ' envios aguardando moderação' } }).catch(() => { });
   FB().meusEnvios().then(L => { const n = $('pfn'); if (n) n.textContent = L.length }).catch(() => { const n = $('pfn'); if (n) n.textContent = '0' });
   const pane = async () => {
     const box = $('pfp'), x = $('pfx'); if (!box) return;
