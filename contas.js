@@ -607,7 +607,7 @@ FL.views.admin = async () => {
           <div class="erow"><button class="btn acc pr" id="apsalva">Salvar</button>${A.chave || A.codigo ? '<button class="btn dg pr" id="apdesl">Desativar</button>' : ''}</div></div>
           <div class="box lg apo-prev"><p class="elabel" style="margin:0">Prévia</p><div id="apprev"></div></div></div>`;
         const modoUI = () => { $('apchave').hidden = modo !== 'chave'; $('apcodw').hidden = modo !== 'codigo'; prev() };
-        const dados = () => modo === 'chave' ? { chave: $('apk').value.trim(), nome: $('apn').value.trim(), cidade: $('apc').value.trim(), mensagem: $('apm').value.trim() } : { codigo: $('apcod').value.replace(/\s+/g, ''), nome: $('apn').value.trim(), mensagem: $('apm').value.trim() };
+        const dados = () => modo === 'chave' ? { chave: $('apk').value.trim(), nome: $('apn').value.trim(), cidade: $('apc').value.trim(), mensagem: $('apm').value.trim() } : { codigo: $('apcod').value.replace(/[\r\n\t]+/g, '').trim(), nome: $('apn').value.trim(), mensagem: $('apm').value.trim() };
         const prev = () => { const d = dados(), c = FL.pix.codigoDe(d); $('apprev').innerHTML = c ? `<div class="apo-qr" style="width:180px;margin:10px auto">${FLQR(c)}</div><div class="apo-cod">${esc(c)}</div>` : `<p class="pfnote">${modo === 'codigo' && d.codigo ? 'Código inválido: confira se colou o código inteiro.' : 'Preencha os campos para ver o QR Code.'}</p>` };
         dd($('apmodo'), { label: 'Como informar o Pix', value: modo, items: [{ v: 'chave', l: 'Gerar a partir da chave Pix' }, { v: 'codigo', l: 'Colar código copia e cola do banco' }], onChange: v => { modo = v; modoUI() } });
         $('apmodo').querySelector('.dd-btn').style.cssText = 'width:100%;justify-content:space-between';

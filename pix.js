@@ -16,7 +16,7 @@ const brcode = ({ chave, nome, cidade, txid }) => {
   let s = tlv('00', '01') + tlv('26', gui) + tlv('52', '0000') + tlv('53', '986') + tlv('58', 'BR') + tlv('59', ascii(nome, 25) || 'FLAMULA') + tlv('60', ascii(cidade, 15).toUpperCase() || 'BRASIL') + tlv('62', tlv('05', ascii(txid, 25).replace(/[^A-Za-z0-9]/g, '') || '***'));
   s += '6304'; return s + crc16(s);
 };
-const valido = c => { c = String(c || '').trim(); if (!/^000201/.test(c) || c.length < 30 || !/6304[0-9A-Fa-f]{4}$/.test(c)) return false; return crc16(c.slice(0, -4)) === c.slice(-4).toUpperCase() };
+const valido = c => { c = String(c || '').replace(/[\r\n\t]+/g, '').trim(); if (!/^000201/.test(c) || c.length < 30 || !/6304[0-9A-Fa-f]{4}$/.test(c)) return false; return crc16(c.slice(0, -4)) === c.slice(-4).toUpperCase() };
 const codigoDe = d => d && (d.codigo && valido(d.codigo) ? d.codigo.trim() : d.chave ? brcode(d) : '');
 FL.pix = { brcode, valido, crc16, codigoDe };
 
