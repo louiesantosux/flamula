@@ -487,6 +487,7 @@ footer a:hover,footer button:hover{color:var(--ink)}
 <main id="v-criar" hidden class="wrap"></main>
 <main id="v-entrar" hidden class="wrap"></main>
 <main id="v-decidir" hidden class="wrap"></main>
+<main id="v-colecao" hidden class="wrap"></main>
 <main id="v-perfil" hidden class="wrap"></main>
 <main id="v-comunidades" hidden class="wrap"></main>
 <main id="v-comunidade" hidden class="wrap"></main>
@@ -525,14 +526,14 @@ footer a:hover,footer button:hover{color:var(--ink)}
 </nav>
 <div class="toast lg" id="toast" role="status" aria-live="polite"></div>
 
-<script src="acervo.js?v=20261120e"></script>
+<script src="acervo.js?v=20261120f"></script>
 <script src="firebase-config.js"></script>
-<script type="module" src="firebase.js?v=20261120e"></script>
-<script src="wiki.js?v=20261120e"></script>
+<script type="module" src="firebase.js?v=20261120f"></script>
+<script src="wiki.js?v=20261120f"></script>
 <script>
 {
 const D=window.ACERVO.D;
-const P={edit:'M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4',heart:'M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z',dl:'M12 4v11M7 10l5 5 5-5M5 20h14',copy:'M9 9h11v11H9zM5 15V5a1 1 0 0 1 1-1h10',link:'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',remix:'M4 7h12l-3-3M20 17H8l3 3',back:'M15 6l-6 6 6 6',arrow:'M7 17L17 7M9 7h8v8',search:'M20 20l-4-4M18 11a7 7 0 1 1-14 0 7 7 0 0 1 14 0z',chev:'M7 10l5 5 5-5',check:'M5 12l5 5 9-10',x:'M6 6l12 12M18 6L6 18',user:'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c1.5-4 4.5-6 8-6s6.5 2 8 6',ext:'M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5'};
+const P={bookmark:'M6 4h12v17l-6-4.5L6 21z',edit:'M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4',heart:'M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z',dl:'M12 4v11M7 10l5 5 5-5M5 20h14',copy:'M9 9h11v11H9zM5 15V5a1 1 0 0 1 1-1h10',link:'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',remix:'M4 7h12l-3-3M20 17H8l3 3',back:'M15 6l-6 6 6 6',arrow:'M7 17L17 7M9 7h8v8',search:'M20 20l-4-4M18 11a7 7 0 1 1-14 0 7 7 0 0 1 14 0z',chev:'M7 10l5 5 5-5',check:'M5 12l5 5 9-10',x:'M6 6l12 12M18 6L6 18',user:'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c1.5-4 4.5-6 8-6s6.5 2 8 6',ext:'M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5'};
 const I=n=>`<svg class="ico" viewBox="0 0 24 24"><path d="${P[n]}"/></svg>`;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -756,7 +757,7 @@ const det=id=>{const f=byId[id];if(!f){history.replaceState(null,'','#explorar')
  document.title=f.n+' · Flâmula';tint(f);
  const dlBtn=isM?`<a class="btn pr" id="fwlink" href="#" target="_blank" rel="noopener">${I('ext')}Abrir na Wikipédia</a>`:`<button class="btn pr" id="bdl">${I('dl')}Baixar SVG<span class="n" data-cd="${esc(f.id)}" style="opacity:.7">·&nbsp;<i>${fmt(nD(f))}</i></span></button>`;
  $('v-detalhe').innerHTML=`<a class="back lg pr" href="#${isM?'militares':'explorar'}">${I('back')}${isM?'Militares':'Explorar'}</a><div class="dgrid"><div class="dstage lg">${svg(f,'fl',false)}</div><div class="dinfo"><div class="dhead lg"><h1>${esc(f.n)}</h1>${f.of&&f.of!==f.n?`<p class="of">${esc(f.of)}</p>`:''}<div class="pills"><span class="o">${isO?'Original':isM?'Militar':'Oficial'}</span>${isM?'':`<span>${TN[f.t]}</span>`}<span>${esc(f.ct||f.r)}</span>${f.isl?'<span>Ilha</span>':''}${isO?`<span>@${esc(f.a)}</span>`:''}</div>
- <div class="acts"><button class="btn gh pr ${liked.has(f.id)?'on':''}" id="blike" aria-pressed="${liked.has(f.id)}">${I('heart')}<span class="n" data-cl="${esc(f.id)}"><i>${fmt(nL(f))}</i></span><span class="lbl">Curtir</span></button>${dlBtn}<button class="btn gh pr" id="bshare">${I('link')}Copiar link</button>${isM?'':`<a class="btn acc pr" href="#criar-${esc(f.id)}">${I('remix')}Remixar</a>`}</div></div>
+ <div class="acts"><button class="btn gh pr ${liked.has(f.id)?'on':''}" id="blike" aria-pressed="${liked.has(f.id)}">${I('heart')}<span class="n" data-cl="${esc(f.id)}"><i>${fmt(nL(f))}</i></span><span class="lbl">Curtir</span></button>${dlBtn}<button class="btn gh pr" data-act="salvar-colecao" data-id="${esc(f.id)}">${I('bookmark')}Salvar</button><button class="btn gh pr" id="bshare">${I('link')}Copiar link</button>${isM?'':`<a class="btn acc pr" href="#criar-${esc(f.id)}">${I('remix')}Remixar</a>`}</div></div>
  <div class="ficha">${fx.map(([l,v,i],j)=>`<div class="fx lg ${fx.length===2&&j===1?'s2':''}"><small>${l}</small><b ${i?`id="${i}"`:''}>${v==='…'?'<span class="sk" style="width:60px"></span>':esc(v)}</b></div>`).join('')}${loc.map(([l,v,i],k)=>`<div class="fx lg ${loc.length===3?['w','','s2'][k]:(k?'':'s2')}"><small>${l}</small><p class="k" ${i?`id="${i}"`:''}>${i?v:esc(v)}</p></div>`).join('')}
  ${f.desc?`<div class="fx lg w"><small>${isN?'Descrição e uso':'Desenho'}</small><p>${esc(f.desc)}</p></div>`:''}
  <div class="fx lg w"><small id="swl">${f.approx?'Cores aproximadas · carregando as cores do arquivo oficial':'Cores · toque para copiar o hex'}</small><div class="sw" id="sw">${swH(f)}</div></div>
@@ -798,9 +799,9 @@ addEventListener('fb-on',()=>FL_loadOriginals());if(window.FB&&FB.on)FL_loadOrig
 
 /* rotas com transição contínua */
 let view='home',lastDet=null;const scrollMem={};
-const VIEWS=['decidir','entrar','home','explorar','militares','detalhe','criar','perfil','comunidades','comunidade','admin','marca','jogo'];
-const viewOf=h=>h.startsWith('decidir-')?'decidir':h==='entrar'?'entrar':h==='explorar'?'explorar':h==='marca'?'marca':(h==='militares'||h.startsWith('fotw-'))?'militares':h.startsWith('b-')?'detalhe':(h==='criar'||h.startsWith('criar-'))?'criar':h==='perfil'?'perfil':h==='comunidades'?'comunidades':h.startsWith('c-')?'comunidade':h==='admin'?'admin':h==='jogo'?'jogo':'home';
-const argOf=h=>h.startsWith('decidir-')?h.slice(8):h.startsWith('b-')?h.slice(2):h.startsWith('criar-')?h.slice(6):h.startsWith('c-')?h.slice(2):null;
+const VIEWS=['colecao','decidir','entrar','home','explorar','militares','detalhe','criar','perfil','comunidades','comunidade','admin','marca','jogo'];
+const viewOf=h=>h.startsWith('col-')?'colecao':h.startsWith('decidir-')?'decidir':h==='entrar'?'entrar':h==='explorar'?'explorar':h==='marca'?'marca':(h==='militares'||h.startsWith('fotw-'))?'militares':h.startsWith('b-')?'detalhe':(h==='criar'||h.startsWith('criar-'))?'criar':h==='perfil'?'perfil':h==='comunidades'?'comunidades':h.startsWith('c-')?'comunidade':h==='admin'?'admin':h==='jogo'?'jogo':'home';
+const argOf=h=>h.startsWith('col-')?h.slice(4):h.startsWith('decidir-')?h.slice(8):h.startsWith('b-')?h.slice(2):h.startsWith('criar-')?h.slice(6):h.startsWith('c-')?h.slice(2):null;
 const route=()=>{const h=location.hash.slice(1);const v=viewOf(h);closeDD();closeSheet();closeViewer();if(v!=='jogo'&&FL.stopGame)FL.stopGame();
  scrollMem[view]=scrollY;
  document.body.classList.remove('tinted');document.title='Flâmula';
@@ -825,7 +826,7 @@ addEventListener('popstate',()=>{if(!document.startViewTransition||RM.matches)re
 
 document.addEventListener('click',e=>{const t=e.target.closest('button,a');if(!t)return;
  if(t.dataset.soon){toast(`${t.dataset.soon}: em desenvolvimento.`);return}
- if(t.dataset.act){e.preventDefault();const a=FL.actions[t.dataset.act];if(a)a();else toast('Indisponível no momento');return}
+ if(t.dataset.act){e.preventDefault();const a=FL.actions[t.dataset.act];if(a)a(t);else toast('Indisponível no momento');return}
  if(t.dataset.cat){Object.assign(st,{t:t.dataset.cat,o:'todas',r:'todas',q:''});$('q').value='';shown=PAGE;if(t.dataset.cat==='militar'){go('militares');return}go('explorar');if(view==='explorar')gal(true);return}
  if(t.dataset.t){st.t=t.dataset.t;refilter();return}
  if(t.dataset.o){st.o=t.dataset.o;refilter();return}
@@ -840,9 +841,9 @@ window.FL={refreshAcc:()=>accBtn(),$,toast,esc,norm,D,byId,I,fmt,svg,draw,card,v
 document.addEventListener('DOMContentLoaded',()=>{route();requestAnimationFrame(()=>moveInd())});
 }
 </script>
-<script src="editor.js?v=20261120e"></script>
-<script src="contas.js?v=20261120e"></script>
-<script src="jogo.js?v=20261120e"></script>
-<script src="fotw.js?v=20261120e"></script>
+<script src="editor.js?v=20261120f"></script>
+<script src="contas.js?v=20261120f"></script>
+<script src="jogo.js?v=20261120f"></script>
+<script src="fotw.js?v=20261120f"></script>
 </body>
 </html>

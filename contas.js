@@ -131,6 +131,18 @@ body.tinted #pft .ind{background:color-mix(in srgb,var(--fa) 35%,transparent)}
 body.tinted .pfchip,body.tinted .pfcbtn{--glass:color-mix(in srgb,var(--fa) 22%,rgba(10,20,30,.35))}
 .dec{max-width:620px;display:grid;gap:6px}.dec p{margin:0}.dec-m{white-space:pre-wrap;padding:12px 14px;border-radius:14px;background:var(--chip);margin:6px 0!important}.dec .acts{margin-top:10px}
 .adn{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;margin-left:6px;border-radius:999px;background:var(--fa,#1B7FDC);color:var(--fa-ink,#fff);font-size:11px}
+.colg{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.colc{display:grid;gap:10px;padding:10px;border-radius:24px;color:inherit}.colc b{display:block;font-size:16px}.colc small{color:var(--mut)}.colc>div:last-child{padding:0 6px 4px}
+.colm{display:grid;gap:3px;aspect-ratio:3/2;border-radius:16px;overflow:hidden;background:var(--chip)}
+.colm.n1{grid-template-columns:1fr;grid-template-rows:1fr}.colm.n2{grid-template-columns:1fr 1fr;grid-template-rows:1fr}.colm.n3,.colm.n4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}.colm.n3>:first-child{grid-row:span 2}
+.colm>*,.colm img,.colm svg{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:cover;display:block;border-radius:0!important;box-shadow:none!important;min-height:0}.colm>span{display:grid;place-items:center;color:var(--mut);font-size:13px}
+.colpick{display:grid;gap:8px;max-height:46vh;overflow:auto}
+.colpi{display:grid;grid-template-columns:64px minmax(0,1fr) 32px;gap:12px;align-items:center;padding:8px;border-radius:18px;border:1px solid var(--line);background:none;color:inherit;font:inherit;text-align:left}
+.colpi .colm{border-radius:10px}.colpi b{display:block}.colpi small{color:var(--mut)}.colpi i{width:30px;height:30px;border-radius:999px;display:grid;place-items:center;background:var(--chip);font-style:normal;font-size:18px}
+.colpi.on{border-color:var(--oceano,#1B7FDC)}.colpi.on i{background:var(--oceano,#1B7FDC);color:#fff}.colpi i .ico{width:16px;height:16px}
+.colh{display:grid;grid-template-columns:200px minmax(0,1fr);gap:22px;align-items:center}.colh .colm{box-shadow:0 14px 34px rgba(0,0,0,.25)}
+.colw{position:relative}.colx{position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:999px;border:0;background:rgba(10,20,30,.55);color:#fff;font-size:18px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:2}
+@media(max-width:760px){.colh{grid-template-columns:110px minmax(0,1fr);gap:14px}.colg{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.colc{padding:8px;border-radius:20px}}
 .pfs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0 0}
 .pfs button{border:0;border-radius:22px;padding:14px 16px;text-align:left;display:grid;gap:2px;color:inherit}
 .pfs b{font:700 clamp(22px,2.6vw,30px)/1.1 var(--font-d);background:var(--aurora);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -251,6 +263,53 @@ FL.actions['admin-pedido'] = async () => {
     try { const r = await FB().pedir('admin', { nome, mensagem }); closeSheet(); toast('Pedido enviado ao administrador. Acompanhe em Meu perfil → Conta.') }
     catch (e) { console.error('[Flâmula] pedido:', e); er.textContent = e && e.code === 'permission-denied' ? 'O site ainda não aceita pedidos: as regras novas do Firestore não foram publicadas.' : fbErr(e); er.hidden = false; b.disabled = false; b.textContent = 'Enviar pedido' }
   };
+};
+
+
+/* ---------- coleções ---------- */
+const MAXCOL = 50, MAXIT = 200;
+const nb = n => n === 1 ? '1 bandeira' : n + ' bandeiras';
+const novoId = () => Math.random().toString(36).slice(2, 10);
+const minhasCol = () => (FB().profile && Array.isArray(FB().profile.colecoes) ? FB().profile.colecoes : []).map(c => ({ ...c, bandeiras: (c.bandeiras || []).slice() }));
+const mosaico = c => { const L = (c.bandeiras || []).map(id => byId[id]).filter(Boolean).slice(0, 4); return `<div class="colm n${Math.max(1, L.length)}">${L.length ? L.map(f => svg(f, 'fl', true)).join('') : '<span>Vazia</span>'}</div>` };
+const colCard = (c, uid) => `<a class="colc lg pr" href="#col-${esc(uid)}-${esc(c.id)}">${mosaico(c)}<div><b>${esc(c.nome)}</b><small>${nb((c.bandeiras || []).length)}</small></div></a>`;
+FL.actions['salvar-colecao'] = el => {
+  const id = el && el.dataset.id; const f = id && byId[id]; if (!f) return;
+  if (!FB().on) return toast('Coleções indisponíveis no momento');
+  if (!FB().user) { sheet('Salvar em coleção', '<div class="form"><p style="margin:0">Entre na sua conta para criar coleções e guardar bandeiras.</p><button class="btn acc pr" data-act="login">Entrar</button></div>'); return }
+  let L = minhasCol();
+  const el2 = sheet('Salvar em coleção', `<div class="form"><div class="colpick" id="colpick"></div>
+    <div class="erow" style="flex-wrap:nowrap"><input id="colnova" maxlength="40" placeholder="Nova coleção" style="flex:1;min-height:44px;border-radius:999px;border:1px solid var(--line);background:var(--chip);padding:0 16px;font:inherit;color:inherit"><button class="btn acc pr" id="colcriar">Criar</button></div>
+    <p class="err" id="colerr" hidden></p></div>`);
+  const draw = () => { $('colpick').innerHTML = L.length ? L.map(c => { const tem = c.bandeiras.includes(id); return `<button class="colpi pr ${tem ? 'on' : ''}" data-c="${esc(c.id)}" aria-pressed="${tem}">${mosaico(c)}<span><b>${esc(c.nome)}</b><small>${nb(c.bandeiras.length)}</small></span><i>${tem ? FL.I('check') : '+'}</i></button>` }).join('') : '<p class="pfnote" style="margin:0">Você ainda não tem coleções. Crie a primeira abaixo.</p>' };
+  const salva = async msg => { try { await FB().salvarColecoes(L); if (msg) toast(msg) } catch (e) { const er = $('colerr'); if (er) { er.textContent = fbErr(e); er.hidden = false } } };
+  draw();
+  $('colpick').onclick = e => { const b = e.target.closest('[data-c]'); if (!b) return; const c = L.find(x => x.id === b.dataset.c); const tem = c.bandeiras.includes(id); if (!tem && c.bandeiras.length >= MAXIT) return toast('Limite de ' + MAXIT + ' bandeiras por coleção'); c.bandeiras = tem ? c.bandeiras.filter(x => x !== id) : [id].concat(c.bandeiras); draw(); salva(tem ? `Removida de "${c.nome}"` : `Salva em "${c.nome}"`) };
+  const criar = () => { const nome = $('colnova').value.trim(); if (!nome) return; if (L.length >= MAXCOL) return toast('Limite de ' + MAXCOL + ' coleções'); L.unshift({ id: novoId(), nome, bandeiras: [id], criadaEm: Date.now() }); $('colnova').value = ''; draw(); salva(`Coleção "${nome}" criada`) };
+  $('colcriar').onclick = criar; $('colnova').addEventListener('keydown', e => { if (e.key === 'Enter') criar() });
+};
+FL.views.colecao = async arg => {
+  const v = $('v-colecao'); v.innerHTML = loading();
+  const m = String(arg || '').match(/^(.+)-([a-z0-9]{4,12})$/i);
+  await waitUser(); if (FL.view !== 'colecao') return;
+  if (!m || !FB().on) return v.innerHTML = '<div class="empty" style="margin-top:40px"><b>Coleção não encontrada</b></div>';
+  const [, uid, cid] = m; const dono = FB().user && FB().user.uid === uid;
+  let p; try { p = dono ? { id: uid, ...FB().profile } : await FB().perfilDe(uid) } catch (e) { p = null }
+  const L = p && Array.isArray(p.colecoes) ? p.colecoes : []; const c = L.find(x => x.id === cid);
+  if (!c) return v.innerHTML = '<div class="empty" style="margin-top:40px"><b>Coleção não encontrada</b><p>Ela pode ter sido apagada.</p></div>';
+  document.title = c.nome + ' · Coleção · Flâmula';
+  const fs = (c.bandeiras || []).map(id => byId[id]).filter(Boolean);
+  v.innerHTML = `<a class="back lg pr" href="${dono ? '#perfil' : '#explorar'}">${FL.I('back')}${dono ? 'Meu perfil' : 'Explorar'}</a>
+   <div class="phead colh"><div>${mosaico(c)}</div><div><p class="pfnote" style="margin:0 0 4px">Coleção de ${esc(p.nome || 'Sem nome')}</p><h1>${esc(c.nome)}</h1><p>${nb(fs.length)}</p>
+   <div class="erow" style="margin-top:12px"><button class="btn gh pr sm" id="colcp">${FL.I('link')}Copiar link</button>${dono ? '<button class="btn gh pr sm" id="colren">Renomear</button><button class="btn dg pr sm" id="coldel">Apagar coleção</button>' : ''}</div></div></div>
+   ${fs.length ? `<div class="grid">${fs.map(f => `<div class="colw">${FL.card(f)}${dono ? `<button class="colx pr" data-rm="${esc(f.id)}" aria-label="Tirar da coleção">×</button>` : ''}</div>`).join('')}</div>` : `<div class="empty"><b>Coleção vazia</b><p>Use o botão Salvar na página de qualquer bandeira.</p><a class="btn acc pr" href="#explorar">Explorar bandeiras</a></div>`}`;
+  $('colcp').onclick = () => navigator.clipboard.writeText(location.href).then(() => toast('Link da coleção copiado')).catch(() => toast('Não foi possível copiar'));
+  if (!dono) return;
+  const all = minhasCol(), me2 = all.find(x => x.id === cid);
+  const salva = async (msg, depois) => { try { await FB().salvarColecoes(all); toast(msg); depois ? depois() : FL.views.colecao(arg) } catch (e) { toast(fbErr(e)) } };
+  v.querySelectorAll('[data-rm]').forEach(b => b.onclick = e => { e.preventDefault(); e.stopPropagation(); me2.bandeiras = me2.bandeiras.filter(x => x !== b.dataset.rm); salva('Bandeira removida da coleção') });
+  $('colren').onclick = () => { sheet('Renomear coleção', `<div class="form"><label class="field">Nome<input id="colrn" maxlength="40" value="${esc(me2.nome)}"></label><button class="btn acc pr" id="colrnok">Salvar</button></div>`); $('colrnok').onclick = () => { const n = $('colrn').value.trim(); if (!n) return; me2.nome = n; closeSheet(); salva('Coleção renomeada') } };
+  $('coldel').onclick = e => { const b = e.currentTarget; if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Confirmar'; return } all.splice(all.indexOf(me2), 1); salva('Coleção apagada', () => { FL.go('perfil') }) };
 };
 
 /* decisão vinda dos botões do e-mail: #decidir-<id>-aprovar | -declinar */
@@ -376,7 +435,7 @@ FL.views.perfil = async () => {
     <div class="pfa">${FB().admin ? `<a class="btn acc pr pfadm" href="#admin"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>Painel de administração<b id="pfpend" hidden></b></a>` : ''}<button class="btn ${FB().admin ? 'gh' : 'acc'} pr" id="pfedit">Editar perfil</button><button class="btn gh pr" id="pfout">Sair</button></div></div>
    ${FB().donoPendente ? `<div class="pfaviso lg"><span><b>Confirme o seu e-mail para ativar o painel de administração.</b> Ou entre com o Google usando o mesmo endereço.</span><span class="erow"><button class="btn acc pr sm" data-act="verificar-email">Enviar link</button><button class="btn gh pr sm" data-act="ja-confirmei">Já confirmei</button></span></div>` : ''}
    <div class="pfs"><button class="lg pr" data-go="criacoes"><b id="pfn">–</b><span>Criações</span></button><button class="lg pr" data-go="curtidas"><b>${likes.length}</b><span>Curtidas</span></button><button class="lg pr" data-go="comunidades"><b>${(p.comunidades || []).length}</b><span>Comunidades</span></button><button class="lg pr" data-go="jogo"><b>${melhor ? melhor[1].acertos + '/10' : '–'}</b><span>${melhor ? 'Recorde · ' + NIVN[melhor[0]][0] : 'Recorde no jogo'}</span></button></div></div>
-  <div class="tabsrow">${segH('pft', [['criacoes', 'Criações'], ['curtidas', 'Curtidas'], ['comunidades', 'Comunidades'], ['jogo', 'Jogo'], ['conta', 'Conta']], pfTab)}<div id="pfx"></div></div><div id="pfp"></div>`;
+  <div class="tabsrow">${segH('pft', [['criacoes', 'Criações'], ['colecoes', 'Coleções'], ['curtidas', 'Curtidas'], ['comunidades', 'Comunidades'], ['jogo', 'Jogo'], ['conta', 'Conta']], pfTab)}<div id="pfx"></div></div><div id="pfp"></div>`;
   requestAnimationFrame(() => segMove($('pft')));
   const setTab = t => { pfTab = t; $('pft').querySelectorAll('button').forEach(x => { x.classList.toggle('on', x.dataset.v === t); x.setAttribute('aria-pressed', x.dataset.v === t) }); segMove($('pft')); pane() };
   segBind($('pft'), t => { pfTab = t; pane() });
@@ -424,6 +483,10 @@ FL.views.perfil = async () => {
         box.innerHTML = L.length ? `<div class="list">${L.map(e => `<div class="li lg"><div class="th"><img src="${dataSrc(e.svg)}" alt=""></div><div><b>${esc(e.nome)}</b><div class="m"><span class="stl ${esc(e.status)}">${{ pendente: 'Em moderação', aprovada: 'Aprovada', reprovada: 'Reprovada' }[e.status] || esc(e.status)}</span><span>${when(e.criadoEm)}</span></div>${e.status === 'reprovada' && e.motivo ? `<p class="why">Motivo: ${esc(e.motivo)}</p>` : ''}</div><div class="acts">${e.status === 'aprovada' ? `<a class="btn gh pr sm" href="#b-u-${esc(e.id)}">Ver na galeria</a>` : ''}<button class="btn dg pr sm" data-del="${esc(e.id)}">Apagar</button></div></div>`).join('')}</div>` : `<div class="empty"><b>Você ainda não enviou criações</b><p>Crie uma bandeira no editor e envie para a galeria.</p><a class="btn acc pr" href="#criar">Abrir o editor</a></div>`;
         box.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => { if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Confirmar'; return } try { await FB().apagarEnvio(b.dataset.del); toast('Criação apagada'); pane() } catch (e) { toast(fbErr(e)) } });
       } catch (e) { box.innerHTML = `<div class="empty"><b>Não foi possível carregar</b><p>${esc(fbErr(e))}</p></div>` }
+    } else if (pfTab === 'colecoes') {
+      x.innerHTML = '<a class="btn gh pr sm" href="#explorar">Explorar bandeiras</a>';
+      const C = minhasCol();
+      box.innerHTML = C.length ? `<div class="colg">${C.map(c => colCard(c, u.uid)).join('')}</div><p class="pfnote">Qualquer pessoa com o link de uma coleção consegue vê-la.</p>` : `<div class="empty"><b>Nenhuma coleção ainda</b><p>Na página de qualquer bandeira, toque em Salvar para criar uma coleção.</p><a class="btn acc pr" href="#explorar">Explorar bandeiras</a></div>`;
     } else if (pfTab === 'curtidas') {
       x.innerHTML = '<a class="btn gh pr sm" href="#explorar">Explorar bandeiras</a>';
       const L = likesLocal().map(id => byId[id]).filter(Boolean);

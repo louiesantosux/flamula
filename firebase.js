@@ -122,6 +122,10 @@ else {
       },
       apagarPedido: id => F.deleteDoc(F.doc(db, 'pedidos', id)),
 
+      /* coleções: ficam no próprio perfil (usuarios/{uid}.colecoes), públicas por link */
+      perfilDe: async uid => { const x = await F.getDoc(F.doc(db, 'usuarios', uid)); return x.exists() ? { id: uid, ...x.data() } : null },
+      salvarColecoes: async L => { await F.setDoc(F.doc(db, 'usuarios', me().uid), { colecoes: L }, { merge: true }); FB.profile = { ...FB.profile, colecoes: L }; ev('fl-colecoes', L) },
+
       /* administração */
       usuarios: () => list(F.query(col('usuarios'), F.limit(500))),
       admins: async () => (await F.getDocs(col('admins'))).docs.map(d => d.id),
