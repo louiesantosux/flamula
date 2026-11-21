@@ -136,6 +136,8 @@ else {
       editarEnvio: (id, d) => F.updateDoc(F.doc(db, 'envios', id), d),
       contar: async (nome, campo, valor) => { const q = campo ? F.query(col(nome), F.where(campo, '==', valor)) : col(nome); try { return (await F.getCountFromServer(q)).data().count } catch (e) { return null } },
       estatisticas: async () => { const s = await F.getDoc(sref); return s.exists() ? s.data() : {} },
+      apoio: async () => { const x = await F.getDoc(F.doc(db, 'config', 'apoio')); return x.exists() ? x.data() : null },
+      salvarApoio: async d => { await F.setDoc(F.doc(db, 'config', 'apoio'), d); ev('fl-apoio', d) },
       galeria: async () => { const s = await F.getDoc(F.doc(db, 'config', 'galeria')); return s.exists() ? s.data() : {} },
       salvarGaleria: async d => { await F.setDoc(F.doc(db, 'config', 'galeria'), d, { merge: true }); ev('fl-galeria', { ...(window.FL_GALERIA || {}), ...d }) }
     });

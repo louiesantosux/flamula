@@ -143,6 +143,7 @@ body.tinted .pfchip,body.tinted .pfcbtn{--glass:color-mix(in srgb,var(--fa) 22%,
 .colh{display:grid;grid-template-columns:200px minmax(0,1fr);gap:22px;align-items:center}.colh .colm{box-shadow:0 14px 34px rgba(0,0,0,.25)}
 .colw{position:relative}.colx{position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:999px;border:0;background:rgba(10,20,30,.55);color:#fff;font-size:18px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:2}
 @media(max-width:760px){.colh{grid-template-columns:110px minmax(0,1fr);gap:14px}.colg{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.colc{padding:8px;border-radius:20px}}
+.adapo{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);gap:16px;align-items:start}@media(max-width:860px){.adapo{grid-template-columns:minmax(0,1fr)}}
 .pfs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0 0}
 .pfs button{border:0;border-radius:22px;padding:14px 16px;text-align:left;display:grid;gap:2px;color:inherit}
 .pfs b{font:700 clamp(22px,2.6vw,30px)/1.1 var(--font-d);background:var(--aurora);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -559,7 +560,7 @@ FL.views.admin = async () => {
   if (!FB().on) return v.innerHTML = offMsg();
   if (!FB().user) return v.innerHTML = needLogin('acessar o painel de administração');
   if (!FB().admin) return v.innerHTML = FB().donoPendente ? restricted('Confirme o seu e-mail', 'Esta conta é a do administrador principal, mas o e-mail ainda não foi confirmado. Confirme pelo link enviado ao seu e-mail, ou entre com o Google usando o mesmo endereço.', '<button class="btn acc pr" data-act="verificar-email">Enviar link de confirmação</button><button class="btn gh pr" data-act="ja-confirmei">Já confirmei</button>') : restricted('Acesso restrito', `Esta página é só para administradores. Para pedir acesso, envie um e-mail para <b>${ADMIN_EMAIL}</b> com o seu UID.`, '<button class="btn acc pr" data-act="admin-pedido">Pedir acesso</button>');
-  v.innerHTML = `<div class="phead"><h1>Administração</h1><p>${FB().dono ? 'Você é o administrador principal e moderador do Flâmula.' : 'Você é administrador do Flâmula.'} Acompanhe os números, modere envios, cuide da galeria e das contas.</p></div><div class="tabsrow">${segH('adt', [['geral', 'Visão geral'], ['envios', 'Envios'], ['galeria', 'Galeria'], ['usuarios', 'Usuários'], ['comunidades', 'Comunidades'], ['pedidos', 'Pedidos<b class="adn" id="adnp" hidden></b>']], adTab)}</div><div id="adp"></div>`;
+  v.innerHTML = `<div class="phead"><h1>Administração</h1><p>${FB().dono ? 'Você é o administrador principal e moderador do Flâmula.' : 'Você é administrador do Flâmula.'} Acompanhe os números, modere envios, cuide da galeria e das contas.</p></div><div class="tabsrow">${segH('adt', [['geral', 'Visão geral'], ['envios', 'Envios'], ['galeria', 'Galeria'], ['usuarios', 'Usuários'], ['comunidades', 'Comunidades'], ['pedidos', 'Pedidos<b class="adn" id="adnp" hidden></b>'], ['apoio', 'Apoio']], adTab)}</div><div id="adp"></div>`;
   requestAnimationFrame(() => segMove($('adt')));
   FB().contar('pedidos', 'status', 'pendente').then(n => { const b = $('adnp'); if (b && n) { b.textContent = n; b.hidden = false } }).catch(() => { });
   segBind($('adt'), t => { adTab = t; pane() });
@@ -590,6 +591,34 @@ FL.views.admin = async () => {
         const L = await FB().comunidades();
         box.innerHTML = L.length ? `<div class="list">${L.map(c => `<div class="li lg"><div class="th">${flagThumb(c.bandeira)}</div><div><b>${esc(c.nome)}</b><div class="m"><span>${c.membros || 0} membros</span><span>Criada por ${esc(c.donoNome || '—')}</span><span>${when(c.criadaEm)}</span></div></div><div class="acts"><a class="btn gh pr sm" href="#c-${esc(c.id)}">Abrir</a><button class="btn dg pr sm" data-rmc="${esc(c.id)}">Apagar</button></div></div>`).join('')}</div>` : '<div class="empty"><b>Nenhuma comunidade criada</b></div>';
         box.querySelectorAll('[data-rmc]').forEach(b => b.onclick = async () => { if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Confirmar'; return } try { await FB().apagarComunidade(b.dataset.rmc); toast('Comunidade apagada'); pane() } catch (e) { toast(fbErr(e)) } });
+      } else if (adTab === 'apoio') {
+        const A = (await FB().apoio().catch(() => null)) || {};
+        let modo = A.codigo ? 'codigo' : 'chave';
+        box.innerHTML = `<div class="adapo"><div class="box lg form" style="display:grid;gap:14px">
+          <p style="margin:0"><b>Pix do botão "Apoie o projeto"</b><br><span class="pfnote">Aparece no rodapé para todos os visitantes. Sem valor fixo: quem apoia escolhe quanto enviar.</span></p>
+          <div id="apmodo"></div>
+          <div id="apchave" class="form" style="display:grid;gap:12px">
+           <label class="field">Chave Pix<input id="apk" maxlength="77" value="${esc(A.chave || '')}" placeholder="E-mail, celular (+55…), CPF/CNPJ ou chave aleatória"></label>
+           <label class="field">Nome do recebedor<input id="apn" maxlength="25" value="${esc(A.nome || '')}" placeholder="Como aparece no banco"></label>
+           <label class="field">Cidade<input id="apc" maxlength="15" value="${esc(A.cidade || '')}" placeholder="Ex.: São Paulo"></label></div>
+          <label class="field" id="apcodw">Código Pix copia e cola<textarea id="apcod" maxlength="512" placeholder="Cole aqui o código gerado no app do seu banco">${esc(A.codigo || '')}</textarea></label>
+          <label class="field">Mensagem (opcional)<textarea id="apm" maxlength="240" placeholder="O Flâmula é gratuito e sem anúncios…">${esc(A.mensagem || '')}</textarea></label>
+          <p class="err" id="aperr2" hidden></p>
+          <div class="erow"><button class="btn acc pr" id="apsalva">Salvar</button>${A.chave || A.codigo ? '<button class="btn dg pr" id="apdesl">Desativar</button>' : ''}</div></div>
+          <div class="box lg apo-prev"><p class="elabel" style="margin:0">Prévia</p><div id="apprev"></div></div></div>`;
+        const modoUI = () => { $('apchave').hidden = modo !== 'chave'; $('apcodw').hidden = modo !== 'codigo'; prev() };
+        const dados = () => modo === 'chave' ? { chave: $('apk').value.trim(), nome: $('apn').value.trim(), cidade: $('apc').value.trim(), mensagem: $('apm').value.trim() } : { codigo: $('apcod').value.replace(/\s+/g, ''), nome: $('apn').value.trim(), mensagem: $('apm').value.trim() };
+        const prev = () => { const d = dados(), c = FL.pix.codigoDe(d); $('apprev').innerHTML = c ? `<div class="apo-qr" style="width:180px;margin:10px auto">${FLQR(c)}</div><div class="apo-cod">${esc(c)}</div>` : `<p class="pfnote">${modo === 'codigo' && d.codigo ? 'Código inválido: confira se colou o código inteiro.' : 'Preencha os campos para ver o QR Code.'}</p>` };
+        dd($('apmodo'), { label: 'Como informar o Pix', value: modo, items: [{ v: 'chave', l: 'Gerar a partir da chave Pix' }, { v: 'codigo', l: 'Colar código copia e cola do banco' }], onChange: v => { modo = v; modoUI() } });
+        $('apmodo').querySelector('.dd-btn').style.cssText = 'width:100%;justify-content:space-between';
+        ['apk', 'apn', 'apc', 'apcod'].forEach(i => $(i).addEventListener('input', prev)); modoUI();
+        $('apsalva').onclick = async () => {
+          const d = dados(), er = $('aperr2'); er.hidden = true;
+          if (modo === 'chave' && (!d.chave || !d.nome || !d.cidade)) { er.textContent = 'Preencha a chave, o nome e a cidade.'; er.hidden = false; return }
+          if (modo === 'codigo' && !FL.pix.valido(d.codigo)) { er.textContent = 'O código copia e cola não é válido.'; er.hidden = false; return }
+          try { await FB().salvarApoio(d); toast('Pix do apoio salvo'); pane() } catch (e) { er.textContent = fbErr(e); er.hidden = false }
+        };
+        if ($('apdesl')) $('apdesl').onclick = async () => { try { await FB().salvarApoio({}); toast('Botão de apoio desativado'); pane() } catch (e) { toast(fbErr(e)) } };
       } else if (adTab === 'pedidos') {
         const P = await FB().pedidos();
         const AREA2 = { curadoria: 'Curadoria de bandeiras', pesquisa: 'Pesquisa histórica', traducao: 'Tradução', design: 'Design', desenvolvimento: 'Desenvolvimento', moderacao: 'Moderação', direitos: 'Direitos autorais e remoção', outro: 'Outro' };
