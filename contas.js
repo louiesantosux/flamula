@@ -274,6 +274,30 @@ const novoId = () => Math.random().toString(36).slice(2, 10);
 const minhasCol = () => (FB().profile && Array.isArray(FB().profile.colecoes) ? FB().profile.colecoes : []).map(c => ({ ...c, bandeiras: (c.bandeiras || []).slice() }));
 const mosaico = c => { const L = (c.bandeiras || []).map(id => byId[id]).filter(Boolean).slice(0, 4); return `<div class="colm n${Math.max(1, L.length)}">${L.length ? L.map(f => svg(f, 'fl', true)).join('') : '<span>Vazia</span>'}</div>` };
 const colCard = (c, uid) => `<a class="colc lg pr" href="#col-${esc(uid)}-${esc(c.id)}">${mosaico(c)}<div><b>${esc(c.nome)}</b><small>${nb((c.bandeiras || []).length)}</small></div></a>`;
+/* bandeira favorita: qualquer bandeira do acervo (id) ou uma imagem avulsa das páginas militares (favExtra) */
+const favDe = p => {
+  if (!p || !p.bandeira) return null; if (byId[p.bandeira]) return byId[p.bandeira];
+  const x = p.favExtra; if (!x || !x.src) return null;
+  const f = { id: p.bandeira, k: '—', n: x.n || 'Bandeira', t: 'militar', o: 'oficial', r: '', ra: x.ra || null, c: (x.c && x.c.length ? x.c : ['#0DB8D3', '#1B7FDC']), src: x.src, extra: true, d: (W, H) => `<rect width="${W}" height="${H}" fill="${x.c && x.c[0] || '#1B7FDC'}"/>` };
+  byId[f.id] = f; return f;
+};
+FL.favDe = favDe;
+const usarFavorita = async (d, nome) => {
+  if (!FB().on) return toast('Perfis indisponíveis no momento');
+  if (!FB().user) { sheet('Usar como favorita', '<div class="form"><p style="margin:0">Entre na sua conta para escolher a bandeira favorita. Ela vira o tema de cores e a capa do seu perfil.</p><button class="btn acc pr" data-act="login">Entrar</button></div>'); return false }
+  const p = FB().profile || {}; const upd = { ...d }; if (!p.banner || p.banner === 'artico') upd.banner = 'favorita';
+  try { await FB().saveProfile(upd); toast(`${nome} agora é a sua favorita. O tema do perfil usa as cores dela.`); FL.refreshAcc && FL.refreshAcc(); return true } catch (e) { toast(fbErr(e)); return false }
+};
+FL.actions.favoritar = async el => {
+  const id = el && el.dataset.id, f = id && byId[id]; if (!f) return;
+  if ((FB().profile || {}).bandeira === id) return toast('Esta já é a sua favorita');
+  if (await usarFavorita({ bandeira: id, favExtra: null }, f.n)) document.querySelectorAll(`[data-act="favoritar"]`).forEach(b => { const on = b.dataset.id === id; b.classList.toggle('on', on); const s = b.querySelector('span'); if (s) s.textContent = on ? 'Sua favorita' : 'Usar como favorita' });
+};
+FL.actions['favoritar-extra'] = async x => {
+  let h = 0; for (const ch of x.src) h = (Math.imul(h, 31) + ch.charCodeAt(0)) | 0;
+  await usarFavorita({ bandeira: 'x-' + (h >>> 0).toString(36), favExtra: x }, x.n);
+};
+
 FL.actions['salvar-colecao'] = el => {
   const id = el && el.dataset.id; const f = id && byId[id]; if (!f) return;
   if (!FB().on) return toast('Coleções indisponíveis no momento');
@@ -423,7 +447,7 @@ FL.views.perfil = async () => {
   if (!FB().on) return v.innerHTML = offMsg();
   const u = FB().user, p = FB().profile || {};
   if (!u) { try { sessionStorage.setItem('fl-volta', 'perfil') } catch (e) { } return v.innerHTML = needLogin('ver seu perfil, enviar criações e participar de comunidades') }
-  const fav = p.bandeira && byId[p.bandeira];
+  const fav = favDe(p);
   /* o tema da página do perfil segue as cores da bandeira favorita */
   if (fav && FL.tint) FL.tint(fav); else document.body.classList.remove('tinted');
   const cs = fav && fav.c && fav.c.length ? fav.c.slice(0, 4) : ['#0DB8D3', '#1B7FDC', '#065B98'];
@@ -435,7 +459,7 @@ FL.views.perfil = async () => {
    <div class="pfc b-${esc(bnr)}" style="--c1:${esc(cs[0])};--c2:${esc(cs[1] || cs[0])};--c3:${esc(cs[2] || cs[0])}">${bannerHTML(bnr, cs, fav, u.uid)}<button class="pfcbtn lg pr" id="pfbanner" aria-label="Trocar a capa">${FL.I('edit')}<span>Capa</span></button></div>
    <div class="pfb lg">${avatar(p, 'av pfav')}
     <div class="pfn"><h1>${esc(p.nome || 'Sem nome')}</h1><p>${esc(p.bio || 'Conte um pouco sobre você e as bandeiras de que mais gosta.')}</p>
-     <div class="pfm">${p.criadoEm ? `<span>No Flâmula desde ${when(p.criadoEm)}</span>` : ''}${fav ? `<a class="pfchip" href="#b-${esc(fav.id)}">${svg(fav, '', true)}Favorita: ${esc(fav.n)}</a>` : ''}${FB().admin ? `<span class="stl aprovada">${FB().dono ? 'Administrador e moderador' : 'Administrador'}</span>` : ''}${p.colaborador ? '<span class="stl pendente">Colaborador</span>' : ''}</div></div>
+     <div class="pfm">${p.criadoEm ? `<span>No Flâmula desde ${when(p.criadoEm)}</span>` : ''}${fav ? (fav.extra ? `<span class="pfchip">${svg(fav, '', true)}Favorita: ${esc(fav.n)}</span>` : `<a class="pfchip" href="#b-${esc(fav.id)}">${svg(fav, '', true)}Favorita: ${esc(fav.n)}</a>`) : ''}${FB().admin ? `<span class="stl aprovada">${FB().dono ? 'Administrador e moderador' : 'Administrador'}</span>` : ''}${p.colaborador ? '<span class="stl pendente">Colaborador</span>' : ''}</div></div>
     <div class="pfa">${FB().admin ? `<a class="btn acc pr pfadm" href="#admin"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>Painel de administração<b id="pfpend" hidden></b></a>` : ''}<button class="btn ${FB().admin ? 'gh' : 'acc'} pr" id="pfedit">Editar perfil</button><button class="btn gh pr" id="pfout">Sair</button></div></div>
    ${FB().donoPendente ? `<div class="pfaviso lg"><span><b>Confirme o seu e-mail para ativar o painel de administração.</b> Ou entre com o Google usando o mesmo endereço.</span><span class="erow"><button class="btn acc pr sm" data-act="verificar-email">Enviar link</button><button class="btn gh pr sm" data-act="ja-confirmei">Já confirmei</button></span></div>` : ''}
    <div class="pfs"><button class="lg pr" data-go="criacoes"><b id="pfn">–</b><span>Criações</span></button><button class="lg pr" data-go="curtidas"><b>${likes.length}</b><span>Curtidas</span></button><button class="lg pr" data-go="comunidades"><b>${(p.comunidades || []).length}</b><span>Comunidades</span></button><button class="lg pr" data-go="jogo"><b>${melhor ? recTxt(melhor[0], melhor[1]) : '–'}</b><span>${melhor ? 'Recorde · ' + NIVN[melhor[0]][0] : 'Recorde no jogo'}</span></button></div></div>
