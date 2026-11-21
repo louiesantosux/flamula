@@ -272,7 +272,10 @@ const MAXCOL = 50, MAXIT = 200;
 const nb = n => n === 1 ? '1 bandeira' : n + ' bandeiras';
 const novoId = () => Math.random().toString(36).slice(2, 10);
 const minhasCol = () => (FB().profile && Array.isArray(FB().profile.colecoes) ? FB().profile.colecoes : []).map(c => ({ ...c, bandeiras: (c.bandeiras || []).slice() }));
-const mosaico = c => { const L = (c.bandeiras || []).map(id => byId[id]).filter(Boolean).slice(0, 4); return `<div class="colm n${Math.max(1, L.length)}">${L.length ? L.map(f => svg(f, 'fl', true)).join('') : '<span>Vazia</span>'}</div>` };
+/* itens da coleção: bandeiras do acervo (id) ou imagens avulsas das páginas militares, guardadas em c.x[id] = { n, src } */
+const flagDe = (c, id) => { if (byId[id]) return byId[id]; const x = c && c.x && c.x[id]; if (!x || !x.src) return null; const f = { id, k: '—', n: x.n || 'Bandeira', t: 'militar', o: 'oficial', r: '', pais: 'imagem das páginas militares', ra: null, c: ['#888888'], src: x.src, extra: true, d: (W, H) => `<rect width="${W}" height="${H}" fill="#ccc"/>` }; byId[id] = f; return f };
+const idExtra = src => { let h = 0; for (const ch of src) h = (Math.imul(h, 31) + ch.charCodeAt(0)) | 0; return 'x-' + (h >>> 0).toString(36) };
+const mosaico = c => { const L = (c.bandeiras || []).map(id => flagDe(c, id)).filter(Boolean).slice(0, 4); return `<div class="colm n${Math.max(1, L.length)}">${L.length ? L.map(f => svg(f, 'fl', true)).join('') : '<span>Vazia</span>'}</div>` };
 const colCard = (c, uid) => `<a class="colc lg pr" href="#col-${esc(uid)}-${esc(c.id)}">${mosaico(c)}<div><b>${esc(c.nome)}</b><small>${nb((c.bandeiras || []).length)}</small></div></a>`;
 /* bandeira favorita: qualquer bandeira do acervo (id) ou uma imagem avulsa das páginas militares (favExtra) */
 const favDe = p => {
@@ -298,21 +301,30 @@ FL.actions['favoritar-extra'] = async x => {
   await usarFavorita({ bandeira: 'x-' + (h >>> 0).toString(36), favExtra: x }, x.n);
 };
 
-FL.actions['salvar-colecao'] = el => {
-  const id = el && el.dataset.id; const f = id && byId[id]; if (!f) return;
+const abrirColecoes = async (id, extra) => {
   if (!FB().on) return toast('Coleções indisponíveis no momento');
   if (!FB().user) { sheet('Salvar em coleção', '<div class="form"><p style="margin:0">Entre na sua conta para criar coleções e guardar bandeiras.</p><button class="btn acc pr" data-act="login">Entrar</button></div>'); return }
-  let L = minhasCol();
-  const el2 = sheet('Salvar em coleção', `<div class="form"><div class="colpick" id="colpick"></div>
+  let L = minhasCol(); let ocupado = Promise.resolve();
+  sheet('Salvar em coleção', `<div class="form"><div class="colpick" id="colpick"><p class="pfnote" style="margin:0">Carregando suas coleções…</p></div>
     <div class="erow" style="flex-wrap:nowrap"><input id="colnova" maxlength="40" placeholder="Nova coleção" style="flex:1;min-height:44px;border-radius:999px;border:1px solid var(--line);background:var(--chip);padding:0 16px;font:inherit;color:inherit"><button class="btn acc pr" id="colcriar">Criar</button></div>
     <p class="err" id="colerr" hidden></p></div>`);
-  const draw = () => { $('colpick').innerHTML = L.length ? L.map(c => { const tem = c.bandeiras.includes(id); return `<button class="colpi pr ${tem ? 'on' : ''}" data-c="${esc(c.id)}" aria-pressed="${tem}">${mosaico(c)}<span><b>${esc(c.nome)}</b><small>${nb(c.bandeiras.length)}</small></span><i>${tem ? FL.I('check') : '+'}</i></button>` }).join('') : '<p class="pfnote" style="margin:0">Você ainda não tem coleções. Crie a primeira abaixo.</p>' };
-  const salva = async msg => { try { await FB().salvarColecoes(L); if (msg) toast(msg) } catch (e) { const er = $('colerr'); if (er) { er.textContent = fbErr(e); er.hidden = false } } };
+  /* busca a versão mais recente salva na conta (evita apagar o que foi feito em outro aparelho ou aba) */
+  try { const fresh = await FB().perfilDe(FB().user.uid); if (fresh && Array.isArray(fresh.colecoes)) { FB().profile.colecoes = fresh.colecoes; L = minhasCol() } } catch (e) { }
+  if (!$('colpick')) return;
+  const tem = c => (c.bandeiras || []).includes(id);
+  const draw = () => { const b = $('colpick'); if (!b) return; b.innerHTML = L.length ? L.map(c => { const t = tem(c); return `<button class="colpi pr ${t ? 'on' : ''}" data-c="${esc(c.id)}" aria-pressed="${t}">${mosaico(c)}<span><b>${esc(c.nome)}</b><small>${nb(c.bandeiras.length)}</small></span><i>${t ? FL.I('check') : '+'}</i></button>` }).join('') : '<p class="pfnote" style="margin:0">Você ainda não tem coleções. Crie a primeira abaixo.</p>' };
+  const erro = m => { const er = $('colerr'); if (er) { er.textContent = m; er.hidden = !m } };
+  /* salvamentos em fila: cada clique grava o estado completo, na ordem */
+  const salva = msg => { const copia = JSON.parse(JSON.stringify(L)); ocupado = ocupado.then(async () => { try { await FB().salvarColecoes(copia); erro(''); if (msg) toast(msg) } catch (e) { console.warn('[Flâmula] coleções:', e); erro(e && e.code === 'permission-denied' ? 'A conta não tem permissão para salvar. Confira se as regras do Firestore foram publicadas.' : 'Não foi possível salvar: ' + fbErr(e)) } }); return ocupado };
+  const poe = c => { c.bandeiras = [id].concat(c.bandeiras.filter(x => x !== id)); if (extra) c.x = { ...(c.x || {}), [id]: { n: String(extra.n || 'Bandeira').slice(0, 120), src: String(extra.src).slice(0, 600) } } };
+  const tira = c => { c.bandeiras = c.bandeiras.filter(x => x !== id); if (c.x && c.x[id]) { const y = { ...c.x }; delete y[id]; c.x = y } };
   draw();
-  $('colpick').onclick = e => { const b = e.target.closest('[data-c]'); if (!b) return; const c = L.find(x => x.id === b.dataset.c); const tem = c.bandeiras.includes(id); if (!tem && c.bandeiras.length >= MAXIT) return toast('Limite de ' + MAXIT + ' bandeiras por coleção'); c.bandeiras = tem ? c.bandeiras.filter(x => x !== id) : [id].concat(c.bandeiras); draw(); salva(tem ? `Removida de "${c.nome}"` : `Salva em "${c.nome}"`) };
-  const criar = () => { const nome = $('colnova').value.trim(); if (!nome) return; if (L.length >= MAXCOL) return toast('Limite de ' + MAXCOL + ' coleções'); L.unshift({ id: novoId(), nome, bandeiras: [id], criadaEm: Date.now() }); $('colnova').value = ''; draw(); salva(`Coleção "${nome}" criada`) };
-  $('colcriar').onclick = criar; $('colnova').addEventListener('keydown', e => { if (e.key === 'Enter') criar() });
+  $('colpick').onclick = e => { const b = e.target.closest('[data-c]'); if (!b) return; const c = L.find(x => x.id === b.dataset.c); if (!c) return; const t = tem(c); if (!t && c.bandeiras.length >= MAXIT) return toast('Limite de ' + MAXIT + ' bandeiras por coleção'); t ? tira(c) : poe(c); draw(); salva(t ? `Removida de "${c.nome}"` : `Salva em "${c.nome}"`) };
+  const criar = () => { const inp = $('colnova'), nome = inp.value.trim(); if (!nome) return inp.focus(); if (L.length >= MAXCOL) return toast('Limite de ' + MAXCOL + ' coleções'); if (L.some(c => c.nome.toLowerCase() === nome.toLowerCase())) return erro('Você já tem uma coleção com esse nome.'); const c = { id: novoId(), nome: nome.slice(0, 40), bandeiras: [], criadaEm: Date.now() }; poe(c); L.unshift(c); inp.value = ''; draw(); salva(`Coleção "${nome}" criada`) };
+  $('colcriar').onclick = criar; $('colnova').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); criar() } });
 };
+FL.actions['salvar-colecao'] = el => { const id = el && el.dataset.id; if (!id || !byId[id]) return toast('Não foi possível identificar esta bandeira'); abrirColecoes(id, null) };
+FL.actions['salvar-colecao-extra'] = x => { if (!x || !x.src) return; const id = byId[x.id] ? x.id : idExtra(x.src); abrirColecoes(id, byId[id] && !byId[id].extra ? null : x) };
 FL.views.colecao = async arg => {
   const v = $('v-colecao'); v.innerHTML = loading();
   const m = String(arg || '').match(/^(.+)-([a-z0-9]{4,12})$/i);
@@ -323,16 +335,18 @@ FL.views.colecao = async arg => {
   const L = p && Array.isArray(p.colecoes) ? p.colecoes : []; const c = L.find(x => x.id === cid);
   if (!c) return v.innerHTML = '<div class="empty" style="margin-top:40px"><b>Coleção não encontrada</b><p>Ela pode ter sido apagada.</p></div>';
   document.title = c.nome + ' · Coleção · Flâmula';
-  const fs = (c.bandeiras || []).map(id => byId[id]).filter(Boolean);
+  const fs = (c.bandeiras || []).map(id => flagDe(c, id)).filter(Boolean);
+  const faltam = (c.bandeiras || []).length - fs.length, semImg = fs.filter(f => f.wt && !f.src);
+  if ((faltam || semImg.length) && !FL._colTentou) { FL._colTentou = true; Promise.all([faltam && FL.reloadOriginals ? Promise.resolve(FL.reloadOriginals()).catch(() => { }) : 0, semImg.length && window.FLWIKI ? FLWIKI.militares(semImg).catch(() => { }) : 0]).then(() => { if (FL.view === 'colecao') FL.views.colecao(arg) }).finally(() => setTimeout(() => { FL._colTentou = false }, 1500)) }
   v.innerHTML = `<a class="back lg pr" href="${dono ? '#perfil' : '#explorar'}">${FL.I('back')}${dono ? 'Meu perfil' : 'Explorar'}</a>
    <div class="phead colh"><div>${mosaico(c)}</div><div><p class="pfnote" style="margin:0 0 4px">Coleção de ${esc(p.nome || 'Sem nome')}</p><h1>${esc(c.nome)}</h1><p>${nb(fs.length)}</p>
    <div class="erow" style="margin-top:12px"><button class="btn gh pr sm" id="colcp">${FL.I('link')}Copiar link</button>${dono ? '<button class="btn gh pr sm" id="colren">Renomear</button><button class="btn dg pr sm" id="coldel">Apagar coleção</button>' : ''}</div></div></div>
-   ${fs.length ? `<div class="grid">${fs.map(f => `<div class="colw">${FL.card(f)}${dono ? `<button class="colx pr" data-rm="${esc(f.id)}" aria-label="Tirar da coleção">×</button>` : ''}</div>`).join('')}</div>` : `<div class="empty"><b>Coleção vazia</b><p>Use o botão Salvar na página de qualquer bandeira.</p><a class="btn acc pr" href="#explorar">Explorar bandeiras</a></div>`}`;
+   ${fs.length ? `<div class="grid">${fs.map(f => `<div class="colw">${f.extra ? FL.card(f).replace(/^<a class="card pr" href="[^"]*"/, `<a class="card pr" href="${esc(f.src)}" target="_blank" rel="noopener"`) : FL.card(f)}${dono ? `<button class="colx pr" data-rm="${esc(f.id)}" aria-label="Tirar da coleção">×</button>` : ''}</div>`).join('')}</div>` : `<div class="empty"><b>Coleção vazia</b><p>Use o botão Salvar na página de qualquer bandeira.</p><a class="btn acc pr" href="#explorar">Explorar bandeiras</a></div>`}`;
   $('colcp').onclick = () => navigator.clipboard.writeText(location.href).then(() => toast('Link da coleção copiado')).catch(() => toast('Não foi possível copiar'));
   if (!dono) return;
   const all = minhasCol(), me2 = all.find(x => x.id === cid);
   const salva = async (msg, depois) => { try { await FB().salvarColecoes(all); toast(msg); depois ? depois() : FL.views.colecao(arg) } catch (e) { toast(fbErr(e)) } };
-  v.querySelectorAll('[data-rm]').forEach(b => b.onclick = e => { e.preventDefault(); e.stopPropagation(); me2.bandeiras = me2.bandeiras.filter(x => x !== b.dataset.rm); salva('Bandeira removida da coleção') });
+  v.querySelectorAll('[data-rm]').forEach(b => b.onclick = e => { e.preventDefault(); e.stopPropagation(); me2.bandeiras = me2.bandeiras.filter(x => x !== b.dataset.rm); if (me2.x && me2.x[b.dataset.rm]) { me2.x = { ...me2.x }; delete me2.x[b.dataset.rm] } salva('Bandeira removida da coleção') });
   $('colren').onclick = () => { sheet('Renomear coleção', `<div class="form"><label class="field">Nome<input id="colrn" maxlength="40" value="${esc(me2.nome)}"></label><button class="btn acc pr" id="colrnok">Salvar</button></div>`); $('colrnok').onclick = () => { const n = $('colrn').value.trim(); if (!n) return; me2.nome = n; closeSheet(); salva('Coleção renomeada') } };
   $('coldel').onclick = e => { const b = e.currentTarget; if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Confirmar'; return } all.splice(all.indexOf(me2), 1); salva('Coleção apagada', () => { FL.go('perfil') }) };
 };

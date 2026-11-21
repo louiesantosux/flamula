@@ -538,10 +538,10 @@ footer a:hover,footer button:hover{color:var(--ink)}
 </nav>
 <div class="toast lg" id="toast" role="status" aria-live="polite"></div>
 
-<script src="/acervo.js?v=20261121i"></script>
+<script src="/acervo.js?v=20261121j"></script>
 <script src="/firebase-config.js"></script>
-<script type="module" src="/firebase.js?v=20261121i"></script>
-<script src="/wiki.js?v=20261121i"></script>
+<script type="module" src="/firebase.js?v=20261121j"></script>
+<script src="/wiki.js?v=20261121j"></script>
 <script>
 {
 /* rotas com endereço próprio (/bandeira/br, /militares/cn…) para o Google indexar cada página; #rotas antigas continuam valendo */
@@ -742,7 +742,7 @@ const pickFlag=(it,base,o={})=>{const st=document.querySelector(o.stage||'#v-det
  if(st._home==null)st._home=st.innerHTML;st._pk={it,base,o};st.classList.add('pkon');
  const fw=!!it.fotw;
  const hi=fw?null:origOf(it);
- st.innerHTML=`<img class="fl" src="${esc(hi||it.big||it.img)}" alt="${esc(it.cap||it.title||'Bandeira')}" style="view-transition-name:flag"><div class="pk lg"><p><b>${esc(it.title||'Bandeira')}</b>${esc(it.cap||'')}${it.credito?' · '+esc(it.credito):''}</p><div class="pk-a"><button class="btn pr sm" data-pk="dl">${I('dl')}Baixar</button>${fw?'':`<button class="btn acc pr sm" data-pk="rx">${I('remix')}Remixar</button>`}<button class="btn gh pr sm" data-pk="zoom">${I('ext')}Ampliar</button><button class="btn gh pr sm" data-pk="fav"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>Usar como favorita</button><button class="ic pr" data-pk="x" aria-label="Voltar à bandeira principal" title="Voltar à bandeira principal">${I('x')}</button></div></div>`;
+ st.innerHTML=`<img class="fl" src="${esc(hi||it.big||it.img)}" alt="${esc(it.cap||it.title||'Bandeira')}" style="view-transition-name:flag"><div class="pk lg"><p><b>${esc(it.title||'Bandeira')}</b>${esc(it.cap||'')}${it.credito?' · '+esc(it.credito):''}</p><div class="pk-a"><button class="btn pr sm" data-pk="dl">${I('dl')}Baixar</button>${fw?'':`<button class="btn acc pr sm" data-pk="rx">${I('remix')}Remixar</button>`}<button class="btn gh pr sm" data-pk="zoom">${I('ext')}Ampliar</button><button class="btn gh pr sm" data-pk="col">${I('bookmark')}Salvar</button><button class="btn gh pr sm" data-pk="fav"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>Usar como favorita</button><button class="ic pr" data-pk="x" aria-label="Voltar à bandeira principal" title="Voltar à bandeira principal">${I('x')}</button></div></div>`;
  /* arquivo original do Commons (SVG nítido); se falhar, miniatura grande e depois a pequena */
  const im=st.querySelector('img');const fila=[it.big,it.img].filter((u,k,a)=>u&&a.indexOf(u)===k&&u!==hi);im.onerror=()=>{const nx=fila.shift();if(nx)im.src=nx};
  /* imagens do FOTW são GIFs pequenos: mostra no máximo a 1,5x do tamanho original, para não borrar */
@@ -763,6 +763,7 @@ const hiRes=async(st,it,base,o)=>{const box=document.createElement('div');box.cl
 const unpick=st=>{if(st._home==null)return;st.innerHTML=st._home;st._home=null;st._pk=null;st.classList.remove('pkon')};
 document.addEventListener('click',async e=>{const b=e.target.closest('[data-pk]');if(!b)return;const st=b.closest('.dstage');if(!st||!st._pk)return;const {it,base,o}=st._pk;const a=b.dataset.pk;
  if(a==='x')return unpick(st);
+ if(a==='col'){const og=origOf(it);FL.actions['salvar-colecao-extra']({n:String(it.title||it.cap||base.n||'Bandeira').slice(0,120),src:String(og||it.big||it.img).slice(0,600)});return}
  if(a==='fav'){b.disabled=true;let c=base.c||['#0DB8D3','#1B7FDC'];const og=origOf(it),src=it.big||it.img;const svgU=og&&/\.svg$/i.test(String(it.file||''))?og:(/\.svg$/i.test(String(src).split('?')[0])?src:null);if(svgU){try{const ac=new AbortController();setTimeout(()=>ac.abort(),3000);const r=await fetch(svgU,{signal:ac.signal});if(r.ok){const cs=colorsIn(await r.text());if(cs.length)c=cs.slice(0,6)}}catch(er){}}await FL.actions['favoritar-extra']({n:String(it.title||base.n||'Bandeira').slice(0,120),src:String(og||src).slice(0,600),c,ra:base.ra||null});b.disabled=false;return}
  if(a==='zoom'){const L=o.list||[it];viewer(L,o.list?o.idx||0:0,{url:it.page,urlLabel:it.fotw?'Página no FOTW':'Página na Wikipédia'});return}
  if(a==='dl'){b.disabled=true;try{let r=null;const og=origOf(it);if(og){try{r=await fetch(og,{mode:'cors'});if(!r.ok)r=null}catch(er){r=null}}if(!r)r=await fetch(it.big||it.img,{mode:'cors'});if(!r.ok)throw 0;saveBlob(await r.blob(),og?String(it.file).replace(/^(File|Ficheiro|Arquivo):/i,'').replace(/ /g,'_'):fileOf(it));toast(it.fotw?'Download iniciado. Credite: '+(it.credito||'autor')+' · FOTW Flags Of The World':'Download iniciado')}catch(er){window.open(it.big||it.img,'_blank','noopener');toast('Arquivo aberto em nova aba')}b.disabled=false;return}
@@ -868,12 +869,12 @@ new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes)if(n.nod
 document.addEventListener('DOMContentLoaded',()=>{fixLinks(document);route();requestAnimationFrame(()=>moveInd())});
 }
 </script>
-<script src="/editor.js?v=20261121i"></script>
-<script src="/contas.js?v=20261121i"></script>
-<script src="/jogo.js?v=20261121i"></script>
-<script src="/fotw.js?v=20261121i"></script>
-<script src="/qr.js?v=20261121i"></script>
-<script src="/pix.js?v=20261121i"></script>
-<script src="/extras.js?v=20261121i"></script>
+<script src="/editor.js?v=20261121j"></script>
+<script src="/contas.js?v=20261121j"></script>
+<script src="/jogo.js?v=20261121j"></script>
+<script src="/fotw.js?v=20261121j"></script>
+<script src="/qr.js?v=20261121j"></script>
+<script src="/pix.js?v=20261121j"></script>
+<script src="/extras.js?v=20261121j"></script>
 </body>
 </html>
