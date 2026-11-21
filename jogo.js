@@ -40,6 +40,10 @@ css.textContent = `
 .jg-dots i.ok{background:#34C759}.jg-dots i.no{background:#FF3B30}.jg-dots i.now{transform:scale(1.6);background:var(--ink)}
 .jg-prog{height:6px;border-radius:99px;background:var(--chip);overflow:hidden;margin:0 0 14px}.jg-prog i{display:block;height:100%;background:linear-gradient(90deg,#0DB8D3,#1B7FDC);transition:width .3s}
 .jg-stage{border-radius:34px;aspect-ratio:16/10;max-height:max(200px,calc(100dvh - 360px));width:100%;box-sizing:border-box;display:grid;place-items:center;padding:clamp(16px,4%,36px);position:relative;overflow:hidden}
+.jg-stage{grid-template:minmax(0,1fr)/minmax(0,1fr)}
+.jg-stage>img,.jg-stage>svg,.jg-stage .rc>img,.jg-stage .rc>svg{width:100%;height:100%;max-width:100%;max-height:100%;min-width:0;min-height:0;object-fit:contain;box-sizing:border-box}
+.jg-stage .rc{grid-template:minmax(0,1fr)/minmax(0,1fr)}
+.jg-stage>.rc,.jg-stage>.rc-tag{grid-area:1/1}.jg-stage>.jg-bar{grid-area:auto}
 .jg.play .jg-top{margin:8px 0 10px}
 @media(min-width:761px){.jg.play{max-width:1180px}.jg-board{display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,300px);gap:16px;align-items:center}.jg-board .jg-stage{max-height:max(260px,calc(100dvh - 210px))}.jg-board .opts{grid-template-columns:minmax(0,1fr);margin-top:0}.jg-board .opt{min-height:64px;text-align:left;justify-content:flex-start;display:flex;align-items:center;gap:10px;padding:10px 18px}.jg-board .jg-rev{text-align:left;padding-left:6px}.jg.play .jg-dots,.jg.play .jg-prog{max-width:none}}.jg.play .jg-dots{margin-bottom:10px}.jg.play .opts{margin-top:10px}.jg.play .opt{min-height:54px}
 .jg-stage img,.jg-stage svg{max-width:100%;max-height:100%;width:auto;height:auto;filter:drop-shadow(0 0 .6px rgba(0,0,0,.45)) drop-shadow(0 16px 28px rgba(0,0,0,.25));animation:jgin .6s var(--spring) both}
