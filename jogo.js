@@ -306,20 +306,28 @@ const finish = () => {
   const rkModo = g.diario ? 'diario' : modo; scrollTo(0, 0);
   $('v-jogo').innerHTML = `<div class="jg"><div class="jg-res lg"><span class="jg-pill" style="color:${g.diario ? '#1B7FDC' : N.cor};background:var(--chip)">${g.diario ? 'Desafio diário #' + numDia(g.dia) : N.nome}</span><div class="big">${tempo ? g.ok : g.ok + '/' + total}</div>${tempo ? '<p class="sub">acertos em 60 segundos</p>' : ''}<p class="sub">${msg}</p>
   ${g.diario ? `<div class="sq">${quadrados(g.res)}</div><button class="btn acc pr" id="jgsh">Compartilhar resultado</button>` : ''}
-  <div class="jg-save"><input id="jgn" maxlength="24" placeholder="Seu nome no ranking" value="${esc((p && p.nome) || localStorage.getItem('flamula-apelido') || '')}"><button class="btn ${g.diario ? 'gh' : 'acc'} pr" id="jgsv">Salvar no ranking</button></div>
+  <div class="jg-save"><input id="jgn" maxlength="24" placeholder="Seu nome no ranking" value="${esc((p && p.nome) || localStorage.getItem('flamula-apelido') || '')}"><button class="btn gh pr" id="jgsv">Salvar no ranking</button></div><p class="sub" id="jgst" style="font-size:14px;margin:0"></p>
   <div class="row2">${g.diario ? '' : '<button class="btn gh pr" id="jgag">Jogar de novo</button>'}<button class="btn gh pr" id="jgmn">Trocar de modo</button></div></div>
   <section class="jg-sec"><div class="shead"><div><h2>Ranking · ${NOME(rkModo)}</h2><p id="rkp"></p></div></div><div class="rk" id="rkl"></div></section></div>`;
   rkTab = rkModo; ranking();
   if ($('jgag')) $('jgag').onclick = () => start(modo); $('jgmn').onclick = menu;
   if ($('jgsh')) $('jgsh').onclick = () => compartilhar(textoDiario(g.dia, { ok: g.ok, td, res: g.res }));
-  $('jgsv').onclick = async e => {
-    const nome = $('jgn').value.trim().slice(0, 24); if (!nome) return toast('Digite um nome para o ranking');
+  /* o resultado é salvo sozinho: na conta (ranking global) e neste aparelho. O nome pode ser trocado e salvo de novo. */
+  const pior = a => g.diario ? 'Você já tem um resultado no ranking de hoje.' : `Seu recorde continua ${tempo ? a.acertos + ' acertos' : a.acertos + '/' + total + ' em ' + tfmt(a.td * 100)}. Este resultado foi descartado.`;
+  const status = t => { const el = $('jgst'); if (el) el.textContent = t };
+  const salvar = async (nome, auto) => {
+    nome = (nome || '').trim().slice(0, 24); if (!nome) { if (!auto) toast('Digite um nome para o ranking'); status('Digite um nome para entrar no ranking.'); return }
     try { localStorage.setItem('flamula-apelido', nome) } catch (er) { }
-    r.nome = nome; const lc = saveLocal(rkModo, r); e.currentTarget.disabled = true;
-    const pior = a => g.diario ? 'Você já tem um resultado no ranking de hoje.' : `Seu recorde continua ${tempo ? a.acertos + ' acertos' : a.acertos + '/' + total + ' em ' + tfmt(a.td * 100)}. Este resultado foi descartado.`;
-    if (FB().on) { try { const res = await FB().salvarPlacar(rkModo, r); toast(res.melhorou ? (res.novo ? 'Placar salvo no ranking' : 'Novo recorde! Seu placar anterior foi substituído') : pior(res.anterior)); ranking(res.id); return } catch (er) { console.warn('[Flâmula] placar:', er.message); toast('Salvo neste aparelho. O ranking global não respondeu.') } } else toast(lc.melhorou ? 'Placar salvo neste aparelho' : pior(lc.anterior));
-    ranking();
+    const rr = { ...r, nome }; const lc = saveLocal(rkModo, rr); const bt = $('jgsv'); if (bt) bt.disabled = true; status('Salvando…');
+    if (!(window.FB && window.FB.ready)) await new Promise(ok => { addEventListener('fb-user', ok, { once: true }); setTimeout(ok, 6000) });
+    if (FB().on) {
+      try { const res = await FB().salvarPlacar(rkModo, rr); const t = res.melhorou ? (res.novo ? 'Resultado salvo no ranking global.' : 'Novo recorde! Seu resultado anterior foi substituído.') : pior(res.anterior); status(t); if (!auto || res.melhorou) toast(t); ranking(res.id) }
+      catch (er) { console.warn('[Flâmula] placar:', er.code || er.message); status(er.code === 'permission-denied' ? 'Salvo neste aparelho. O ranking global recusou o resultado (regras do Firestore).' : 'Salvo neste aparelho. O ranking global não respondeu; tente salvar de novo.'); ranking() }
+    } else { status(lc.melhorou ? 'Salvo neste aparelho.' : pior(lc.anterior)); ranking() }
+    if (bt) { bt.disabled = false; bt.textContent = 'Salvar com este nome' }
   };
+  $('jgsv').onclick = () => salvar($('jgn').value, false);
+  salvar($('jgn').value, true);
 };
 
 addEventListener('keydown', e => { if (!G || $('v-jogo').hidden || G.answered) return; const k = +e.key; if (k >= 1 && k <= 4) { const b = document.querySelectorAll('#jgo .opt')[k - 1]; if (b) answer(b.dataset.id) } });
