@@ -39,11 +39,12 @@ css.textContent = `
 .jg-dots i{width:8px;height:8px;border-radius:99px;background:var(--chip);transition:transform .5s var(--spring),background-color .3s}
 .jg-dots i.ok{background:#34C759}.jg-dots i.no{background:#FF3B30}.jg-dots i.now{transform:scale(1.6);background:var(--ink)}
 .jg-prog{height:6px;border-radius:99px;background:var(--chip);overflow:hidden;margin:0 0 14px}.jg-prog i{display:block;height:100%;background:linear-gradient(90deg,#0DB8D3,#1B7FDC);transition:width .3s}
-.jg-stage{border-radius:34px;aspect-ratio:16/10;display:grid;place-items:center;padding:clamp(18px,6%,48px);position:relative;overflow:hidden}
+.jg-stage{border-radius:34px;aspect-ratio:16/10;max-height:max(200px,calc(100dvh - 360px));width:100%;box-sizing:border-box;display:grid;place-items:center;padding:clamp(16px,4%,36px);position:relative;overflow:hidden}
+.jg.play .jg-top{margin:8px 0 10px}.jg.play .jg-dots{margin-bottom:10px}.jg.play .opts{margin-top:10px}.jg.play .opt{min-height:54px}
 .jg-stage img,.jg-stage svg{max-width:100%;max-height:100%;width:auto;height:auto;filter:drop-shadow(0 0 .6px rgba(0,0,0,.45)) drop-shadow(0 16px 28px rgba(0,0,0,.25));animation:jgin .6s var(--spring) both}
 .jg-stage svg{width:100%;height:100%}
 .jg-stage.rc-on{padding:0}
-.jg-stage .rc{width:100%;height:100%;display:grid;place-items:center;padding:clamp(18px,6%,48px);box-sizing:border-box;transition:transform .9s var(--spring)}
+.jg-stage .rc{width:100%;height:100%;display:grid;place-items:center;padding:clamp(16px,4%,36px);box-sizing:border-box;transition:transform .9s var(--spring)}
 .jg-stage .rc img,.jg-stage .rc svg{filter:none;animation:none}
 .jg-stage .rc-tag{position:absolute;left:14px;top:14px;z-index:2;font:600 12px var(--font);padding:6px 10px;border-radius:999px;background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .jg-stage svg.sil{filter:drop-shadow(0 16px 28px rgba(6,60,100,.25));overflow:visible}
@@ -79,7 +80,7 @@ css.textContent = `
 .rkm{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px;margin-top:12px}.rkm::-webkit-scrollbar{display:none}
 .rkm button{flex:0 0 auto;min-height:38px;padding:0 14px;border-radius:999px;border:0;background:var(--chip);color:var(--ink);font:600 14px var(--font)}
 .rkm button.on{background:var(--acc,#1B7FDC);color:#fff}
-@media(max-width:760px){.lvls{grid-template-columns:minmax(0,1fr)}.opt{min-height:58px;font-size:16px}.jg-stage{border-radius:28px}.rk li{grid-template-columns:34px minmax(0,1fr) auto;}.rk li small.t2{display:none}.jg-dia{grid-template-columns:auto minmax(0,1fr)}.jg-dia .acts{grid-column:1/-1;justify-content:stretch}.jg-dia .acts .btn{flex:1}.jg-qty{border-radius:26px;padding:12px 16px}}
+@media(max-width:760px){.lvls{grid-template-columns:minmax(0,1fr)}.opt{min-height:58px;font-size:16px}.jg-stage{border-radius:24px;max-height:max(170px,calc(100dvh - 430px))}.jg.play .jg-top{gap:6px;margin:4px 0 8px}.jg.play .jg-pill{min-height:36px;padding:0 11px;font-size:14px}.jg.play .opts{gap:8px}.jg.play .opt{min-height:50px;font-size:15px;padding:8px 10px;border-radius:18px}.jg.play .opt kbd{display:none}.jg-rev{min-height:0;margin-top:6px}.jg-dots i{width:6px;height:6px}.rk li{grid-template-columns:34px minmax(0,1fr) auto;}.rk li small.t2{display:none}.jg-dia{grid-template-columns:auto minmax(0,1fr)}.jg-dia .acts{grid-column:1/-1;justify-content:stretch}.jg-dia .acts .btn{flex:1}.jg-qty{border-radius:26px;padding:12px 16px}}
 `;
 document.head.appendChild(css);
 
@@ -219,7 +220,8 @@ const start = async modo => {
   G = { modo, base, diario, dia, rnd, total, i: 0, ok: 0, err: 0, res: [], q: [], pool, used: new Set(), t0: 0, run: false };
   const cor = diario ? '#1B7FDC' : N.cor;
   const contador = modo === 'tempo' ? '<div class="jg-prog"><i id="jgpr" style="width:100%"></i></div>' : total <= 30 ? `<div class="jg-dots" id="jgd">${Array.from({ length: total }, () => '<i></i>').join('')}</div>` : '<div class="jg-prog"><i id="jgpr" style="width:0"></i></div>';
-  $('v-jogo').innerHTML = `<div class="jg"><div class="jg-top"><button class="jg-pill lg pr" id="jgsair">${I('back')}Sair</button><span class="jg-pill lg" style="color:${cor}">${diario ? 'Diário #' + numDia(dia) : N.nome}<span id="jgc" style="color:var(--mut)"></span></span><span class="jg-pill lg" id="jgt" aria-live="off">${modo === 'tempo' ? '1:00,0' : '0:00,0'}</span></div>
+  scrollTo(0, 0);
+  $('v-jogo').innerHTML = `<div class="jg play"><div class="jg-top"><button class="jg-pill lg pr" id="jgsair">${I('back')}Sair</button><span class="jg-pill lg" style="color:${cor}">${diario ? 'Diário #' + numDia(dia) : N.nome}<span id="jgc" style="color:var(--mut)"></span></span><span class="jg-pill lg" id="jgt" aria-live="off">${modo === 'tempo' ? '1:00,0' : '0:00,0'}</span></div>
   ${contador}<div class="jg-stage lg" id="jgs"><span class="sk" style="width:60%;height:40%"></span></div><div class="opts" id="jgo"></div><p class="jg-rev" id="jgrv"></p></div>`;
   $('jgsair').onclick = () => { if (G && G.diario && G.i > 0 && !confirmaSair()) return; FL.stopGame(); menu() };
   next();
@@ -234,7 +236,7 @@ const pick = async () => {
     if (G.modo === 'silhueta') { how = silhueta(f.id) ? 'sil' : false } else how = await loadImg(f);
     if (!how) continue;
     const others = shuffle(N.distr(f).filter(x => x.id !== f.id && x.n !== f.n), G.rnd).slice(0, 3);
-    return { f, how, opts: shuffle([f, ...others], G.rnd), ox: 12 + G.rnd() * 76, oy: 14 + G.rnd() * 72 };
+    return { f, how, opts: shuffle([f, ...others], G.rnd), ox: 20 + G.rnd() * 60, oy: 22 + G.rnd() * 56 };
   }
   return null;
 };
@@ -248,7 +250,7 @@ const next = async () => {
   if (!q) { if (G.modo === 'tempo') { G.used.clear(); G.q[G.i] = null; return next() } toast('Não foi possível carregar mais bandeiras agora'); return finish() }
   const st = $('jgs'); st.classList.toggle('rc-on', G.modo === 'recorte');
   if (G.modo === 'silhueta') st.innerHTML = silhueta(q.f.id);
-  else if (G.modo === 'recorte') st.innerHTML = `<span class="rc-tag">Recorte ampliado</span><div class="rc" id="jgrc" style="transform-origin:${q.ox.toFixed(1)}% ${q.oy.toFixed(1)}%;transform:scale(3.4)">${bandeira(q)}</div>`;
+  else if (G.modo === 'recorte') st.innerHTML = `<span class="rc-tag">Recorte ampliado</span><div class="rc" id="jgrc" style="transform-origin:${q.ox.toFixed(1)}% ${q.oy.toFixed(1)}%;transform:scale(2.3)">${bandeira(q)}</div>`;
   else st.innerHTML = bandeira(q);
   if (MODOS[G.base].limite && !G.diario) st.insertAdjacentHTML('beforeend', '<i class="jg-bar" id="jgb" style="width:100%"></i>');
   $('jgo').innerHTML = q.opts.map((o, k) => `<button class="opt lg" data-id="${esc(o.id)}"><kbd>${k + 1}</kbd>${esc(o.n)}</button>`).join('');
@@ -296,7 +298,7 @@ const finish = () => {
   registra(tempo ? Infinity : total, g.ok, g.diario);
   const p = FB().profile, frac = tempo ? 0 : g.ok / total;
   const msg = tempo ? (g.ok >= 30 ? 'Impressionante.' : g.ok >= 15 ? 'Muito bem.' : 'Dá para melhorar.') + ` ${g.err} ${g.err === 1 ? 'erro' : 'erros'}.` : `${frac === 1 ? 'Gabaritou!' : frac >= .7 ? 'Muito bem.' : frac >= .4 ? 'Dá para melhorar.' : 'Tente de novo.'} Tempo: <b>${tfmt(td * 100)}</b>`;
-  const rkModo = g.diario ? 'diario' : modo;
+  const rkModo = g.diario ? 'diario' : modo; scrollTo(0, 0);
   $('v-jogo').innerHTML = `<div class="jg"><div class="jg-res lg"><span class="jg-pill" style="color:${g.diario ? '#1B7FDC' : N.cor};background:var(--chip)">${g.diario ? 'Desafio diário #' + numDia(g.dia) : N.nome}</span><div class="big">${tempo ? g.ok : g.ok + '/' + total}</div>${tempo ? '<p class="sub">acertos em 60 segundos</p>' : ''}<p class="sub">${msg}</p>
   ${g.diario ? `<div class="sq">${quadrados(g.res)}</div><button class="btn acc pr" id="jgsh">Compartilhar resultado</button>` : ''}
   <div class="jg-save"><input id="jgn" maxlength="24" placeholder="Seu nome no ranking" value="${esc((p && p.nome) || localStorage.getItem('flamula-apelido') || '')}"><button class="btn ${g.diario ? 'gh' : 'acc'} pr" id="jgsv">Salvar no ranking</button></div>
