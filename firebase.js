@@ -38,6 +38,8 @@ else {
         await papel(u);
       }
       FB.ready = true; ev('fb-user', { user: u, admin: FB.admin, profile: FB.profile });
+      if (FB._unnot) { FB._unnot(); FB._unnot = null } ev('fl-notifs', []);
+      if (u) FB._unnot = F.onSnapshot(F.query(col('notificacoes'), F.where('para', '==', u.uid), F.limit(100)), s => ev('fl-notifs', s.docs.map(d => ({ id: d.id, ...d.data() }))), e => console.warn('[Flâmula] notificações:', e.message));
       /* se um administrador aprovar o pedido desta conta, o acesso aparece sem precisar sair e entrar */
       if (FB._unadm) { FB._unadm(); FB._unadm = null }
       if (u && !FB.dono) FB._unadm = F.onSnapshot(F.doc(db, 'admins', u.uid), s => { const a = s.exists(); if (a !== FB.admin) { FB.admin = a; ev('fb-user', { user: FB.user, admin: a, profile: FB.profile }); if (a) ev('fl-toast', 'Seu pedido foi aprovado: você agora é administrador do Flâmula') } }, () => { });
@@ -70,11 +72,14 @@ else {
       saveProfile: async d => { await F.setDoc(F.doc(db, 'usuarios', me().uid), d, { merge: true }); FB.profile = { ...FB.profile, ...d }; ev('fb-user', { user: FB.user, admin: FB.admin, profile: FB.profile }) },
 
       /* criações enviadas pelo editor */
-      submit: e => F.addDoc(col('envios'), { nome: e.nome, svg: e.svg, ra: e.ra, comunidade: e.comunidade || '', uid: me().uid, autor: FB.profile?.nome || 'Sem nome', status: 'pendente', motivo: '', criadoEm: F.serverTimestamp() }),
+      submit: e => F.addDoc(col('envios'), { nome: e.nome, svg: e.svg, ra: e.ra, comunidade: e.comunidade || '', concurso: e.concurso || '', uid: me().uid, autor: FB.profile?.nome || 'Sem nome', status: 'pendente', motivo: '', criadoEm: F.serverTimestamp() }),
       meusEnvios: () => list(F.query(col('envios'), F.where('uid', '==', me().uid))),
       aprovadas: com => list(com ? F.query(col('envios'), F.where('status', '==', 'aprovada'), F.where('comunidade', '==', com)) : F.query(col('envios'), F.where('status', '==', 'aprovada'))),
       pendentes: () => list(F.query(col('envios'), F.where('status', '==', 'pendente'))),
-      moderar: (id, status, motivo = '') => F.updateDoc(F.doc(db, 'envios', id), { status, motivo, moderadoEm: F.serverTimestamp(), moderadoPor: me().uid }),
+      moderar: async (id, status, motivo = '') => {
+        await F.updateDoc(F.doc(db, 'envios', id), { status, motivo, moderadoEm: F.serverTimestamp(), moderadoPor: me().uid });
+        if (status === 'aprovada' || status === 'reprovada') try { const x = (await F.getDoc(F.doc(db, 'envios', id))).data() || {}; await FB.notificar(x.uid, status === 'aprovada' ? { tipo: 'aprovado', texto: `Sua criação “${x.nome}” foi aprovada e já está na galeria.`, link: 'b-u-' + id } : { tipo: 'recusado', texto: `Sua criação “${x.nome}” não foi aprovada${motivo ? ': ' + motivo : '.'}`, link: 'perfil' }) } catch (e) { }
+      },
       apagarEnvio: id => F.deleteDoc(F.doc(db, 'envios', id)),
 
       /* comunidades */
@@ -86,19 +91,50 @@ else {
       sair: async id => { const u = me(), b = F.writeBatch(db); b.delete(F.doc(db, 'comunidades', id, 'membros', u.uid)); b.update(F.doc(db, 'comunidades', id), { membros: F.increment(-1) }); b.set(F.doc(db, 'usuarios', u.uid), { comunidades: F.arrayRemove(id) }, { merge: true }); await b.commit(); FB.profile.comunidades = (FB.profile.comunidades || []).filter(x => x !== id) },
       apagarComunidade: id => F.deleteDoc(F.doc(db, 'comunidades', id)),
 
-      /* ranking do jogo (uma coleção por nível) */
-      ranking: nivel => list(F.query(col('ranking_' + nivel), F.orderBy('pontos', 'desc'), F.limit(25))),
+      /* ranking do jogo (uma coleção por modo). Diário: filtra pelo dia; demais: maiores pontuações, filtradas pela quantidade no cliente */
+      ranking: (modo, o = {}) => modo === 'diario' ? list(F.query(col('ranking_diario'), F.where('dia', '==', o.dia))) : list(F.query(col('ranking_' + modo), F.orderBy('pontos', 'desc'), F.limit(400))),
       /* um placar por jogador e nível: id = uid (logado) ou "n-" + nome normalizado. Só substitui se a pontuação nova for maior */
-      salvarPlacar: async (nivel, d) => {
+      salvarPlacar: async (modo, d) => {
         const uid = FB.user?.uid || '';
-        const chave = uid || ('n-' + (d.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'anonimo'));
-        const ref = F.doc(db, 'ranking_' + nivel, chave);
+        const base = uid || ('n-' + (d.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'anonimo'));
+        const total = d.total || 10, diario = modo === 'diario';
+        const chave = diario ? d.dia + '_' + base : total === 10 ? base : base + '_t' + total;
+        const ref = F.doc(db, 'ranking_' + modo, chave);
         const pontos = d.acertos * 100000 - d.td;
         const ant = await F.getDoc(ref);
-        if (ant.exists() && (ant.data().pontos ?? -Infinity) >= pontos) return { id: chave, melhorou: false, anterior: ant.data() };
-        await F.setDoc(ref, { nome: d.nome, uid, acertos: d.acertos, td: d.td, pontos, criadoEm: F.serverTimestamp() });
+        if (ant.exists() && (diario || (ant.data().pontos ?? -Infinity) >= pontos)) return { id: chave, melhorou: false, anterior: ant.data() };
+        const doc = { nome: d.nome, uid, acertos: d.acertos, td: d.td, total, pontos, criadoEm: F.serverTimestamp() }; if (diario) doc.dia = d.dia;
+        await F.setDoc(ref, doc);
         return { id: chave, melhorou: true, novo: !ant.exists() };
       },
+      /* contadores do jogo no perfil, usados pelas conquistas */
+      registrarJogo: async ({ acertos, gabarito, diario, ontem }) => {
+        const u = me(), j = FB.profile?.jogo || {};
+        const upd = { acertos: F.increment(acertos), partidas: F.increment(1) };
+        const loc = { ...j, acertos: (j.acertos || 0) + acertos, partidas: (j.partidas || 0) + 1 };
+        if (gabarito) { upd.gabaritos = F.increment(1); loc.gabaritos = (j.gabaritos || 0) + 1 }
+        if (diario && j.ultimoDiario !== diario) { const seq = j.ultimoDiario === ontem ? (j.sequencia || 0) + 1 : 1; upd.ultimoDiario = loc.ultimoDiario = diario; upd.sequencia = loc.sequencia = seq; upd.maiorSequencia = loc.maiorSequencia = Math.max(seq, j.maiorSequencia || 0); upd.diarios = F.increment(1); loc.diarios = (j.diarios || 0) + 1 }
+        await F.setDoc(F.doc(db, 'usuarios', u.uid), { jogo: upd }, { merge: true });
+        FB.profile = { ...FB.profile, jogo: loc }; ev('fl-conquistas');
+      },
+
+      /* notificações internas: cada pessoa lê e apaga as próprias */
+      notificar: async (para, n) => {
+        if (!para || !FB.user) return; const de = FB.user.uid; if (para === de && n.tipo !== 'conquista') return;
+        try { await F.addDoc(col('notificacoes'), { para, de, deNome: FB.profile?.nome || '', tipo: n.tipo, texto: String(n.texto || '').slice(0, 280), link: n.link || '', lida: false, criadoEm: F.serverTimestamp() }) } catch (e) { console.warn('[Flâmula] notificação:', e.message) }
+      },
+      lerNotificacoes: ids => { const b = F.writeBatch(db); ids.forEach(id => b.update(F.doc(db, 'notificacoes', id), { lida: true })); return b.commit() },
+      apagarNotificacoes: ids => { const b = F.writeBatch(db); ids.forEach(id => b.delete(F.doc(db, 'notificacoes', id))); return b.commit() },
+
+      /* concursos mensais: concursos/{AAAA-MM}; votos em concursos/{mes}/votos/{uid} */
+      concursos: () => list(F.query(col('concursos'), F.orderBy('mes', 'desc'), F.limit(24))),
+      concurso: async id => { const x = await F.getDoc(F.doc(db, 'concursos', id)); return x.exists() ? { id, ...x.data() } : null },
+      salvarConcurso: async (id, d) => { await F.setDoc(F.doc(db, 'concursos', id), { ...d, mes: id }, { merge: true }); ev('fl-concurso') },
+      apagarConcurso: id => F.deleteDoc(F.doc(db, 'concursos', id)),
+      inscritos: mes => list(F.query(col('envios'), F.where('status', '==', 'aprovada'), F.where('concurso', '==', mes))),
+      votos: async mes => (await F.getDocs(F.collection(db, 'concursos', mes, 'votos'))).docs.map(d => ({ uid: d.id, ...d.data() })),
+      votar: (mes, envio) => F.setDoc(F.doc(db, 'concursos', mes, 'votos', me().uid), { envio, em: F.serverTimestamp() }),
+      desvotar: mes => F.deleteDoc(F.doc(db, 'concursos', mes, 'votos', me().uid)),
 
       /* colaboradores */
       colaborar: d => F.addDoc(col('colaboradores'), { nome: d.nome, email: d.email, area: d.area, mensagem: d.mensagem, uid: FB.user?.uid || '', criadoEm: F.serverTimestamp() }),
@@ -119,6 +155,7 @@ else {
           else await F.updateDoc(F.doc(db, 'usuarios', p.uid), { colaborador: true, colaboradorArea: p.area || '' });
         }
         await F.updateDoc(F.doc(db, 'pedidos', p.id), { status: aprovar ? 'aprovado' : 'recusado', decididoEm: F.serverTimestamp(), decididoPor: me().uid });
+        if (p.uid) await FB.notificar(p.uid, { tipo: 'pedido', texto: `Seu pedido para ser ${p.tipo === 'admin' ? 'administrador' : 'colaborador'} foi ${aprovar ? 'aprovado' : 'recusado'}.`, link: 'perfil' });
       },
       apagarPedido: id => F.deleteDoc(F.doc(db, 'pedidos', id)),
 

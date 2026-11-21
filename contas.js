@@ -371,16 +371,18 @@ FL.actions.enviar = async data => {
     <div class="shimg"><img src="${dataSrc(data.svg)}" alt="Prévia"></div>
     <label class="field">Nome da bandeira<input id="sbn" maxlength="60" value="${esc(data.nome)}"></label>
     <div class="field">Publicar também em<div id="sbc"></div></div>
+    <div id="sbcon" hidden></div>
     <label class="chk"><input type="checkbox" id="sbk">A bandeira é original ou um remix, não usa escudos, logotipos ou marcas, nem conteúdo ofensivo ou dados pessoais.</label>
     <p class="err" id="sberr" hidden></p>
     <button class="btn acc pr" id="sbok">Enviar para moderação</button></div>`);
   const com = dd($('sbc'), { label: 'Comunidade', value: '', items: [{ v: '', l: 'Só na galeria' }, ...coms.map(c => ({ v: c.id, l: c.nome, sw: (c.cores || [])[0] }))] });
   $('sbc').querySelector('.dd-btn').style.cssText = 'width:100%;justify-content:space-between';
+  if (FL.ext && FL.ext.concursoAberto) FL.ext.concursoAberto().then(k => { const b = $('sbcon'); if (!k || !b) return; b.innerHTML = `<label class="chk"><input type="checkbox" id="sbkc" value="${esc(k.id)}">Inscrever no concurso do mês: <b>${esc(k.tema)}</b></label>`; b.hidden = false });
   const err = m => { const e = $('sberr'); e.textContent = m; e.hidden = !m };
   $('sbok').onclick = async () => {
     const nome = $('sbn').value.trim(); if (!nome) return err('Dê um nome à bandeira.'); if (!$('sbk').checked) return err('Confirme as regras de envio.');
     $('sbok').disabled = true;
-    try { await FB().submit({ nome, svg: data.svg, ra: data.ra, comunidade: com.value }); closeSheet(); toast('Enviada! Ela aparece na galeria depois da moderação.'); FL.go('perfil') } catch (e) { err(fbErr(e)); $('sbok').disabled = false }
+    try { await FB().submit({ nome, svg: data.svg, ra: data.ra, comunidade: com.value, concurso: $('sbkc') && $('sbkc').checked ? $('sbkc').value : '' }); closeSheet(); toast('Enviada! Ela aparece na galeria depois da moderação.'); FL.go('perfil') } catch (e) { err(fbErr(e)); $('sbok').disabled = false }
   };
 };
 
@@ -413,7 +415,8 @@ let pfTab = 'criacoes';
 const likesLocal = () => { try { return JSON.parse(localStorage.getItem('flamula-likes') || '[]') } catch (e) { return [] } };
 const recLocal = () => { try { return JSON.parse(localStorage.getItem('flamula-recordes') || '{}') } catch (e) { return {} } };
 const tfmt = ms => { const s = ms / 1000, m = Math.floor(s / 60); return `${m}:${(s - m * 60).toFixed(1).padStart(4, '0')}`.replace('.', ',') };
-const NIVN = { facil: ['Fácil', '#30D158'], medio: ['Médio', '#FF9F0A'], dificil: ['Difícil', '#FF3B30'] };
+const NIVN = { facil: ['Fácil', '#30D158'], medio: ['Médio', '#FF9F0A'], dificil: ['Difícil', '#FF3B30'], silhueta: ['Silhueta', '#1B7FDC'], recorte: ['Recorte', '#0DB8D3'], tempo: ['Contra o tempo', '#065B98'] };
+const recTxt = (n, b) => n === 'tempo' ? b.acertos + ' acertos' : b.acertos + '/' + (b.total || 10);
 FL.views.perfil = async () => {
   const v = $('v-perfil'); document.title = 'Meu perfil · Flâmula';
   if (!FB().ready) { v.innerHTML = loading(); await waitUser(); if (FL.view !== 'perfil') return }
@@ -435,8 +438,8 @@ FL.views.perfil = async () => {
      <div class="pfm">${p.criadoEm ? `<span>No Flâmula desde ${when(p.criadoEm)}</span>` : ''}${fav ? `<a class="pfchip" href="#b-${esc(fav.id)}">${svg(fav, '', true)}Favorita: ${esc(fav.n)}</a>` : ''}${FB().admin ? `<span class="stl aprovada">${FB().dono ? 'Administrador e moderador' : 'Administrador'}</span>` : ''}${p.colaborador ? '<span class="stl pendente">Colaborador</span>' : ''}</div></div>
     <div class="pfa">${FB().admin ? `<a class="btn acc pr pfadm" href="#admin"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>Painel de administração<b id="pfpend" hidden></b></a>` : ''}<button class="btn ${FB().admin ? 'gh' : 'acc'} pr" id="pfedit">Editar perfil</button><button class="btn gh pr" id="pfout">Sair</button></div></div>
    ${FB().donoPendente ? `<div class="pfaviso lg"><span><b>Confirme o seu e-mail para ativar o painel de administração.</b> Ou entre com o Google usando o mesmo endereço.</span><span class="erow"><button class="btn acc pr sm" data-act="verificar-email">Enviar link</button><button class="btn gh pr sm" data-act="ja-confirmei">Já confirmei</button></span></div>` : ''}
-   <div class="pfs"><button class="lg pr" data-go="criacoes"><b id="pfn">–</b><span>Criações</span></button><button class="lg pr" data-go="curtidas"><b>${likes.length}</b><span>Curtidas</span></button><button class="lg pr" data-go="comunidades"><b>${(p.comunidades || []).length}</b><span>Comunidades</span></button><button class="lg pr" data-go="jogo"><b>${melhor ? melhor[1].acertos + '/10' : '–'}</b><span>${melhor ? 'Recorde · ' + NIVN[melhor[0]][0] : 'Recorde no jogo'}</span></button></div></div>
-  <div class="tabsrow">${segH('pft', [['criacoes', 'Criações'], ['colecoes', 'Coleções'], ['curtidas', 'Curtidas'], ['comunidades', 'Comunidades'], ['jogo', 'Jogo'], ['conta', 'Conta']], pfTab)}<div id="pfx"></div></div><div id="pfp"></div>`;
+   <div class="pfs"><button class="lg pr" data-go="criacoes"><b id="pfn">–</b><span>Criações</span></button><button class="lg pr" data-go="curtidas"><b>${likes.length}</b><span>Curtidas</span></button><button class="lg pr" data-go="comunidades"><b>${(p.comunidades || []).length}</b><span>Comunidades</span></button><button class="lg pr" data-go="jogo"><b>${melhor ? recTxt(melhor[0], melhor[1]) : '–'}</b><span>${melhor ? 'Recorde · ' + NIVN[melhor[0]][0] : 'Recorde no jogo'}</span></button></div></div>
+  <div class="tabsrow">${segH('pft', [['criacoes', 'Criações'], ['colecoes', 'Coleções'], ['curtidas', 'Curtidas'], ['comunidades', 'Comunidades'], ['jogo', 'Jogo'], ['conquistas', 'Conquistas'], ['conta', 'Conta']], pfTab)}<div id="pfx"></div></div><div id="pfp"></div>`;
   requestAnimationFrame(() => segMove($('pft')));
   const setTab = t => { pfTab = t; $('pft').querySelectorAll('button').forEach(x => { x.classList.toggle('on', x.dataset.v === t); x.setAttribute('aria-pressed', x.dataset.v === t) }); segMove($('pft')); pane() };
   segBind($('pft'), t => { pfTab = t; pane() });
@@ -500,7 +503,10 @@ FL.views.perfil = async () => {
     } else if (pfTab === 'jogo') {
       x.innerHTML = '<a class="btn acc pr sm" href="#jogo">Jogar</a>';
       const r = recLocal();
-      box.innerHTML = `<div class="pfj">${['facil', 'medio', 'dificil'].map(n => { const b = (r[n] || [])[0]; return `<div class="lg pfjc" style="--nv:${NIVN[n][1]}"><small>${NIVN[n][0]}</small>${b ? `<b>${b.acertos}/10</b><span>${tfmt(b.td * 100)} · ${b.pontos.toLocaleString('pt-BR')} pontos</span>` : '<b>–</b><span>Ainda sem partidas</span>'}</div>` }).join('')}</div><p class="pfnote">Seus melhores resultados neste aparelho. O ranking global fica na página do jogo.</p>`;
+      const j = (FB().profile && FB().profile.jogo) || {};
+      box.innerHTML = `${j.partidas ? `<div class="pfj" style="margin-bottom:12px">${[['Partidas', j.partidas], ['Acertos', j.acertos || 0], ['Gabaritos', j.gabaritos || 0], ['Sequência no diário', (j.sequencia || 0) + (j.maiorSequencia > (j.sequencia || 0) ? ' · recorde ' + j.maiorSequencia : '')]].map(([l, n]) => `<div class="lg pfjc"><small>${l}</small><b>${typeof n === 'number' ? n.toLocaleString('pt-BR') : n}</b></div>`).join('')}</div>` : ''}<div class="pfj">${Object.keys(NIVN).map(n => { const b = (r[n] || []).slice().sort((a, c) => (c.total || 10) - (a.total || 10) || c.pontos - a.pontos)[0]; return `<div class="lg pfjc" style="--nv:${NIVN[n][1]}"><small>${NIVN[n][0]}</small>${b ? `<b>${recTxt(n, b)}</b><span>${n === 'tempo' ? 'em 60 segundos' : tfmt(b.td * 100)}</span>` : '<b>–</b><span>Ainda sem partidas</span>'}</div>` }).join('')}</div><p class="pfnote">Melhores resultados neste aparelho (na maior quantidade de bandeiras jogada). O ranking global fica na página do jogo.</p>`;
+    } else if (pfTab === 'conquistas') {
+      if (FL.ext && FL.ext.conquistas) await FL.ext.conquistas(box, x, u, FB().profile || p); else box.innerHTML = '';
     } else {
       x.innerHTML = '';
       box.innerHTML = `<div class="list"><div class="box lg"><div class="kv"><div><small>E-mail da conta</small><code>${esc(u.email || '—')}</code></div><div><small>Forma de login</small><code>${(u.providerData || []).some(d => d.providerId === 'google.com') ? 'Google' : 'E-mail e senha'}</code></div><div><small>UID</small><code>${esc(u.uid)}</code></div></div><div class="acts"><button class="btn gh pr sm" data-copy="${esc(u.uid)}">Copiar UID</button></div></div>
@@ -560,7 +566,7 @@ FL.views.admin = async () => {
   if (!FB().on) return v.innerHTML = offMsg();
   if (!FB().user) return v.innerHTML = needLogin('acessar o painel de administração');
   if (!FB().admin) return v.innerHTML = FB().donoPendente ? restricted('Confirme o seu e-mail', 'Esta conta é a do administrador principal, mas o e-mail ainda não foi confirmado. Confirme pelo link enviado ao seu e-mail, ou entre com o Google usando o mesmo endereço.', '<button class="btn acc pr" data-act="verificar-email">Enviar link de confirmação</button><button class="btn gh pr" data-act="ja-confirmei">Já confirmei</button>') : restricted('Acesso restrito', `Esta página é só para administradores. Para pedir acesso, envie um e-mail para <b>${ADMIN_EMAIL}</b> com o seu UID.`, '<button class="btn acc pr" data-act="admin-pedido">Pedir acesso</button>');
-  v.innerHTML = `<div class="phead"><h1>Administração</h1><p>${FB().dono ? 'Você é o administrador principal e moderador do Flâmula.' : 'Você é administrador do Flâmula.'} Acompanhe os números, modere envios, cuide da galeria e das contas.</p></div><div class="tabsrow">${segH('adt', [['geral', 'Visão geral'], ['envios', 'Envios'], ['galeria', 'Galeria'], ['usuarios', 'Usuários'], ['comunidades', 'Comunidades'], ['pedidos', 'Pedidos<b class="adn" id="adnp" hidden></b>'], ['apoio', 'Apoio']], adTab)}</div><div id="adp"></div>`;
+  v.innerHTML = `<div class="phead"><h1>Administração</h1><p>${FB().dono ? 'Você é o administrador principal e moderador do Flâmula.' : 'Você é administrador do Flâmula.'} Acompanhe os números, modere envios, cuide da galeria e das contas.</p></div><div class="tabsrow">${segH('adt', [['geral', 'Visão geral'], ['envios', 'Envios'], ['galeria', 'Galeria'], ['usuarios', 'Usuários'], ['comunidades', 'Comunidades'], ['pedidos', 'Pedidos<b class="adn" id="adnp" hidden></b>'], ['concursos', 'Concursos'], ['apoio', 'Apoio']], adTab)}</div><div id="adp"></div>`;
   requestAnimationFrame(() => segMove($('adt')));
   FB().contar('pedidos', 'status', 'pendente').then(n => { const b = $('adnp'); if (b && n) { b.textContent = n; b.hidden = false } }).catch(() => { });
   segBind($('adt'), t => { adTab = t; pane() });
@@ -591,6 +597,8 @@ FL.views.admin = async () => {
         const L = await FB().comunidades();
         box.innerHTML = L.length ? `<div class="list">${L.map(c => `<div class="li lg"><div class="th">${flagThumb(c.bandeira)}</div><div><b>${esc(c.nome)}</b><div class="m"><span>${c.membros || 0} membros</span><span>Criada por ${esc(c.donoNome || '—')}</span><span>${when(c.criadaEm)}</span></div></div><div class="acts"><a class="btn gh pr sm" href="#c-${esc(c.id)}">Abrir</a><button class="btn dg pr sm" data-rmc="${esc(c.id)}">Apagar</button></div></div>`).join('')}</div>` : '<div class="empty"><b>Nenhuma comunidade criada</b></div>';
         box.querySelectorAll('[data-rmc]').forEach(b => b.onclick = async () => { if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Confirmar'; return } try { await FB().apagarComunidade(b.dataset.rmc); toast('Comunidade apagada'); pane() } catch (e) { toast(fbErr(e)) } });
+      } else if (adTab === 'concursos') {
+        if (FL.ext && FL.ext.adminConcursos) await FL.ext.adminConcursos(box, pane);
       } else if (adTab === 'apoio') {
         const A = (await FB().apoio().catch(() => null)) || {};
         let modo = A.codigo ? 'codigo' : 'chave';

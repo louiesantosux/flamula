@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Flâmula · Bandeiras do mundo, história e editor de bandeiras</title>
-<meta name="description" content="Bandeiras oficiais de todos os países, dos estados do Brasil, sinais náuticos e bandeiras militares, com a história de cada uma, um jogo e um editor para criar a sua.">
+<meta name="description" content="Bandeiras oficiais de todos os países, dos estados do Brasil, sinais náuticos, bandeiras militares e de organizações internacionais, com a história de cada uma, um jogo e um editor para criar a sua.">
 <meta name="google-site-verification" content="JjuG7z5siaalCHW3By4LGa9i7CsvqfQtHP86FRPpklA" />
 <link rel="canonical" href="https://flamula.vercel.app/">
 <meta name="robots" content="index,follow">
@@ -13,7 +13,7 @@
 <meta property="og:locale" content="pt_BR">
 <meta property="og:url" content="https://flamula.vercel.app/">
 <meta property="og:title" content="Flâmula · Bandeiras do mundo, história e editor de bandeiras">
-<meta property="og:description" content="Bandeiras oficiais de todos os países, dos estados do Brasil, sinais náuticos e bandeiras militares, com a história de cada uma, um jogo e um editor para criar a sua.">
+<meta property="og:description" content="Bandeiras oficiais de todos os países, dos estados do Brasil, sinais náuticos, bandeiras militares e de organizações internacionais, com a história de cada uma, um jogo e um editor para criar a sua.">
 <meta name="twitter:card" content="summary">
 <!-- sem theme-color: no iOS/Android a barra de status fica transparente e o conteúdo passa por baixo dela -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -123,6 +123,7 @@ body.compact .links{max-width:0;opacity:0;pointer-events:none}
 .bento{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
 .cat{position:relative;border-radius:26px;padding:20px;background:var(--stage);border:0;box-shadow:0 1px 0 var(--line);display:flex;flex-direction:column;gap:14px;min-height:190px;text-align:left;color:var(--ink)}
 .cat.big{grid-column:span 2;grid-row:span 2}
+.cat.full{grid-column:1/-1}.cat.full .minis{display:flex;gap:14px;justify-content:flex-end}.cat.full .minis img,.cat.full .minis svg{height:56px;width:auto;max-width:96px}
 .cat.wide{grid-column:span 2;min-height:150px}
 .cat b{font:700 20px var(--font-d);letter-spacing:-.02em}
 .cat span{color:var(--mut);font-size:14px}
@@ -450,7 +451,7 @@ footer a:hover,footer button:hover{color:var(--ink)}
 <div class="edge" aria-hidden="true"></div>
 <header class="nav"><div class="pill lg">
   <a class="logo" href="#inicio" aria-label="Flâmula, início"><svg class="mk"><use href="#mk"/></svg><span class="wm">flâmula</span></a>
-  <nav class="links" aria-label="Principal"><a href="#inicio" data-r="home">Início</a><a href="#explorar" data-r="explorar">Explorar</a><a href="#jogo" data-r="jogo">Jogo</a><a href="#comunidades" data-r="comunidades">Comunidades</a><a href="#criar" data-r="criar">Criar</a><a href="#admin" data-r="admin" id="ladmin" hidden>Admin</a></nav>
+  <nav class="links" aria-label="Principal"><a href="#inicio" data-r="home">Início</a><a href="#explorar" data-r="explorar">Explorar</a><a href="#jogo" data-r="jogo">Jogo</a><a href="#comunidades" data-r="comunidades">Comunidades</a><a href="#concursos" data-r="concurso">Concursos</a><a href="#criar" data-r="criar">Criar</a><a href="#admin" data-r="admin" id="ladmin" hidden>Admin</a></nav>
   <div class="act"><button class="ic pr" id="bsearch" aria-label="Buscar"></button><span id="acc"></span></div>
 </div></header>
 
@@ -469,7 +470,7 @@ footer a:hover,footer button:hover{color:var(--ink)}
   <section class="sec wrap"><div class="shead"><div><h2>Categorias</h2><p>O acervo oficial organizado por tipo.</p></div></div><div class="bento" id="cats"></div></section>
   <section class="sec wrap"><div class="shead"><div><h2>Em destaque</h2><p id="destp">Seleção da curadoria.</p></div><a class="more" href="#explorar">Ver todas</a></div><div class="row" id="dest"></div></section>
   <section class="sec wrap" id="secom" hidden><div class="shead"><div><h2>Criações da comunidade</h2><p>Bandeiras originais aprovadas pela moderação.</p></div><a class="more" href="#explorar" id="vercom">Ver todas</a></div><div class="row" id="ult"></div></section>
-  <section class="sec wrap"><a class="cta lg pr" href="#jogo" style="color:inherit;background:linear-gradient(135deg,color-mix(in srgb,var(--azul) 16%,var(--stage)),var(--stage))"><div><h2>Qual é o país?</h2><p>Uma bandeira, quatro nomes. Acerte 10 bandeiras no menor tempo, em três níveis, e entre no ranking.</p><span class="btn acc pr">Jogar agora</span></div><div class="ctapic" id="gamepic" aria-hidden="true"></div></a></section>
+  <section class="sec wrap"><a class="cta lg pr" href="#jogo" style="color:inherit;background:linear-gradient(135deg,color-mix(in srgb,var(--azul) 16%,var(--stage)),var(--stage))"><div><h2>Qual é o país?</h2><p>Uma bandeira, quatro nomes. Modos clássico, silhueta, recorte e contra o tempo, desafio diário e ranking.</p><span class="btn acc pr">Jogar agora</span></div><div class="ctapic" id="gamepic" aria-hidden="true"></div></a></section>
   <section class="sec wrap"><div class="cta lg"><div><h2>Crie a sua bandeira</h2><p>Escolha a proporção, o layout e as cores, adicione símbolos e arraste no próprio desenho. Baixe em SVG ou PNG sem conta, ou entre para publicar na galeria e nas suas comunidades.</p><a class="btn acc pr" href="#criar">Abrir o editor</a></div><div class="ctapic" id="ctapic" aria-hidden="true"></div></div></section>
 </main>
 
@@ -503,6 +504,7 @@ footer a:hover,footer button:hover{color:var(--ink)}
 <main id="v-comunidade" hidden class="wrap"></main>
 <main id="v-admin" hidden class="wrap"></main>
 <main id="v-jogo" hidden class="wrap"></main>
+<main id="v-concurso" hidden class="wrap"></main>
 
 <main id="v-marca" hidden>
   <section class="bhero"><div class="wrap"><div class="bpanel lg">
@@ -522,7 +524,7 @@ footer a:hover,footer button:hover{color:var(--ink)}
 
 <footer><div class="wrap fgrid">
   <div><div class="logo" style="margin-bottom:10px;color:var(--ink)"><svg class="mk"><use href="#mk"/></svg><span class="wm">flâmula</span></div>Bandeiras oficiais via Flagpedia/flagcdn e Wikimedia Commons. Contexto e história via Wikidata e Wikipédia (CC BY-SA). Bandeiras militares também via FOTW Flags Of The World (fotw.info).</div>
-  <div><b>Navegar</b><a href="#explorar">Explorar</a><a href="#militares">Bandeiras militares</a><a href="#jogo">Jogo: qual é o país?</a><a href="#comunidades">Comunidades</a><a href="#criar">Editor de bandeiras</a><a href="#marca">Identidade visual</a></div>
+  <div><b>Navegar</b><a href="#explorar">Explorar</a><a href="#militares">Bandeiras militares</a><a href="#jogo">Jogo: qual é o país?</a><a href="#comunidades">Comunidades</a><a href="#concursos">Concursos mensais</a><a href="#criar">Editor de bandeiras</a><a href="#marca">Identidade visual</a></div>
   <div><b>Participe</b><button data-act="colaborar">Torne-se um colaborador</button><button data-act="admin-pedido">Seja administrador</button><button data-act="apoiar" class="apoio-l"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/></svg>Apoie o projeto</button><a href="#perfil">Meu perfil</a></div>
   <div><b>Legal</b><button data-soon="Os termos de uso">Termos de uso</button><button data-soon="A política de privacidade">Privacidade</button><button data-act="colaborar">Direitos autorais e remoção</button></div>
 </div></footer>
@@ -536,19 +538,19 @@ footer a:hover,footer button:hover{color:var(--ink)}
 </nav>
 <div class="toast lg" id="toast" role="status" aria-live="polite"></div>
 
-<script src="/acervo.js?v=20261120i"></script>
+<script src="/acervo.js?v=20261121a"></script>
 <script src="/firebase-config.js"></script>
-<script type="module" src="/firebase.js?v=20261120i"></script>
-<script src="/wiki.js?v=20261120i"></script>
+<script type="module" src="/firebase.js?v=20261121a"></script>
+<script src="/wiki.js?v=20261121a"></script>
 <script>
 {
 /* rotas com endereço próprio (/bandeira/br, /militares/cn…) para o Google indexar cada página; #rotas antigas continuam valendo */
-const SIMPLES=['explorar','militares','jogo','comunidades','perfil','entrar','admin','marca','criar'];
-const PREF=[['b-','bandeira/'],['criar-','criar/'],['fotw-','militares/'],['c-','comunidade/'],['col-','colecao/'],['decidir-','decidir/']];
+const SIMPLES=['explorar','militares','jogo','comunidades','perfil','entrar','admin','marca','criar','concursos'];
+const PREF=[['b-','bandeira/'],['criar-','criar/'],['fotw-','militares/'],['c-','comunidade/'],['col-','colecao/'],['decidir-','decidir/'],['concurso-','concurso/']];
 const keyToPath=h=>{h=h||'';if(!h||h==='inicio')return '/';if(SIMPLES.includes(h))return '/'+h;for(const[k,p]of PREF)if(h.startsWith(k))return '/'+p+encodeURIComponent(h.slice(k.length)).replace(/%2C/g,',');return '/#'+h};
 const pathToKey=()=>{const p=decodeURIComponent(location.pathname.replace(/\/+$/,'').replace(/^\/+/,''));if(!p)return (location.hash||'').slice(1);if(SIMPLES.includes(p))return p;for(const[k,pf]of PREF)if(p.startsWith(pf))return k+p.slice(pf.length);return ''};
 const curKey=()=>pathToKey();
-const DESC0='Bandeiras oficiais de todos os países, dos estados do Brasil, sinais náuticos e bandeiras militares, com a história de cada uma, um jogo e um editor para criar a sua.';
+const DESC0='Bandeiras oficiais de todos os países, dos estados do Brasil, sinais náuticos, bandeiras militares e de organizações internacionais, com a história de cada uma, um jogo e um editor para criar a sua.';
 const setMeta=(t,d)=>{document.title=t;const m=document.querySelector('meta[name=description]');if(m)m.content=d||DESC0;const ot=document.querySelector('meta[property="og:title"]');if(ot)ot.content=t;const od=document.querySelector('meta[property="og:description"]');if(od)od.content=d||DESC0};
 window.FLKEY=curKey;window.FLPATH=keyToPath;
 (()=>{const h=(location.hash||'').slice(1);if(h&&(location.pathname==='/'||location.pathname==='')){const p=keyToPath(h);if(p!=='/#'+h)history.replaceState(null,'',p)}})();
@@ -567,8 +569,8 @@ D.forEach((f,i)=>{f.added=i;f.ct=contOf(f.r)});
 const DES={br:['Raimundo Teixeira Mendes','Miguel Lemos','Manuel Pereira Reis','Décio Villares']};
 D.forEach(f=>{if(DES[f.id])f.des=DES[f.id]});
 const S={on:false,dl:{},lk:{}};const nD=f=>S.dl[f.id]||0,nL=f=>S.lk[f.id]||0;
-const TIPOS=[['todos','Todos'],['pais','Países'],['estado','Estados do Brasil'],['ilha','Ilhas'],['nautica','Náuticas'],['militar','Militares'],['criacao','Criações']];
-const TN={pais:'País',estado:'Estado',ilha:'Ilha',nautica:'Sinal náutico',militar:'Militar',criacao:'Criação da comunidade'};
+const TIPOS=[['todos','Todos'],['pais','Países'],['estado','Estados do Brasil'],['ilha','Ilhas'],['nautica','Náuticas'],['militar','Militares'],['org','Organizações'],['criacao','Criações']];
+const TN={pais:'País',estado:'Estado',ilha:'Ilha',nautica:'Sinal náutico',militar:'Militar',org:'Organização',criacao:'Criação da comunidade'};
 const byId=Object.fromEntries(D.map(f=>[f.id,f]));
 const fmt=n=>n>=1000?(n/1000).toFixed(1).replace('.',',').replace(',0','')+' mil':String(n);
 const dims=f=>{const r=f.ra||[2,3];return [600,Math.round(600*r[0]/r[1])]};
@@ -633,8 +635,8 @@ let fd=isDay?byId.br:cur[doy%cur.length];
 const wave=f=>{const [W,H]=dims(f),N=22;let s=`<svg class="wave" viewBox="-24 -26 ${W+40} ${H+60}" role="img" aria-label="Bandeira: ${esc(f.n)}"><defs><symbol id="wsym" viewBox="0 0 ${W} ${H}">${f.d(W,H)}${f.src?`<image href="${f.src}" width="${W}" height="${H}" preserveAspectRatio="none"/>`:''}</symbol>`;for(let i=0;i<N;i++)s+=`<clipPath id="wc${i}"><rect x="${(i*W/N).toFixed(1)}" y="-30" width="${(W/N+1).toFixed(1)}" height="${H+60}"/></clipPath>`;s+=`</defs><rect x="-20" y="-24" width="9" height="${H+60}" rx="4.5" fill="rgba(255,255,255,.85)"/>`;for(let i=0;i<N;i++){const sh=(.5+.5*Math.sin(i/N*Math.PI*3)).toFixed(2);s+=`<g clip-path="url(#wc${i})"><g class="wv" style="animation-delay:${(-i*.13).toFixed(2)}s"><use href="#wsym" width="${W}" height="${H}"/><rect x="${(i*W/N).toFixed(1)}" y="0" width="${(W/N+1).toFixed(1)}" height="${H}" fill="#000" opacity="${(sh*.12).toFixed(3)}"/></g></g>`}return s+'</svg>'};
 const renderDia=()=>{const esc2=diaEscolhida();fd=esc2||(isDay?byId.br:cur[doy%cur.length]);
 $('dia').innerHTML=`<div class="top"><div><small>${isDay&&!esc2?'19 de novembro · Dia da Bandeira':'Bandeira do dia'}</small><b>${esc(fd.n)}</b></div><a class="round pr" href="#b-${fd.id}" aria-label="Ver ficha de ${esc(fd.n)}">${I('arrow')}</a></div>${wave(fd)}<div style="display:flex;gap:18px;flex-wrap:wrap;font-size:14px;color:var(--mut)">${fd.ra?`<span>Proporção ${fd.ra[0]}:${fd.ra[1]}</span>`:''}${fd.y?`<span>Adotada em ${fd.y}</span>`:''}<span>${fd.c.length} cores</span></div>`};renderDia();
-const renderCats=()=>{const catDef=[['pais','Países e territórios','big'],['nautica','Sinais náuticos',''],['estado','Estados do Brasil',''],['ilha','Ilhas',''],['militar','Bandeiras militares','']];
- $('cats').innerHTML=catDef.map(([t,l,c])=>{const fs=c==='big'?['br','jp','gb','us','in','ch'].map(i=>byId[i]):D.filter(f=>f.t===t||(t==='ilha'&&f.isl)).slice(0,4);return `<button class="cat pr ${c}" data-cat="${t}"><div><b>${l}</b><br><span>${cnt(t)} bandeiras</span></div><div class="minis">${fs.map(f=>svg(f)).join('')}</div></button>`}).join('')};
+const renderCats=()=>{const catDef=[['pais','Países e territórios','big'],['nautica','Sinais náuticos',''],['estado','Estados do Brasil',''],['ilha','Ilhas',''],['militar','Bandeiras militares',''],['org','Organizações internacionais','full']];
+ $('cats').innerHTML=catDef.map(([t,l,c])=>{const fs=c==='big'?['br','jp','gb','us','in','ch'].map(i=>byId[i]):D.filter(f=>f.t===t||(t==='ilha'&&f.isl)).slice(0,c==='full'?6:4);return `<button class="cat pr ${c}" data-cat="${t}"><div><b>${l}</b><br><span>${cnt(t)} bandeiras</span></div><div class="minis">${fs.map(f=>svg(f)).join('')}</div></button>`}).join('')};
 renderCats();
 const CUR=['br','jp','gb','us','fr','de','it','ca','mx','ar','pt','kr','ch','se','br-sp','ics-a'];
 /* configuração da galeria feita pelos administradores: ocultas, nomes e destaques */
@@ -667,7 +669,7 @@ const gal=(anim)=>{
  ddCont.set(st.r);ddOrd.set(st.s);
  const L=D.filter(f=>!f.oculta&&(st.t==='todos'||f.t===st.t||(st.t==='ilha'&&f.isl))&&(st.o==='todas'||f.o===st.o)&&inCont(f)&&(!st.q||norm([f.n,f.k,f.a,f.cap,f.of,f.pais].join(' ')).includes(norm(st.q))));
  const so={popular:byPop,recentes:(a,b)=>b.added-a.added,downloads:(a,b)=>nD(b)-nD(a)||a.n.localeCompare(b.n,'pt'),az:(a,b)=>a.n.localeCompare(b.n,'pt')}[st.s];L.sort(so);
- $('ptot').textContent=`${off().length} bandeiras oficiais: ${cnt('pais')} países e territórios, ${cnt('estado')} estados do Brasil e ${cnt('nautica')} sinais náuticos, além de ${cnt('militar')} bandeiras militares${cnt('criacao')?` e ${cnt('criacao')} ${cnt('criacao')>1?'criações':'criação'} da comunidade`:''}.`;
+ $('ptot').textContent=`${off().length} bandeiras oficiais: ${cnt('pais')} países e territórios, ${cnt('estado')} estados do Brasil e ${cnt('nautica')} sinais náuticos, além de ${cnt('militar')} bandeiras militares e ${cnt('org')} de organizações internacionais${cnt('criacao')?` e ${cnt('criacao')} ${cnt('criacao')>1?'criações':'criação'} da comunidade`:''}.`;
  $('res').textContent=L.length?`${L.length} ${L.length>1?'resultados':'resultado'}`:'';
  $('bmore').hidden=L.length<=shown;
  if(!L.length){$('gal').innerHTML=st.o==='original'||st.t==='criacao'?`<div class="empty"><b>Ainda não há criações publicadas</b><p>As bandeiras feitas no editor aparecem aqui depois de aprovadas pela moderação.</p><a class="btn acc pr" href="#criar">Criar a primeira</a></div>`:`<div class="empty"><b>Nenhuma bandeira encontrada</b><p>Tente outro termo ou remova algum filtro.</p><button class="btn gh pr" data-clear>Limpar filtros</button></div>`;return}
@@ -717,7 +719,7 @@ const renderInfo=(f,w)=>{if(curKey()!=='b-'+f.id)return;
  const de=$('fdes');if(de&&!f.des)de.textContent=w&&w.des&&w.des.length?w.des.join(', '):'Não registrado';
  const cx=$('fctx');if(cx){if(w&&w.ctx){cx.innerHTML=`<p>${esc(w.ctx.text)}</p><a class="lnk" href="${esc(w.ctx.url)}" target="_blank" rel="noopener">Ler na Wikipédia${w.ctx.lang==='en'?' (em inglês)':''}</a>`}else cx.innerHTML=`<p style="color:var(--mut)">${w&&w.ok?'Sem artigo da Wikipédia associado a esta bandeira.':'Não foi possível carregar o contexto agora.'}</p>`}
  const wl=$('fwlink');if(wl&&f.t==='militar'&&f.wen)wl.href='https://en.wikipedia.org/wiki/'+encodeURIComponent(f.wen.replace(/ /g,'_'));
- if((f.t==='militar'||f.t==='ilha')&&f.src){const sv=$('v-detalhe').querySelector('.dstage>svg');if(sv){const w2=document.createElement('span');w2.innerHTML=svg(f,'fl',false);const n=w2.firstChild;n.style.viewTransitionName='flag';sv.replaceWith(n)}if(f.approx)getColors(f)}};
+ if((f.t==='militar'||f.t==='ilha'||f.t==='org')&&f.src){const sv=$('v-detalhe').querySelector('.dstage>svg');if(sv){const w2=document.createElement('span');w2.innerHTML=svg(f,'fl',false);const n=w2.firstChild;n.style.viewTransitionName='flag';sv.replaceWith(n)}if(f.approx)getColors(f)}};
 const renderTL=(f,t)=>{if(curKey()!=='b-'+f.id)return;const tl=$('tl'),tp=$('tlp');if(!tl)return;TLS[f.id]=t;
  if(t&&t.items&&t.items.length){tl.innerHTML=`<ol class="tl-row">${t.items.map((x,i)=>`<li class="tl-i ${x.cur?'cur':''}" style="animation-delay:${i*60}ms"><span class="tl-dot"></span><button class="tl-card pr" data-tl="${i}" aria-label="Ampliar versão ${yrs(x)}"><img src="${esc(x.img)}" alt="" loading="lazy"></button><b>${yrs(x)}</b>${x.label?`<span>${esc(x.label)}</span>`:''}</li>`).join('')}</ol>${t.items.length<2?'<p class="tl-msg">Não há versões anteriores registradas para esta bandeira.</p>':''}`;const row=tl.querySelector('.tl-row');if(row)row.scrollLeft=row.scrollWidth;
   if(tp)tp.innerHTML=t.src&&t.src.name==='Wikipédia'?`Versões anteriores e a atual, segundo a Wikipédia${t.src.url?` · <a class="lnk" href="${esc(t.src.url)}" target="_blank" rel="noopener">${esc(t.src.title||'ver página')}</a>`:''}. Toque para ampliar.`:'Versões registradas na Wikidata. Toque para ampliar.'}
@@ -771,9 +773,9 @@ document.addEventListener('click',async e=>{const b=e.target.closest('[data-pk]'
   b.disabled=false;go('criar-'+vid)}
 });
 const det=id=>{const f=byId[id];if(!f){history.replaceState(null,'','#explorar');return route()}
- const isO=f.o==='original',isM=f.t==='militar',isI=f.t==='ilha',isW=isM||isI,isN=f.t==='nautica',hist=!isO&&!isN;
+ const isO=f.o==='original',isM=f.t==='militar',isI=f.t==='ilha'||f.t==='org',isW=isM||isI,isN=f.t==='nautica',hist=!isO&&!isN;
  const rel=D.filter(x=>x.id!==f.id&&x.t===f.t&&x.r===f.r);const rel2=(rel.length>=4?rel:rel.concat(D.filter(x=>x.id!==f.id&&x.t===f.t&&x.r!==f.r))).slice(0,6);
- const fx=[['Proporção',f.ra?`${f.ra[0]}:${f.ra[1]}`:'…','fra'],...(isN?[]:[['Adoção',isO?'—':(f.y||'…'),'fado']]),[isN?'Letra':isW?'País':'Código',isW?f.pais:f.k]];
+ const fx=[['Proporção',f.ra?`${f.ra[0]}:${f.ra[1]}`:'…','fra'],...(isN?[]:[['Adoção',isO?'—':(f.y||'…'),'fado']]),[isN?'Letra':f.t==='org'?'Sigla':isW?'País':'Código',f.t==='org'?f.n:isW?f.pais:f.k]];
  const loc=isN?[['Uso','Comunicação marítima'],['Sistema','Código Internacional de Sinais']]:isO?[['Autor','@'+f.a],['Comunidade',f.comNome||'—']]:[['Designer',f.des?f.des.join(', '):'<span class="sk"></span>','fdes'],[isW?'Continente':'Capital',isW?f.ct:(f.cap||'—')],...(isW?[]:[['Continente',f.ct+(AMER.includes(f.r)?' · '+f.r.replace('América ','').replace(/^do |^d[ao] /,''):'')]])];
  setMeta(`${f.n} · ${f.t==='militar'?'Bandeira militar':f.t==='nautica'?'Sinal náutico':f.t==='estado'?'Bandeira estadual':'Bandeira'} · Flâmula`,[f.of&&f.of!==f.n?f.of:'',f.y?`Adotada em ${f.y}.`:'',f.desc||'',`Proporção, cores, história e download da bandeira ${f.n}.`].filter(Boolean).join(' ').slice(0,300));tint(f);
  const dlBtn=isM?`<a class="btn pr" id="fwlink" href="#" target="_blank" rel="noopener">${I('ext')}Abrir na Wikipédia</a>`:`<button class="btn pr" id="bdl">${I('dl')}Baixar SVG<span class="n" data-cd="${esc(f.id)}" style="opacity:.7">·&nbsp;<i>${fmt(nD(f))}</i></span></button>`;
@@ -784,7 +786,7 @@ const det=id=>{const f=byId[id];if(!f){history.replaceState(null,'','#explorar')
  <div class="fx lg w"><small id="swl">${f.approx?'Cores aproximadas · carregando as cores do arquivo oficial':'Cores · toque para copiar o hex'}</small><div class="sw" id="sw">${swH(f)}</div></div>
  ${f.s?`<div class="fx lg w"><small>Simbologia</small><p>${esc(f.s)}</p></div>`:''}
  ${hist?`<div class="fx lg w"><small>Contexto</small><div id="fctx"><span class="sk"></span><br><span class="sk" style="width:50%;margin-top:8px"></span></div></div>`:''}
- <div class="fx lg w"><small>Fonte e licença</small><p>${isO?`Criação de @${esc(f.a)}, aprovada pela moderação.`:isM?(f.fonte==='fotw-img'&&f.fotw?`Imagem de ${esc(f.fotw.autor)}, reproduzida sem alterações de <a href="${f.fotw.pag}" target="_blank" rel="noopener">FOTW Flags Of The World website at https://www.fotw.info/</a>. Uso não comercial, só para consulta.`:f.fonte==='fotw'?'Desenho do Flâmula com base na descrição do Cerimonial da Marinha do Brasil. Contexto: Flags of the World.':'Imagem do Wikimedia Commons via Wikipédia. Bandeiras militares podem ter uso restrito por lei ou marca registrada; aqui aparecem só para consulta.'):isI?'Imagem do Wikimedia Commons via Wikipédia. Licença conferida arquivo a arquivo.':f.fonte==='flagcdn'?'Arquivo oficial via Flagpedia/flagcdn, gerado a partir dos vetores do Wikimedia Commons. Domínio público.':'Arquivo oficial do Wikimedia Commons. Licença conferida arquivo a arquivo; na maioria dos casos, domínio público.'}${hist?' Bandeiras anteriores e contexto: Wikipédia; adoção e designer: Wikidata (CC BY-SA).':''}</p></div></div></div></div>
+ <div class="fx lg w"><small>Fonte e licença</small><p>${isO?`Criação de @${esc(f.a)}, aprovada pela moderação.`:isM?(f.fonte==='fotw-img'&&f.fotw?`Imagem de ${esc(f.fotw.autor)}, reproduzida sem alterações de <a href="${f.fotw.pag}" target="_blank" rel="noopener">FOTW Flags Of The World website at https://www.fotw.info/</a>. Uso não comercial, só para consulta.`:f.fonte==='fotw'?'Desenho do Flâmula com base na descrição do Cerimonial da Marinha do Brasil. Contexto: Flags of the World.':'Imagem do Wikimedia Commons via Wikipédia. Bandeiras militares podem ter uso restrito por lei ou marca registrada; aqui aparecem só para consulta.'):isI?(f.t==='org'?'Imagem do Wikimedia Commons. Bandeiras e emblemas de organizações podem ter uso protegido (a Cruz Vermelha, por exemplo, é protegida pelas Convenções de Genebra); aqui aparecem para consulta.':'Imagem do Wikimedia Commons via Wikipédia. Licença conferida arquivo a arquivo.'):f.fonte==='flagcdn'?'Arquivo oficial via Flagpedia/flagcdn, gerado a partir dos vetores do Wikimedia Commons. Domínio público.':'Arquivo oficial do Wikimedia Commons. Licença conferida arquivo a arquivo; na maioria dos casos, domínio público.'}${hist?' Bandeiras anteriores e contexto: Wikipédia; adoção e designer: Wikidata (CC BY-SA).':''}</p></div></div></div></div>
  ${hist?`<section class="sec"><div class="shead"><div><h2>Linha do tempo</h2><p id="tlp">Bandeiras anteriores e a atual, segundo a Wikipédia.</p></div></div><div class="tl lg" id="tl"><p class="tl-msg"><span class="sk" style="width:220px"></span></p></div></section>`:''}
  ${f.t==='pais'?`<section class="sec" id="wlsec"><div class="shead"><div><h2>Bandeiras do país</h2><p id="wlp">Carregando a lista de bandeiras da Wikipédia…</p></div></div><div id="wls"><p class="tl-msg"><span class="sk" style="width:260px"></span></p></div></section>`:''}
  <section class="sec"><div class="shead"><div><h2>${isO?'Outras criações':'Relacionadas'}</h2></div></div><div class="grid">${rel2.map(card).join('')}</div></section>`;
@@ -820,9 +822,9 @@ addEventListener('fb-on',()=>FL_loadOriginals());if(window.FB&&FB.on)FL_loadOrig
 
 /* rotas com transição contínua */
 let view='home',lastDet=null;const scrollMem={};
-const VIEWS=['colecao','decidir','entrar','home','explorar','militares','detalhe','criar','perfil','comunidades','comunidade','admin','marca','jogo'];
-const viewOf=h=>h.startsWith('col-')?'colecao':h.startsWith('decidir-')?'decidir':h==='entrar'?'entrar':h==='explorar'?'explorar':h==='marca'?'marca':(h==='militares'||h.startsWith('fotw-'))?'militares':h.startsWith('b-')?'detalhe':(h==='criar'||h.startsWith('criar-'))?'criar':h==='perfil'?'perfil':h==='comunidades'?'comunidades':h.startsWith('c-')?'comunidade':h==='admin'?'admin':h==='jogo'?'jogo':'home';
-const argOf=h=>h.startsWith('col-')?h.slice(4):h.startsWith('decidir-')?h.slice(8):h.startsWith('b-')?h.slice(2):h.startsWith('criar-')?h.slice(6):h.startsWith('c-')?h.slice(2):null;
+const VIEWS=['concurso','colecao','decidir','entrar','home','explorar','militares','detalhe','criar','perfil','comunidades','comunidade','admin','marca','jogo'];
+const viewOf=h=>(h==='concursos'||h.startsWith('concurso-'))?'concurso':h.startsWith('col-')?'colecao':h.startsWith('decidir-')?'decidir':h==='entrar'?'entrar':h==='explorar'?'explorar':h==='marca'?'marca':(h==='militares'||h.startsWith('fotw-'))?'militares':h.startsWith('b-')?'detalhe':(h==='criar'||h.startsWith('criar-'))?'criar':h==='perfil'?'perfil':h==='comunidades'?'comunidades':h.startsWith('c-')?'comunidade':h==='admin'?'admin':h==='jogo'?'jogo':'home';
+const argOf=h=>h.startsWith('concurso-')?h.slice(9):h.startsWith('col-')?h.slice(4):h.startsWith('decidir-')?h.slice(8):h.startsWith('b-')?h.slice(2):h.startsWith('criar-')?h.slice(6):h.startsWith('c-')?h.slice(2):null;
 const route=()=>{const h=curKey();{const c=document.querySelector('link[rel=canonical]');if(c)c.href=location.origin+keyToPath(h).replace(/\/#.*/,'/')}const v=viewOf(h);closeDD();closeSheet();closeViewer();if(v!=='jogo'&&FL.stopGame)FL.stopGame();
  scrollMem[view]=scrollY;
  document.body.classList.remove('tinted');setMeta('Flâmula · Bandeiras do mundo, história e editor de bandeiras');
@@ -865,11 +867,12 @@ new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes)if(n.nod
 document.addEventListener('DOMContentLoaded',()=>{fixLinks(document);route();requestAnimationFrame(()=>moveInd())});
 }
 </script>
-<script src="/editor.js?v=20261120i"></script>
-<script src="/contas.js?v=20261120i"></script>
-<script src="/jogo.js?v=20261120i"></script>
-<script src="/fotw.js?v=20261120i"></script>
-<script src="/qr.js?v=20261120i"></script>
-<script src="/pix.js?v=20261120i"></script>
+<script src="/editor.js?v=20261121a"></script>
+<script src="/contas.js?v=20261121a"></script>
+<script src="/jogo.js?v=20261121a"></script>
+<script src="/fotw.js?v=20261121a"></script>
+<script src="/qr.js?v=20261121a"></script>
+<script src="/pix.js?v=20261121a"></script>
+<script src="/extras.js?v=20261121a"></script>
 </body>
 </html>
