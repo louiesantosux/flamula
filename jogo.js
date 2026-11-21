@@ -40,7 +40,8 @@ css.textContent = `
 .jg-dots i.ok{background:#34C759}.jg-dots i.no{background:#FF3B30}.jg-dots i.now{transform:scale(1.6);background:var(--ink)}
 .jg-prog{height:6px;border-radius:99px;background:var(--chip);overflow:hidden;margin:0 0 14px}.jg-prog i{display:block;height:100%;background:linear-gradient(90deg,#0DB8D3,#1B7FDC);transition:width .3s}
 .jg-stage{border-radius:34px;aspect-ratio:16/10;max-height:max(200px,calc(100dvh - 360px));width:100%;box-sizing:border-box;display:grid;place-items:center;padding:clamp(16px,4%,36px);position:relative;overflow:hidden}
-.jg.play .jg-top{margin:8px 0 10px}.jg.play .jg-dots{margin-bottom:10px}.jg.play .opts{margin-top:10px}.jg.play .opt{min-height:54px}
+.jg.play .jg-top{margin:8px 0 10px}
+@media(min-width:761px){.jg.play{max-width:1180px}.jg-board{display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,300px);gap:16px;align-items:center}.jg-board .jg-stage{max-height:max(260px,calc(100dvh - 210px))}.jg-board .opts{grid-template-columns:minmax(0,1fr);margin-top:0}.jg-board .opt{min-height:64px;text-align:left;justify-content:flex-start;display:flex;align-items:center;gap:10px;padding:10px 18px}.jg-board .jg-rev{text-align:left;padding-left:6px}.jg.play .jg-dots,.jg.play .jg-prog{max-width:none}}.jg.play .jg-dots{margin-bottom:10px}.jg.play .opts{margin-top:10px}.jg.play .opt{min-height:54px}
 .jg-stage img,.jg-stage svg{max-width:100%;max-height:100%;width:auto;height:auto;filter:drop-shadow(0 0 .6px rgba(0,0,0,.45)) drop-shadow(0 16px 28px rgba(0,0,0,.25));animation:jgin .6s var(--spring) both}
 .jg-stage svg{width:100%;height:100%}
 .jg-stage.rc-on{padding:0}
@@ -222,7 +223,7 @@ const start = async modo => {
   const contador = modo === 'tempo' ? '<div class="jg-prog"><i id="jgpr" style="width:100%"></i></div>' : total <= 30 ? `<div class="jg-dots" id="jgd">${Array.from({ length: total }, () => '<i></i>').join('')}</div>` : '<div class="jg-prog"><i id="jgpr" style="width:0"></i></div>';
   scrollTo(0, 0);
   $('v-jogo').innerHTML = `<div class="jg play"><div class="jg-top"><button class="jg-pill lg pr" id="jgsair">${I('back')}Sair</button><span class="jg-pill lg" style="color:${cor}">${diario ? 'Diário #' + numDia(dia) : N.nome}<span id="jgc" style="color:var(--mut)"></span></span><span class="jg-pill lg" id="jgt" aria-live="off">${modo === 'tempo' ? '1:00,0' : '0:00,0'}</span></div>
-  ${contador}<div class="jg-stage lg" id="jgs"><span class="sk" style="width:60%;height:40%"></span></div><div class="opts" id="jgo"></div><p class="jg-rev" id="jgrv"></p></div>`;
+  ${contador}<div class="jg-board"><div class="jg-stage lg" id="jgs"><span class="sk" style="width:60%;height:40%"></span></div><div class="jg-side"><div class="opts" id="jgo"></div><p class="jg-rev" id="jgrv"></p></div></div></div>`;
   $('jgsair').onclick = () => { if (G && G.diario && G.i > 0 && !confirmaSair()) return; FL.stopGame(); menu() };
   next();
 };
