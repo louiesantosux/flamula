@@ -112,7 +112,7 @@ let PEND = null, CM = null;
 const comm = async p => {
   const box = $('fwcm'); if (!box) return;
   try {
-    const c0 = await cm(p); await (WIKIP || Promise.resolve()).catch(() => { }); if (!$('fwcm') || location.hash !== '#fotw-' + p.code) return;
+    const c0 = await cm(p); await (WIKIP || Promise.resolve()).catch(() => { }); if (!$('fwcm') || FLKEY() !== 'fotw-' + p.code) return;
     const c = { ...c0, itens: (c0.itens || []).filter(it => !WFILES.has(fk(it.file))) };
     if (!c.itens || !c.itens.length) { $('fwcmp').textContent = WFILES.size ? 'Nada além do que já aparece acima.' : 'O Wikimedia Commons não tem uma categoria de bandeiras militares deste país.'; box.innerHTML = ''; const d = $('fwdet'); if (d) d.open = true; return }
     CM = c.itens.map(it => ({ img: it.thumb, big: it.url, file: it.file, title: it.label, cap: 'Wikimedia Commons' + (it.sec ? ' · ' + it.sec : ''), page: it.page }));
@@ -132,7 +132,7 @@ const wiki = async f => {
   const fim = (t) => { if ($('fwwl')) { $('fwwp').textContent = t; $('fwwl').innerHTML = '' } };
   if (!f || !window.FLWIKI || !FLWIKI.lista) return fim('Este país não tem lista de bandeiras ligada no Flâmula.');
   try {
-    const l = await FLWIKI.lista(f); if (!$('fwwl') || location.hash !== '#fotw-' + (f.k || '').toLowerCase()) return;
+    const l = await FLWIKI.lista(f); if (!$('fwwl') || FLKEY() !== 'fotw-' + (f.k || '').toLowerCase()) return;
     const S = l && l.sections ? l.sections.filter(s => MILRE.test(s.name)) : [];
     WFILES = new Set(S.flatMap(s => s.items.map(it => fk(it.file) || it.img)));
     if (!S.length) return fim('A lista de bandeiras deste país na Wikipédia não tem uma seção militar.');
@@ -187,9 +187,9 @@ const pagina = async i => {
 };
 
 document.addEventListener('click', e => {
-  const cg = e.target.closest('[data-go]'); if (cg) { PEND = { code: cg.dataset.go, k: cg.dataset.k }; location.hash = '#fotw-' + cg.dataset.go; return }
+  const cg = e.target.closest('[data-go]'); if (cg) { PEND = { code: cg.dataset.go, k: cg.dataset.k }; FL.go('fotw-' + cg.dataset.go); return }
   const ci = e.target.closest('[data-cmi]'); if (ci && CM) { const k = +ci.dataset.cmi; FL.pickFlag(CM[k], BASE, { stage: '#fwstage', list: CM, idx: k }); return }
-  const go = e.target.closest('[data-fwgo]'); if (go) { PEND = { code: go.dataset.fwgo, h: go.dataset.h, i: +go.dataset.i, n: go.dataset.n }; location.hash = '#fotw-' + go.dataset.fwgo; return }
+  const go = e.target.closest('[data-fwgo]'); if (go) { PEND = { code: go.dataset.fwgo, h: go.dataset.h, i: +go.dataset.i, n: go.dataset.n }; FL.go('fotw-' + go.dataset.fwgo); return }
   const mo = e.target.closest('.fw-more'); if (mo) { mo.previousElementSibling.classList.remove('cut'); mo.remove(); return }
   const mw = e.target.closest('[data-mws]'); if (mw && WL) { const s = WL.S[+mw.dataset.mws]; const k = +mw.dataset.mwi; FL.pickFlag({ ...s.items[k], title: s.name, page: WL.l.url }, BASE, { stage: '#fwstage', list: s.items.map(x => ({ ...x, title: s.name })), idx: k }); return }
   const tb = e.target.closest('[data-fwt]'); if (tb) { tabs(+tb.dataset.fwt); return }

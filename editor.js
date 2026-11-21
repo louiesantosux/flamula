@@ -549,5 +549,5 @@ const fallback = f => {
     } else { hist = []; hi = -1; renderAll(); commit(); marcaOrigem(); toast('Não deu para abrir em camadas; a paleta de ' + f.n + ' foi carregada') }
   }
 };
-if (/^#criar(-|$)/.test(location.hash) && !$('v-criar').hidden) FL.openEditor(location.hash.length > 7 ? location.hash.slice(7) : null);
+{ const k = window.FLKEY ? FLKEY() : ''; if (/^criar(-|$)/.test(k) && !$('v-criar').hidden) FL.openEditor(k.length > 6 ? k.slice(6) : null) }
 })();

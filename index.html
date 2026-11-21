@@ -536,12 +536,23 @@ footer a:hover,footer button:hover{color:var(--ink)}
 </nav>
 <div class="toast lg" id="toast" role="status" aria-live="polite"></div>
 
-<script src="acervo.js?v=20261120f"></script>
-<script src="firebase-config.js"></script>
-<script type="module" src="firebase.js?v=20261120f"></script>
-<script src="wiki.js?v=20261120f"></script>
+<script src="/acervo.js?v=20261120g"></script>
+<script src="/firebase-config.js"></script>
+<script type="module" src="/firebase.js?v=20261120g"></script>
+<script src="/wiki.js?v=20261120g"></script>
 <script>
 {
+/* rotas com endereço próprio (/bandeira/br, /militares/cn…) para o Google indexar cada página; #rotas antigas continuam valendo */
+const SIMPLES=['explorar','militares','jogo','comunidades','perfil','entrar','admin','marca','criar'];
+const PREF=[['b-','bandeira/'],['criar-','criar/'],['fotw-','militares/'],['c-','comunidade/'],['col-','colecao/'],['decidir-','decidir/']];
+const keyToPath=h=>{h=h||'';if(!h||h==='inicio')return '/';if(SIMPLES.includes(h))return '/'+h;for(const[k,p]of PREF)if(h.startsWith(k))return '/'+p+encodeURIComponent(h.slice(k.length)).replace(/%2C/g,',');return '/#'+h};
+const pathToKey=()=>{const p=decodeURIComponent(location.pathname.replace(/\/+$/,'').replace(/^\/+/,''));if(!p)return (location.hash||'').slice(1);if(SIMPLES.includes(p))return p;for(const[k,pf]of PREF)if(p.startsWith(pf))return k+p.slice(pf.length);return ''};
+const curKey=()=>pathToKey();
+const DESC0='Bandeiras oficiais de todos os países, dos estados do Brasil, sinais náuticos e bandeiras militares, com a história de cada uma, um jogo e um editor para criar a sua.';
+const setMeta=(t,d)=>{document.title=t;const m=document.querySelector('meta[name=description]');if(m)m.content=d||DESC0;const ot=document.querySelector('meta[property="og:title"]');if(ot)ot.content=t;const od=document.querySelector('meta[property="og:description"]');if(od)od.content=d||DESC0};
+window.FLKEY=curKey;window.FLPATH=keyToPath;
+(()=>{const h=(location.hash||'').slice(1);if(h&&(location.pathname==='/'||location.pathname==='')){const p=keyToPath(h);if(p!=='/#'+h)history.replaceState(null,'',p)}})();
+
 const D=window.ACERVO.D;
 const P={bookmark:'M6 4h12v17l-6-4.5L6 21z',edit:'M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4',heart:'M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z',dl:'M12 4v11M7 10l5 5 5-5M5 20h14',copy:'M9 9h11v11H9zM5 15V5a1 1 0 0 1 1-1h10',link:'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',remix:'M4 7h12l-3-3M20 17H8l3 3',back:'M15 6l-6 6 6 6',arrow:'M7 17L17 7M9 7h8v8',search:'M20 20l-4-4M18 11a7 7 0 1 1-14 0 7 7 0 0 1 14 0z',chev:'M7 10l5 5 5-5',check:'M5 12l5 5 9-10',x:'M6 6l12 12M18 6L6 18',user:'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c1.5-4 4.5-6 8-6s6.5 2 8 6',ext:'M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5'};
 const I=n=>`<svg class="ico" viewBox="0 0 24 24"><path d="${P[n]}"/></svg>`;
@@ -563,7 +574,7 @@ const fmt=n=>n>=1000?(n/1000).toFixed(1).replace('.',',').replace(',0','')+' mil
 const dims=f=>{const r=f.ra||[2,3];return [600,Math.round(600*r[0]/r[1])]};
 const draw=(f,cls='fl')=>{const [W,H]=dims(f);return `<svg class="${cls}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Bandeira: ${esc(f.n)}">${f.d(W,H)}</svg>`};
 const svg=(f,cls='fl',lazy=true)=>f.src?`<img class="${cls}" src="${esc(f.src)}" alt="Bandeira: ${esc(f.n)}" ${lazy?'loading="lazy"':''} decoding="async" data-fb="${esc(f.id)}">`:draw(f,cls);
-document.addEventListener('error',e=>{const t=e.target;if(t.tagName==='IMG'&&t.dataset.fb&&byId[t.dataset.fb]&&byId[t.dataset.fb].d){const ff=byId[t.dataset.fb];if(ff.alts&&ff.alts.length){const nx=ff.alts.shift();ff.src=nx;ff.fonte=ff.fotw&&nx===ff.fotw.src?'fotw-img':'commons';t.src=nx;if(ff.fonte==='fotw-img'&&t.closest('.dstage')){t.classList.add('fw-low');t.addEventListener('load',()=>{t.style.width=Math.round(t.naturalWidth*1.5)+'px'},{once:true})}return}if(ff.wt&&!ff.apiTried&&window.FLWIKI){ff.apiTried=1;ff.src=null;FLWIKI.militares([ff]).then(ch=>{if(!ch)return;if(view==='militares')renderMil();else if(view==='explorar')gal();else if(view==='home')renderCats();else if(view==='detalhe'&&location.hash==='#b-'+ff.id)det(ff.id)}).catch(()=>{})}const w=document.createElement('span');w.innerHTML=draw(byId[t.dataset.fb],t.className);const n=w.firstChild;if(t.style.viewTransitionName)n.style.viewTransitionName=t.style.viewTransitionName;t.replaceWith(n)}},true);
+document.addEventListener('error',e=>{const t=e.target;if(t.tagName==='IMG'&&t.dataset.fb&&byId[t.dataset.fb]&&byId[t.dataset.fb].d){const ff=byId[t.dataset.fb];if(ff.alts&&ff.alts.length){const nx=ff.alts.shift();ff.src=nx;ff.fonte=ff.fotw&&nx===ff.fotw.src?'fotw-img':'commons';t.src=nx;if(ff.fonte==='fotw-img'&&t.closest('.dstage')){t.classList.add('fw-low');t.addEventListener('load',()=>{t.style.width=Math.round(t.naturalWidth*1.5)+'px'},{once:true})}return}if(ff.wt&&!ff.apiTried&&window.FLWIKI){ff.apiTried=1;ff.src=null;FLWIKI.militares([ff]).then(ch=>{if(!ch)return;if(view==='militares')renderMil();else if(view==='explorar')gal();else if(view==='home')renderCats();else if(view==='detalhe'&&curKey()==='b-'+ff.id)det(ff.id)}).catch(()=>{})}const w=document.createElement('span');w.innerHTML=draw(byId[t.dataset.fb],t.className);const n=w.firstChild;if(t.style.viewTransitionName)n.style.viewTransitionName=t.style.viewTransitionName;t.replaceWith(n)}},true);
 const sub=f=>f.o==='original'?'Criação original':f.t==='militar'?`Militar · ${f.pais}`:f.t==='ilha'?`Ilha · ${f.pais}`:`${TN[f.t]} · ${f.r}`;
 let liked=new Set();try{liked=new Set(JSON.parse(localStorage.getItem('flamula-likes')||'[]'))}catch(e){}
 const saveL=()=>{try{localStorage.setItem('flamula-likes',JSON.stringify([...liked]))}catch(e){}};
@@ -678,7 +689,7 @@ const sat=h=>{const c=rgb(h);return Math.max(...c)-Math.min(...c)};
 const NAMED={white:'#FFFFFF',black:'#000000',red:'#FF0000',blue:'#0000FF',green:'#008000',yellow:'#FFFF00',navy:'#000080',gold:'#FFD700',orange:'#FFA500',maroon:'#800000'};
 const near=(a,b)=>{const x=rgb(a),y=rgb(b);return Math.hypot(x[0]-y[0],x[1]-y[1],x[2]-y[2])<.12};
 const colorsIn=t=>{const cnt={};const re=/(?:fill|stop-color)\s*[:=]\s*["']?\s*(#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b|[a-z]+)/g;let m;while(m=re.exec(t)){let c=m[1];if(c[0]!=='#'){c=NAMED[c];if(!c)continue}if(c.length===4)c='#'+[...c.slice(1)].map(x=>x+x).join('');c=c.toUpperCase();cnt[c]=(cnt[c]||0)+1}const out=[];Object.entries(cnt).sort((a,b)=>b[1]-a[1]).forEach(([c])=>{if(out.length<6&&!out.some(o=>near(o,c)))out.push(c)});return out};
-const getColors=async f=>{if(!f.approx||f.colTry||!f.src||!/\.svg($|\?)/i.test(f.src.split('?')[0]+'')&&!/flagcdn|FilePath/.test(f.src))return;f.colTry=1;try{const r=await fetch(f.src,{mode:'cors'});if(!r.ok)return;const out=colorsIn(await r.text());if(out.length){f.c=out;f.approx=false;if(location.hash==='#b-'+f.id){tint(f);const sw=$('sw');if(sw){sw.innerHTML=swH(f);$('swl').textContent='Cores · toque para copiar o hex'}}}}catch(e){}};
+const getColors=async f=>{if(!f.approx||f.colTry||!f.src||!/\.svg($|\?)/i.test(f.src.split('?')[0]+'')&&!/flagcdn|FilePath/.test(f.src))return;f.colTry=1;try{const r=await fetch(f.src,{mode:'cors'});if(!r.ok)return;const out=colorsIn(await r.text());if(out.length){f.c=out;f.approx=false;if(curKey()==='b-'+f.id){tint(f);const sw=$('sw');if(sw){sw.innerHTML=swH(f);$('swl').textContent='Cores · toque para copiar o hex'}}}}catch(e){}};
 const RAT=[[1,1],[2,3],[1,2],[3,5],[10,19],[7,10],[5,8],[3,4],[4,5],[9,14],[11,18],[18,25],[8,11],[7,11],[13,15],[28,37],[6,7],[10,11],[2,1]];
 const ratTxt=(w,h)=>{const q=h/w;let best=null,bd=1;RAT.forEach(([a,b])=>{const d=Math.abs(a/b-q)/q;if(d<bd){bd=d;best=[a,b]}});return bd<.015?`${best[0]}:${best[1]}`:`1:${(w/h).toFixed(2).replace('.',',')}`};
 const swH=f=>f.c.map(c=>`<button data-hex="${esc(c.toUpperCase())}"><i style="background:${esc(c)}"></i>${esc(c.toUpperCase())}</button>`).join('');
@@ -701,22 +712,22 @@ addEventListener('keydown',e=>{if(!vwOpen)return;if(e.key==='Escape')closeViewer
 /* detalhe */
 const yrs=x=>`${x.from??'?'}–${x.to??(x.cur?'hoje':'?')}`;
 const TLS={},LST={};
-const renderInfo=(f,w)=>{if(location.hash!=='#b-'+f.id)return;
+const renderInfo=(f,w)=>{if(curKey()!=='b-'+f.id)return;
  const ad=$('fado');if(ad&&!f.y&&f.t!=='nautica'&&f.o!=='original')ad.textContent=w&&w.inc?w.inc:'—';
  const de=$('fdes');if(de&&!f.des)de.textContent=w&&w.des&&w.des.length?w.des.join(', '):'Não registrado';
  const cx=$('fctx');if(cx){if(w&&w.ctx){cx.innerHTML=`<p>${esc(w.ctx.text)}</p><a class="lnk" href="${esc(w.ctx.url)}" target="_blank" rel="noopener">Ler na Wikipédia${w.ctx.lang==='en'?' (em inglês)':''}</a>`}else cx.innerHTML=`<p style="color:var(--mut)">${w&&w.ok?'Sem artigo da Wikipédia associado a esta bandeira.':'Não foi possível carregar o contexto agora.'}</p>`}
  const wl=$('fwlink');if(wl&&f.t==='militar'&&f.wen)wl.href='https://en.wikipedia.org/wiki/'+encodeURIComponent(f.wen.replace(/ /g,'_'));
  if((f.t==='militar'||f.t==='ilha')&&f.src){const sv=$('v-detalhe').querySelector('.dstage>svg');if(sv){const w2=document.createElement('span');w2.innerHTML=svg(f,'fl',false);const n=w2.firstChild;n.style.viewTransitionName='flag';sv.replaceWith(n)}if(f.approx)getColors(f)}};
-const renderTL=(f,t)=>{if(location.hash!=='#b-'+f.id)return;const tl=$('tl'),tp=$('tlp');if(!tl)return;TLS[f.id]=t;
+const renderTL=(f,t)=>{if(curKey()!=='b-'+f.id)return;const tl=$('tl'),tp=$('tlp');if(!tl)return;TLS[f.id]=t;
  if(t&&t.items&&t.items.length){tl.innerHTML=`<ol class="tl-row">${t.items.map((x,i)=>`<li class="tl-i ${x.cur?'cur':''}" style="animation-delay:${i*60}ms"><span class="tl-dot"></span><button class="tl-card pr" data-tl="${i}" aria-label="Ampliar versão ${yrs(x)}"><img src="${esc(x.img)}" alt="" loading="lazy"></button><b>${yrs(x)}</b>${x.label?`<span>${esc(x.label)}</span>`:''}</li>`).join('')}</ol>${t.items.length<2?'<p class="tl-msg">Não há versões anteriores registradas para esta bandeira.</p>':''}`;const row=tl.querySelector('.tl-row');if(row)row.scrollLeft=row.scrollWidth;
   if(tp)tp.innerHTML=t.src&&t.src.name==='Wikipédia'?`Versões anteriores e a atual, segundo a Wikipédia${t.src.url?` · <a class="lnk" href="${esc(t.src.url)}" target="_blank" rel="noopener">${esc(t.src.title||'ver página')}</a>`:''}. Toque para ampliar.`:'Versões registradas na Wikidata. Toque para ampliar.'}
  else tl.innerHTML=`<p class="tl-msg">${t?'Não há versões anteriores registradas para esta bandeira.':'Não foi possível carregar a linha do tempo agora.'}</p>`};
-const renderLista=(f,l)=>{if(location.hash!=='#b-'+f.id)return;const box=$('wls'),sec=$('wlsec');if(!box)return;LST[f.id]=l;
+const renderLista=(f,l)=>{if(curKey()!=='b-'+f.id)return;const box=$('wls'),sec=$('wlsec');if(!box)return;LST[f.id]=l;
  if(!l){box.innerHTML='<p class="tl-msg">Não foi possível carregar a lista agora.</p>';return}
  if(l.none||!l.sections||!l.sections.length){sec.hidden=true;return}
  $('wlp').innerHTML=`Da página <a class="lnk" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.title)}</a> da Wikipédia${l.lang==='en'?` (em inglês · <a class="lnk" href="${esc(l.tr)}" target="_blank" rel="noopener">ler traduzida</a>)`:''}. Toque em uma bandeira para vê-la em destaque, baixar ou remixar.`;
  box.innerHTML=l.sections.map((s,si)=>`<div class="wl-s"><h3>${esc(s.name)} <small>${s.items.length}</small></h3><div class="wl-g ${s.items.length>8?'cut':''}">${s.items.map((it,ii)=>`<button class="wl-i pr" data-ws="${si}" data-wi="${ii}"><span class="wl-im"><img src="${esc(it.img)}" alt="" loading="lazy"></span><span class="wl-c">${esc(it.cap||it.file||'')}</span></button>`).join('')}</div>${s.items.length>8?`<button class="btn gh pr sm wl-more">Ver todas as ${s.items.length}</button>`:''}</div>`).join('')};
-document.addEventListener('click',e=>{const t=e.target.closest('[data-tl],[data-ws],.wl-more');if(!t)return;const id=location.hash.slice(3);
+document.addEventListener('click',e=>{const t=e.target.closest('[data-tl],[data-ws],.wl-more');if(!t)return;const id=curKey().slice(2);
  if(t.classList.contains('wl-more')){const g=t.previousElementSibling;g.classList.remove('cut');t.remove();return}
  const base=byId[id];if(!base)return;
  if(t.dataset.tl!=null){const T=TLS[id];if(T){const x=T.items[+t.dataset.tl];pickFlag({...x,title:yrs(x),cap:x.label,page:T.src&&T.src.url},base,{list:T.items.map(y=>({...y,title:yrs(y),cap:y.label})),idx:+t.dataset.tl})}return}
@@ -764,7 +775,7 @@ const det=id=>{const f=byId[id];if(!f){history.replaceState(null,'','#explorar')
  const rel=D.filter(x=>x.id!==f.id&&x.t===f.t&&x.r===f.r);const rel2=(rel.length>=4?rel:rel.concat(D.filter(x=>x.id!==f.id&&x.t===f.t&&x.r!==f.r))).slice(0,6);
  const fx=[['Proporção',f.ra?`${f.ra[0]}:${f.ra[1]}`:'…','fra'],...(isN?[]:[['Adoção',isO?'—':(f.y||'…'),'fado']]),[isN?'Letra':isW?'País':'Código',isW?f.pais:f.k]];
  const loc=isN?[['Uso','Comunicação marítima'],['Sistema','Código Internacional de Sinais']]:isO?[['Autor','@'+f.a],['Comunidade',f.comNome||'—']]:[['Designer',f.des?f.des.join(', '):'<span class="sk"></span>','fdes'],[isW?'Continente':'Capital',isW?f.ct:(f.cap||'—')],...(isW?[]:[['Continente',f.ct+(AMER.includes(f.r)?' · '+f.r.replace('América ','').replace(/^do |^d[ao] /,''):'')]])];
- document.title=f.n+' · Flâmula';tint(f);
+ setMeta(`${f.n} · ${f.t==='militar'?'Bandeira militar':f.t==='nautica'?'Sinal náutico':f.t==='estado'?'Bandeira estadual':'Bandeira'} · Flâmula`,[f.of&&f.of!==f.n?f.of:'',f.y?`Adotada em ${f.y}.`:'',f.desc||'',`Proporção, cores, história e download da bandeira ${f.n}.`].filter(Boolean).join(' ').slice(0,300));tint(f);
  const dlBtn=isM?`<a class="btn pr" id="fwlink" href="#" target="_blank" rel="noopener">${I('ext')}Abrir na Wikipédia</a>`:`<button class="btn pr" id="bdl">${I('dl')}Baixar SVG<span class="n" data-cd="${esc(f.id)}" style="opacity:.7">·&nbsp;<i>${fmt(nD(f))}</i></span></button>`;
  $('v-detalhe').innerHTML=`<a class="back lg pr" href="#${isM?'militares':'explorar'}">${I('back')}${isM?'Militares':'Explorar'}</a><div class="dgrid"><div class="dstage lg">${svg(f,'fl',false)}</div><div class="dinfo"><div class="dhead lg"><h1>${esc(f.n)}</h1>${f.of&&f.of!==f.n?`<p class="of">${esc(f.of)}</p>`:''}<div class="pills"><span class="o">${isO?'Original':isM?'Militar':'Oficial'}</span>${isM?'':`<span>${TN[f.t]}</span>`}<span>${esc(f.ct||f.r)}</span>${f.isl?'<span>Ilha</span>':''}${isO?`<span>@${esc(f.a)}</span>`:''}</div>
  <div class="acts"><button class="btn gh pr ${liked.has(f.id)?'on':''}" id="blike" aria-pressed="${liked.has(f.id)}">${I('heart')}<span class="n" data-cl="${esc(f.id)}"><i>${fmt(nL(f))}</i></span><span class="lbl">Curtir</span></button>${dlBtn}<button class="btn gh pr" data-act="salvar-colecao" data-id="${esc(f.id)}">${I('bookmark')}Salvar</button><button class="btn gh pr" id="bshare">${I('link')}Copiar link</button>${isM?'':`<a class="btn acc pr" href="#criar-${esc(f.id)}">${I('remix')}Remixar</a>`}</div></div>
@@ -781,7 +792,7 @@ const det=id=>{const f=byId[id];if(!f){history.replaceState(null,'','#explorar')
  const setR=()=>{const el=$('fra');if(!el||f.ra)return;const w=fl.naturalWidth,h=fl.naturalHeight;el.textContent=(w&&h&&!(w===300&&h===150))?ratTxt(w,h):'—'};
  if(!f.ra){if(fl.tagName==='IMG'){fl.complete?setR():fl.addEventListener('load',setR,{once:true});fl.addEventListener('error',()=>{const el=$('fra');if(el)el.textContent='—'},{once:true})}else{const el=$('fra');if(el)el.textContent='—'}}
  if(isO){const a=$('fado');if(a)a.textContent='—'}
- if(f.approx)getColors(f).then(()=>{if(f.approx){const l=$('swl');if(l&&location.hash==='#b-'+f.id)l.textContent='Cores aproximadas · toque para copiar o hex'}});
+ if(f.approx)getColors(f).then(()=>{if(f.approx){const l=$('swl');if(l&&curKey()==='b-'+f.id)l.textContent='Cores aproximadas · toque para copiar o hex'}});
  if(hist){const W=window.FLWIKI;if(!W){renderInfo(f,null);renderTL(f,null);renderLista(f,null)}else{
   const pi=W.info(f).catch(()=>null),pl=f.t==='pais'?W.lista(f).catch(()=>null):Promise.resolve(null);
   pi.then(w=>renderInfo(f,w));pl.then(l=>{if(f.t==='pais')renderLista(f,l)});
@@ -801,10 +812,10 @@ const dlFlag=async f=>{window.FL_STATS?.inc('downloads',f.id,1);const name=`band
 /* conta na navegação */
 const accBtn=()=>{const u=window.FB&&FB.user,p=window.FB&&FB.profile;$('acc').innerHTML=u?`<a class="pr" href="#perfil" aria-label="Meu perfil" style="display:block;border-radius:999px"><span class="avw"><span class="av">${p&&p.foto?`<img src="${esc(p.foto)}" alt="" referrerpolicy="no-referrer">`:esc((p&&p.nome||'?').trim()[0]||'?').toUpperCase()}</span>${FL.seloHTML?FL.seloHTML(p):''}</span></a>`:`<button class="btn sm pr" data-act="login">Entrar</button><button class="ic pr" data-act="login" aria-label="Entrar" style="display:none" id="accic">${I('user')}</button>`;$('ladmin').hidden=!(window.FB&&FB.admin);const ic=$('accic');if(ic&&matchMedia('(max-width:760px)').matches)ic.style.display='grid'};
 accBtn();addEventListener('resize',accBtn);
-addEventListener('fb-user',()=>{accBtn();if(FL.views[view])FL.views[view](argOf(location.hash.slice(1)))});
+addEventListener('fb-user',()=>{accBtn();if(FL.views[view])FL.views[view](argOf(curKey()))});
 /* criações aprovadas na galeria */
 const addOriginal=e=>{const id='u-'+e.id;if(byId[id])return;const src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(e.svg||'');const f={id,k:'—',n:e.nome||'Sem nome',t:'criacao',o:'original',r:'Comunidade',ct:'Comunidade',a:e.autor||'anônimo',uid:e.uid,com:e.comunidade||'',ra:Array.isArray(e.ra)?e.ra:null,y:null,c:colorsIn(e.svg||'').slice(0,6),src,fonte:'comunidade',added:1e6+((e.criadoEm&&e.criadoEm.seconds)||0),d:(W,H)=>`<rect width="${W}" height="${H}" fill="#ddd"/>`};f.of='Criação de @'+f.a;D.push(f);byId[id]=f;return f};
-FL_loadOriginals=async()=>{if(!(window.FB&&FB.on))return;try{const L=await FB.aprovadas();L.forEach(addOriginal);drawTipos();ddCont.items(contItems());renderCom();if(view==='explorar')gal();if(view==='detalhe'&&location.hash.startsWith('#b-u-'))det(location.hash.slice(3))}catch(e){console.warn('[Flâmula] criações:',e.message)}};
+FL_loadOriginals=async()=>{if(!(window.FB&&FB.on))return;try{const L=await FB.aprovadas();L.forEach(addOriginal);drawTipos();ddCont.items(contItems());renderCom();if(view==='explorar')gal();if(view==='detalhe'&&curKey().startsWith('b-u-'))det(curKey().slice(2))}catch(e){console.warn('[Flâmula] criações:',e.message)}};
 addEventListener('fb-on',()=>FL_loadOriginals());if(window.FB&&FB.on)FL_loadOriginals();
 
 /* rotas com transição contínua */
@@ -812,9 +823,9 @@ let view='home',lastDet=null;const scrollMem={};
 const VIEWS=['colecao','decidir','entrar','home','explorar','militares','detalhe','criar','perfil','comunidades','comunidade','admin','marca','jogo'];
 const viewOf=h=>h.startsWith('col-')?'colecao':h.startsWith('decidir-')?'decidir':h==='entrar'?'entrar':h==='explorar'?'explorar':h==='marca'?'marca':(h==='militares'||h.startsWith('fotw-'))?'militares':h.startsWith('b-')?'detalhe':(h==='criar'||h.startsWith('criar-'))?'criar':h==='perfil'?'perfil':h==='comunidades'?'comunidades':h.startsWith('c-')?'comunidade':h==='admin'?'admin':h==='jogo'?'jogo':'home';
 const argOf=h=>h.startsWith('col-')?h.slice(4):h.startsWith('decidir-')?h.slice(8):h.startsWith('b-')?h.slice(2):h.startsWith('criar-')?h.slice(6):h.startsWith('c-')?h.slice(2):null;
-const route=()=>{const h=location.hash.slice(1);const v=viewOf(h);closeDD();closeSheet();closeViewer();if(v!=='jogo'&&FL.stopGame)FL.stopGame();
+const route=()=>{const h=curKey();{const c=document.querySelector('link[rel=canonical]');if(c)c.href=location.origin+keyToPath(h).replace(/\/#.*/,'/')}const v=viewOf(h);closeDD();closeSheet();closeViewer();if(v!=='jogo'&&FL.stopGame)FL.stopGame();
  scrollMem[view]=scrollY;
- document.body.classList.remove('tinted');document.title='Flâmula';
+ document.body.classList.remove('tinted');setMeta('Flâmula · Bandeiras do mundo, história e editor de bandeiras');
  VIEWS.forEach(x=>$('v-'+x).hidden=x!==v);
  if(v==='explorar'){gal();loadMil()}
  if(v==='militares'){if(h.startsWith('fotw-')&&window.FLFOTW)FLFOTW.pais(h.slice(5));else{renderMil();loadMil();if(window.FLFOTW)FLFOTW.lista()}}
@@ -829,9 +840,10 @@ const route=()=>{const h=location.hash.slice(1);const v=viewOf(h);closeDD();clos
  scrollTo(0,v==='explorar'&&prev==='detalhe'?(scrollMem.explorar||0):0);
  document.body.classList.remove('compact')};
 const clearNames=()=>document.querySelectorAll('.card .stg>*').forEach(el=>el.style.viewTransitionName='');
-const go=(h,src)=>{if(location.hash==='#'+h)return;if(!document.startViewTransition||RM.matches){location.hash=h;return}
+const go=(h,src)=>{if(curKey()===h)return;if(!document.startViewTransition||RM.matches){history.pushState(null,'',keyToPath(h));route();return}
  clearNames();if(src){const stg=$('v-detalhe').querySelector('.dstage>*');if(stg&&!$('v-detalhe').hidden)stg.style.viewTransitionName='';src.style.viewTransitionName='flag'}
- const t=document.startViewTransition(()=>{history.pushState(null,'','#'+h);route()});t.finished.finally(clearNames)};
+ const t=document.startViewTransition(()=>{history.pushState(null,'',keyToPath(h));route()});t.finished.finally(clearNames)};
+addEventListener('hashchange',()=>{const h=(location.hash||'').slice(1);if(h){history.replaceState(null,'',keyToPath(h));route()}});
 addEventListener('popstate',()=>{if(!document.startViewTransition||RM.matches)return route();clearNames();document.startViewTransition(route).finished.finally(clearNames)});
 
 document.addEventListener('click',e=>{const t=e.target.closest('button,a');if(!t)return;
@@ -844,16 +856,18 @@ document.addEventListener('click',e=>{const t=e.target.closest('button,a');if(!t
  if(t.dataset.hex){navigator.clipboard.writeText(t.dataset.hex).then(()=>toast(t.dataset.hex+' copiado')).catch(()=>toast('Não foi possível copiar'));return}
  if(t.id==='bsearch'){e.preventDefault();go('explorar');setTimeout(()=>$('q').focus(),80);return}
  if(t.id==='vercom'){Object.assign(st,{t:'todos',o:'original',r:'todas',s:'recentes'});shown=PAGE}
- if(t.tagName==='A'&&t.getAttribute('href')&&t.getAttribute('href')[0]==='#'&&t.getAttribute('href').length>1&&!e.metaKey&&!e.ctrlKey){e.preventDefault();const h=t.getAttribute('href').slice(1);const src=t.classList.contains('card')?t.querySelector('.stg>*'):null;go(h,src)}
+ if(t.tagName==='A'&&t.dataset.k!=null&&!e.metaKey&&!e.ctrlKey&&!e.shiftKey){e.preventDefault();const h=t.dataset.k;const src=t.classList.contains('card')?t.querySelector('.stg>*'):null;go(h,src)}
 });
 var FL_loadOriginals;
 window.FL={refreshAcc:()=>accBtn(),$,toast,esc,norm,D,byId,I,fmt,svg,draw,card,viewer,pickFlag,unpick,saveBlob,tint,colorsIn,dd,sheet,closeSheet,go:h=>go(h),route,addOriginal,views:{},actions:{},get view(){return view},reloadOriginals:()=>FL_loadOriginals()};
-document.addEventListener('DOMContentLoaded',()=>{route();requestAnimationFrame(()=>moveInd())});
+const fixLinks=root=>{(root.querySelectorAll?root:document).querySelectorAll('a[href^="#"]').forEach(a=>{const h=a.getAttribute('href').slice(1);if(!h)return;const p=keyToPath(h);if(p.startsWith('/#'))return;a.dataset.k=h;a.setAttribute('href',p)})};
+new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes)if(n.nodeType===1){if(n.matches&&n.matches('a[href^="#"]'))fixLinks(n.parentNode||document);else if(n.querySelector&&n.querySelector('a[href^="#"]'))fixLinks(n)}}).observe(document.documentElement,{childList:true,subtree:true});
+document.addEventListener('DOMContentLoaded',()=>{fixLinks(document);route();requestAnimationFrame(()=>moveInd())});
 }
 </script>
-<script src="editor.js?v=20261120f"></script>
-<script src="contas.js?v=20261120f"></script>
-<script src="jogo.js?v=20261120f"></script>
-<script src="fotw.js?v=20261120f"></script>
+<script src="/editor.js?v=20261120g"></script>
+<script src="/contas.js?v=20261120g"></script>
+<script src="/jogo.js?v=20261120g"></script>
+<script src="/fotw.js?v=20261120g"></script>
 </body>
 </html>
