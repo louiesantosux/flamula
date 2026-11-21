@@ -415,7 +415,7 @@ let pfTab = 'criacoes';
 const likesLocal = () => { try { return JSON.parse(localStorage.getItem('flamula-likes') || '[]') } catch (e) { return [] } };
 const recLocal = () => { try { return JSON.parse(localStorage.getItem('flamula-recordes') || '{}') } catch (e) { return {} } };
 const tfmt = ms => { const s = ms / 1000, m = Math.floor(s / 60); return `${m}:${(s - m * 60).toFixed(1).padStart(4, '0')}`.replace('.', ',') };
-const NIVN = { facil: ['Fácil', '#30D158'], medio: ['Médio', '#FF9F0A'], dificil: ['Difícil', '#FF3B30'], silhueta: ['Silhueta', '#1B7FDC'], recorte: ['Recorte', '#0DB8D3'], tempo: ['Contra o tempo', '#065B98'] };
+const NIVN = { facil: ['Fácil', '#30D158'], medio: ['Médio', '#FF9F0A'], dificil: ['Difícil', '#FF3B30'], silhueta: ['Silhueta', '#1B7FDC'], recorte: ['Recorte', '#0DB8D3'], todas: ['Todas as bandeiras', '#193546'], tempo: ['Contra o tempo', '#065B98'] };
 const recTxt = (n, b) => n === 'tempo' ? b.acertos + ' acertos' : b.acertos + '/' + (b.total || 10);
 FL.views.perfil = async () => {
   const v = $('v-perfil'); document.title = 'Meu perfil · Flâmula';
@@ -447,7 +447,8 @@ FL.views.perfil = async () => {
   $('pfout').onclick = async () => { await FB().logout(); toast('Você saiu da conta'); FL.go('inicio') };
   const editar = (foco) => {
     let band = p.bandeira || '', selo = p.selo || '', banner = bnr, foto = p.foto || '';
-    const ops = D.filter(f => f.o !== 'original' && f.t !== 'criacao' && !f.oculta).sort((a, b) => a.n.localeCompare(b.n, 'pt')).map(f => ({ v: f.id, l: f.n, fl: f.id }));
+    const TPL = { estado: 'Estado', ilha: 'Ilha', nautica: 'Sinal náutico', militar: 'Militar', org: 'Organização', criacao: 'Criação' };
+    const ops = D.filter(f => !f.oculta).sort((a, b) => a.n.localeCompare(b.n, 'pt')).map(f => ({ v: f.id, l: f.n + (TPL[f.t] ? ' · ' + (f.t === 'criacao' ? 'Criação de @' + (f.a || 'anônimo') : TPL[f.t]) : ''), fl: f.id }));
     const csOf = () => { const f = band && byId[band]; return f && f.c && f.c.length ? f.c.slice(0, 4) : ['#0DB8D3', '#1B7FDC', '#065B98'] };
     const el = sheet('Editar perfil', `<div class="form">
       <div class="pe-foto"><span id="pefv"></span><div class="erow"><label class="btn gh pr sm" for="pefile">Trocar foto</label>${u.photoURL ? '<button class="btn gh pr sm" id="pegoo">Usar a do Google</button>' : ''}<button class="btn gh pr sm" id="perm">Remover</button></div><input type="file" id="pefile" accept="image/*" hidden></div>

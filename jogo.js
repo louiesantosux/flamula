@@ -20,7 +20,7 @@ css.textContent = `
 .jg-qty .stp b{min-width:44px;text-align:center;font:700 20px var(--font-d);font-variant-numeric:tabular-nums}
 .jg-qty small{color:var(--mut);font-size:13px}
 .jg-gt{font:600 13px var(--font);letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin:22px 4px 10px}
-.lvls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.lvls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.lvls.l4{grid-template-columns:repeat(4,minmax(0,1fr))}@media(max-width:1000px){.lvls.l4{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .lvl{display:grid;gap:8px;align-content:start;text-align:left;padding:20px;border-radius:26px;border:0;color:var(--ink)}
 .lvl b{font:700 22px var(--font-d);letter-spacing:-.02em}
 .lvl span{color:var(--mut);font-size:14px}
@@ -85,7 +85,7 @@ css.textContent = `
 .rkm{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px;margin-top:12px}.rkm::-webkit-scrollbar{display:none}
 .rkm button{flex:0 0 auto;min-height:38px;padding:0 14px;border-radius:999px;border:0;background:var(--chip);color:var(--ink);font:600 14px var(--font)}
 .rkm button.on{background:var(--acc,#1B7FDC);color:#fff}
-@media(max-width:760px){.lvls{grid-template-columns:minmax(0,1fr)}.opt{min-height:58px;font-size:16px}.jg-stage{border-radius:24px;max-height:max(170px,calc(100dvh - 430px))}.jg.play .jg-top{gap:6px;margin:4px 0 8px}.jg.play .jg-pill{min-height:36px;padding:0 11px;font-size:14px}.jg.play .opts{gap:8px}.jg.play .opt{min-height:50px;font-size:15px;padding:8px 10px;border-radius:18px}.jg.play .opt kbd{display:none}.jg-rev{min-height:0;margin-top:6px}.jg-dots i{width:6px;height:6px}.rk li{grid-template-columns:34px minmax(0,1fr) auto;}.rk li small.t2{display:none}.jg-dia{grid-template-columns:auto minmax(0,1fr)}.jg-dia .acts{grid-column:1/-1;justify-content:stretch}.jg-dia .acts .btn{flex:1}.jg-qty{border-radius:26px;padding:12px 16px}}
+@media(max-width:760px){.lvls,.lvls.l4{grid-template-columns:minmax(0,1fr)}.opt{min-height:58px;font-size:16px}.jg-stage{border-radius:24px;max-height:max(170px,calc(100dvh - 430px))}.jg.play .jg-top{gap:6px;margin:4px 0 8px}.jg.play .jg-pill{min-height:36px;padding:0 11px;font-size:14px}.jg.play .opts{gap:8px}.jg.play .opt{min-height:50px;font-size:15px;padding:8px 10px;border-radius:18px}.jg.play .opt kbd{display:none}.jg-rev{min-height:0;margin-top:6px}.jg-dots i{width:6px;height:6px}.rk li{grid-template-columns:34px minmax(0,1fr) auto;}.rk li small.t2{display:none}.jg-dia{grid-template-columns:auto minmax(0,1fr)}.jg-dia .acts{grid-column:1/-1;justify-content:stretch}.jg-dia .acts .btn{flex:1}.jg-qty{border-radius:26px;padding:12px 16px}}
 `;
 document.head.appendChild(css);
 
@@ -97,6 +97,7 @@ const soberanos = () => paises().filter(x => !TERR.has(x.id) && !x.isl);
 const ICO = {
   sil: '<svg viewBox="0 0 24 24"><path d="M4 7l5-2 6 2 5-2v12l-5 2-6-2-5 2z"/><path d="M9 5v12M15 7v12"/></svg>',
   rec: '<svg viewBox="0 0 24 24"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>',
+  all: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="8" height="7" rx="1.5"/><rect x="13" y="4" width="8" height="7" rx="1.5"/><rect x="3" y="13" width="8" height="7" rx="1.5"/><rect x="13" y="13" width="8" height="7" rx="1.5"/></svg>',
   tmp: '<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>'
 };
 const MODOS = {
@@ -105,9 +106,10 @@ const MODOS = {
   dificil: { nome: 'Difícil', cor: '#FF3B30', ic: 'D', txt: 'Inclui territórios, opções do mesmo continente e 10 segundos por bandeira.', qtd: true, limite: LIMIT_DIFICIL, pool: paises, distr: f => { const s = paises().filter(x => x.ct === f.ct); return s.length >= 6 ? s : paises() } },
   silhueta: { nome: 'Silhueta', cor: '#1B7FDC', ic: ICO.sil, txt: 'Sem bandeira: só o contorno do país no mapa.', qtd: true, pool: () => soberanos().filter(f => SIL.has(f.id)), distr: f => { const s = soberanos().filter(x => x.ct === f.ct); return s.length >= 6 ? s : soberanos() } },
   recorte: { nome: 'Recorte', cor: '#0DB8D3', ic: ICO.rec, txt: 'Só um pedaço ampliado da bandeira. A bandeira inteira aparece depois da resposta.', qtd: true, pool: soberanos, distr: f => { const s = soberanos().filter(x => x.ct === f.ct); return s.length >= 6 ? s : soberanos() } },
+  todas: { nome: 'Todas as bandeiras', cor: '#193546', ic: ICO.all, txt: 'O acervo inteiro: países, estados, ilhas, sinais náuticos, militares, organizações e criações da comunidade.', qtd: true, estrito: true, pool: () => D.filter(f => !f.oculta), distr: f => { const s = D.filter(x => x.t === f.t && !x.oculta); return s.length >= 6 ? s : D.filter(x => !x.oculta) } },
   tempo: { nome: 'Contra o tempo', cor: '#065B98', ic: ICO.tmp, txt: '60 segundos para acertar o máximo de bandeiras. Errar não para o relógio.', qtd: false, pool: soberanos, distr: () => soberanos() }
 };
-const ORDEM_RK = ['facil', 'medio', 'dificil', 'silhueta', 'recorte', 'tempo', 'diario'];
+const ORDEM_RK = ['facil', 'medio', 'dificil', 'silhueta', 'recorte', 'todas', 'tempo', 'diario'];
 const NOME = m => m === 'diario' ? 'Desafio diário' : MODOS[m].nome;
 
 const shuffle = (a, rnd = Math.random) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]] } return a };
@@ -119,7 +121,8 @@ const melhores = L => { const m = new Map(); L.forEach(r => { const k = (r.uid |
 const LKEY = 'flamula-recordes';
 const local = () => { try { return JSON.parse(localStorage.getItem(LKEY) || '{}') } catch (e) { return {} } };
 const saveLocal = (modo, r) => { const all = local(); const k = chaveNome(r.nome); const ant = (all[modo] || []).find(x => chaveNome(x.nome) === k && totalDe(x) === totalDe(r) && (modo !== 'diario' || x.dia === r.dia)); const melhorou = !ant || r.pontos > ant.pontos; all[modo] = melhores((all[modo] || []).concat([r])).slice(0, 40); try { localStorage.setItem(LKEY, JSON.stringify(all)) } catch (e) { } return { melhorou, anterior: ant } };
-const loadImg = f => new Promise(res => { if (!f.src) return res(f.ra ? 'draw' : false); const im = new Image(); const t = setTimeout(() => res(f.ra ? 'draw' : false), 6000); im.onload = () => { clearTimeout(t); res('img') }; im.onerror = () => { clearTimeout(t); res(f.ra ? 'draw' : false) }; im.src = f.src });
+const desenhavel = (f, estrito) => f.ra && (!estrito || f.t === 'pais' || f.t === 'nautica' || f.o === 'original') ? 'draw' : false;
+const loadImg = (f, estrito) => new Promise(res => { const fb = () => res(desenhavel(f, estrito)); if (!f.src) return fb(); const im = new Image(); const t = setTimeout(fb, 6000); im.onload = () => { clearTimeout(t); res('img') }; im.onerror = () => { clearTimeout(t); const nx = (f.alts || [])[0]; if (nx && f.src !== nx) { f.src = nx; f.alts = f.alts.slice(1); loadImg(f, estrito).then(res) } else fb() }; im.src = f.src });
 
 /* quantidade (de 10 em 10) */
 const QKEY = 'flamula-jogo-qtd';
@@ -185,10 +188,10 @@ const diaHTML = () => {
 const menu = () => {
   stop(); G = null; const rec = local(); const MX = MAXQ_GERAL(); qtd = Math.min(qtd, MX);
   $('v-jogo').innerHTML = `<div class="jg"><div class="jg-h"><h1>Qual é o país?</h1><p>Escolha um modo e a quantidade de bandeiras. Acerte o máximo no menor tempo e entre no ranking.</p></div>
-  <div class="jg-qty lg"><span>Bandeiras por partida</span><span class="stp"><button id="jgq-" aria-label="Menos 10">−</button><b id="jgqv">${qtd}</b><button id="jgq+" aria-label="Mais 10">+</button></span><small>Vale para os modos clássicos, Silhueta e Recorte.</small></div>
+  <div class="jg-qty lg"><span>Bandeiras por partida</span><span class="stp"><button id="jgq-" aria-label="Menos 10">−</button><b id="jgqv">${qtd}</b><button id="jgq+" aria-label="Mais 10">+</button></span><small>Vale para os modos clássicos, Silhueta, Recorte e Todas as bandeiras.</small></div>
   ${diaHTML()}
   <p class="jg-gt">Clássico</p><div class="lvls">${['facil', 'medio', 'dificil'].map(m => cartao(m, rec)).join('')}</div>
-  <p class="jg-gt">Outros modos</p><div class="lvls">${['silhueta', 'recorte', 'tempo'].map(m => cartao(m, rec)).join('')}</div>
+  <p class="jg-gt">Outros modos</p><div class="lvls l4">${['silhueta', 'recorte', 'todas', 'tempo'].map(m => cartao(m, rec)).join('')}</div>
   <section class="jg-sec"><div class="shead"><div><h2>Ranking</h2><p id="rkp"></p></div></div><div class="rkm" id="rkm">${ORDEM_RK.map(m => `<button data-v="${m}" class="${m === rkTab ? 'on' : ''}">${NOME(m)}</button>`).join('')}</div><div class="rk" id="rkl"></div></section></div>`;
   const qset = v => { qtd = Math.max(10, Math.min(MX, v)); try { localStorage.setItem(QKEY, qtd) } catch (e) { } $('jgqv').textContent = qtd; $('jgq-').disabled = qtd <= 10; $('jgq+').disabled = qtd >= MX; const rc = local(); document.querySelectorAll('.lvl[data-modo]').forEach(b => { const em = b.querySelector('em'); if (em) em.textContent = recordeTxt(b.dataset.modo, rc) }); ranking() };
   $('jgq-').onclick = () => qset(qtd - 10); $('jgq+').onclick = () => qset(qtd + 10); qset(qtd);
@@ -218,6 +221,7 @@ const start = async modo => {
   const diario = modo === 'diario', base = diario ? 'medio' : modo, N = MODOS[base];
   if (diario && diarios()[hoje()]) { toast('Você já jogou o desafio de hoje'); return menu() }
   if (modo === 'silhueta') { $('v-jogo').innerHTML = '<div class="jg"><div class="jg-h"><h1>Silhueta</h1><p>Carregando o mapa…</p></div></div>'; try { await carregaTopo() } catch (e) { toast('Não foi possível carregar o mapa agora'); return menu() } if (!G && $('v-jogo').hidden) return }
+  if (modo === 'todas' && window.FLWIKI) { $('v-jogo').innerHTML = '<div class="jg"><div class="jg-h"><h1>Todas as bandeiras</h1><p>Carregando o acervo…</p></div></div>'; await Promise.race([FLWIKI.militares(D.filter(f => f.wt && !f.src)).catch(() => { }), new Promise(r => setTimeout(r, 5000))]); if ($('v-jogo').hidden) return }
   const dia = hoje(), rnd = diario ? seeded('flamula-' + dia) : Math.random;
   let total = diario ? DIARIO_N : modo === 'tempo' ? Infinity : Math.min(qtd, maxQ(modo));
   if (N.qtd && !diario && qtd > total) toast(`Este modo tem ${total} bandeiras disponíveis por partida`);
@@ -238,7 +242,7 @@ const pick = async () => {
   for (let tries = 0; tries < 40; tries++) {
     const f = G.pool.find(x => !G.used.has(x.id)); if (!f) return null; G.used.add(f.id);
     let how;
-    if (G.modo === 'silhueta') { how = silhueta(f.id) ? 'sil' : false } else how = await loadImg(f);
+    if (G.modo === 'silhueta') { how = silhueta(f.id) ? 'sil' : false } else how = await loadImg(f, MODOS[G.base].estrito);
     if (!how) continue;
     const others = shuffle(N.distr(f).filter(x => x.id !== f.id && x.n !== f.n), G.rnd).slice(0, 3);
     return { f, how, opts: shuffle([f, ...others], G.rnd), ox: 20 + G.rnd() * 60, oy: 22 + G.rnd() * 56 };
